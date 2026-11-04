@@ -5,11 +5,10 @@ import com.yet.talk.nostr.EventTemplate
 import com.yet.talk.nostr.nip.Imeta
 import com.yet.talk.nostr.nip.Kinds
 import com.yet.talk.nostr.nip.Tags
-import com.yet.talk.nostr.nip.deletion
 import com.yet.talk.nostr.nip.reaction
 import com.yet.talk.nostr.nip.repost
 
-/** A post as other events point at it: its id, its author and, if it was edited, the revision that was seen. */
+/** A post as other events point at it: its id, its author ("" if unknown) and, if it was edited, the revision that was seen. */
 data class PostRef(val id: String, val author: String, val revisionId: String? = null)
 
 /** Builds unsigned Talk events. Every builder takes `createdAt` (epoch seconds) so callers own the clock. */
@@ -28,7 +27,7 @@ object TalkEvents {
         val threadTags = buildList {
             add(Tags.event(threadRoot.id, marker = "root", author = threadRoot.author))
             if (threadRoot.id != parent.id) add(Tags.event(parent.id, marker = "reply", author = parent.author))
-            listOf(parent.author, threadRoot.author).distinct().forEach { add(Tags.pubkey(it)) }
+            listOf(parent.author, threadRoot.author).filter { it.isNotEmpty() }.distinct().forEach { add(Tags.pubkey(it)) }
             parent.revisionId?.let { add(listOf(TalkSchema.REVISION_TAG, it)) }
         }
         return EventTemplate(
@@ -57,9 +56,14 @@ object TalkEvents {
     fun repost(target: Event, createdAt: Long) =
         repost(target, createdAt, extraTags = TalkSchema.labels(TalkSchema.Role.REPOST))
 
-    fun delete(events: List<Event>, createdAt: Long) = deletion(events, createdAt).let {
-        it.copy(tags = it.tags + TalkSchema.labels(TalkSchema.Role.DELETION))
-    }
+    /** NIP-09 deletion of the author's own events, given as id to kind. */
+    fun delete(targets: Map<String, Int>, createdAt: Long) = EventTemplate(
+        kind = Kinds.DELETION,
+        content = "",
+        tags = targets.keys.map { Tags.event(it) } + targets.values.distinct().map(Tags::kind) +
+            TalkSchema.labels(TalkSchema.Role.DELETION),
+        createdAt = createdAt,
+    )
 
     private fun PostRef?.quoteTags(): List<List<String>> = if (this == null) {
         emptyList()

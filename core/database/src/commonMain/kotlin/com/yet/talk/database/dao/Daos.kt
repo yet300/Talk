@@ -15,8 +15,10 @@ interface PostDao {
 
     suspend fun setPublishState(id: String, state: String)
 
-    /** Hides the posts and remembers their ids so they are never stored again. */
-    suspend fun markDeleted(ids: Collection<String>)
+    /** Hides [author]'s posts among [ids] and remembers them so they are never stored again. */
+    suspend fun markDeleted(ids: Collection<String>, author: String)
+
+    suspend fun authorOf(id: String): String?
 
     /** The original signed event, for reposts and reactions. */
     suspend fun eventJson(id: String): String?
@@ -44,7 +46,8 @@ interface ReactionDao {
     /** Event ids of [user]'s reactions of [type] on [postId], to delete them. */
     suspend fun reactionIds(postId: String, user: String, type: String): List<String>
 
-    suspend fun delete(eventIds: Collection<String>)
+    /** Deletes [user]'s reactions among [eventIds] and remembers them as deleted. */
+    suspend fun delete(eventIds: Collection<String>, user: String)
 }
 
 /** Replaceable lists (NIP-02 contacts, NIP-51 bookmarks, NIP-65 relays); each replace applies only if [createdAt] is newer. */

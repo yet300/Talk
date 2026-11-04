@@ -41,7 +41,7 @@ class SqlReactionDao(private val holder: DatabaseHolder, private val dispatchers
     override suspend fun insert(reaction: ReactionRecord): Boolean = withContext(dispatchers.io) {
         val database = holder.get()
         database.transactionWithResult {
-            if (database.socialQueries.isTombstoned(reaction.eventId).awaitAsOne()) return@transactionWithResult false
+            if (database.socialQueries.isTombstoned(reaction.eventId, reaction.user).awaitAsOne()) return@transactionWithResult false
             with(reaction) { database.socialQueries.insertReaction(eventId, postId, user, type, createdAt) } > 0
         }
     }
@@ -50,12 +50,12 @@ class SqlReactionDao(private val holder: DatabaseHolder, private val dispatchers
         holder.get().socialQueries.selectReactionIds(postId, user, type).awaitAsList()
     }
 
-    override suspend fun delete(eventIds: Collection<String>) = withContext(dispatchers.io) {
+    override suspend fun delete(eventIds: Collection<String>, user: String) = withContext(dispatchers.io) {
         if (eventIds.isEmpty()) return@withContext
         val database = holder.get()
         database.transaction {
-            database.socialQueries.deleteReactions(eventIds)
-            eventIds.forEach { database.socialQueries.insertTombstone(it) }
+            database.socialQueries.deleteReactions(eventIds, user)
+            eventIds.forEach { database.socialQueries.insertTombstone(it, user) }
         }
     }
 }

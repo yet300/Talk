@@ -10,9 +10,12 @@ CREATE TABLE reaction (
 CREATE INDEX reaction_post ON reaction(post_id, type);
 CREATE INDEX reaction_user ON reaction(user, type);
 
--- Ids of events deleted via NIP-09, so a relay that ignores deletions cannot bring them back.
+-- Events deleted via NIP-09, so a relay that ignores deletions cannot bring them back. Keyed by
+-- author too: a deletion only counts for the deleter's own events.
 CREATE TABLE tombstone (
-    event_id TEXT NOT NULL PRIMARY KEY
+    event_id TEXT NOT NULL,
+    author TEXT NOT NULL,
+    PRIMARY KEY (event_id, author)
 );
 
 -- The newest replaceable list (contacts, bookmarks, relay list) applied per author and kind.
@@ -51,16 +54,16 @@ insertReaction:
 INSERT OR IGNORE INTO reaction(event_id, post_id, user, type, created_at) VALUES (?, ?, ?, ?, ?);
 
 deleteReactions:
-DELETE FROM reaction WHERE event_id IN ?;
+DELETE FROM reaction WHERE event_id IN :eventIds AND user = :user;
 
 selectReactionIds:
 SELECT event_id FROM reaction WHERE post_id = :postId AND user = :user AND type = :type;
 
 insertTombstone:
-INSERT OR IGNORE INTO tombstone(event_id) VALUES (?);
+INSERT OR IGNORE INTO tombstone(event_id, author) VALUES (?, ?);
 
 isTombstoned:
-SELECT EXISTS (SELECT 1 FROM tombstone WHERE event_id = ?);
+SELECT EXISTS (SELECT 1 FROM tombstone WHERE event_id = :eventId AND author = :author);
 
 selectReplaceableVersion:
 SELECT created_at FROM replaceable_version WHERE pubkey = ? AND kind = ?;

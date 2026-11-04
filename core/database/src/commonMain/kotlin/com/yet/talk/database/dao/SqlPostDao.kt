@@ -20,7 +20,7 @@ class SqlPostDao(
     override suspend fun insert(post: NewPostRecord): Boolean = withContext(dispatchers.io) {
         val database = holder.get()
         database.transactionWithResult {
-            if (database.socialQueries.isTombstoned(post.id).awaitAsOne()) return@transactionWithResult false
+            if (database.socialQueries.isTombstoned(post.id, post.author).awaitAsOne()) return@transactionWithResult false
             with(post) {
                 database.postQueries.insertIfAbsent(id, author, rootId, parentId, quoteId, createdAt, content, imagesJson, publishState, eventJson)
             } > 0
@@ -40,13 +40,17 @@ class SqlPostDao(
         Unit
     }
 
-    override suspend fun markDeleted(ids: Collection<String>) = withContext(dispatchers.io) {
+    override suspend fun markDeleted(ids: Collection<String>, author: String) = withContext(dispatchers.io) {
         if (ids.isEmpty()) return@withContext
         val database = holder.get()
         database.transaction {
-            database.postQueries.markDeleted(ids)
-            ids.forEach { database.socialQueries.insertTombstone(it) }
+            database.postQueries.markDeleted(ids, author)
+            ids.forEach { database.socialQueries.insertTombstone(it, author) }
         }
+    }
+
+    override suspend fun authorOf(id: String): String? = withContext(dispatchers.io) {
+        holder.get().postQueries.selectAuthor(id).awaitAsOneOrNull()
     }
 
     override suspend fun eventJson(id: String): String? = withContext(dispatchers.io) {

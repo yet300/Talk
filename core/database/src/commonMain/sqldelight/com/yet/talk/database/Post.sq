@@ -52,7 +52,10 @@ setPublishState:
 UPDATE post SET publish_state = :state WHERE id = :id;
 
 markDeleted:
-UPDATE post SET deleted = 1 WHERE id IN ?;
+UPDATE post SET deleted = 1 WHERE id IN :ids AND author = :author;
+
+selectAuthor:
+SELECT author FROM post WHERE id = ?;
 
 insertRevision:
 INSERT OR IGNORE INTO revision(id, post_id, number, content, images_json, created_at)

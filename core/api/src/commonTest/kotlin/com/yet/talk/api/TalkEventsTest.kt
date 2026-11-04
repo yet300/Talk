@@ -44,6 +44,9 @@ class TalkEventsTest {
         assertEquals(root.id, nestedThread.root)
         assertEquals(direct.id, nestedThread.parent)
         assertTrue(listOf("revision", "rev") in nested.tags)
+
+        val unknownRootAuthor = alice.sign(TalkEvents.reply("x", emptyList(), PostRef(direct.id, direct.pubkey), PostRef(root.id, ""), 4))
+        assertTrue(unknownRootAuthor.tags.none { it == listOf("p") || it == listOf("p", "") })
     }
 
     @Test
@@ -59,7 +62,7 @@ class TalkEventsTest {
         val repost = assertIs<TalkEvent.Reaction>(TalkEvent.parse(bob.sign(TalkEvents.repost(post, 7))))
         assertEquals(TalkEvent.Reaction.Type.Repost, repost.type)
 
-        val deletion = assertIs<TalkEvent.Deletion>(TalkEvent.parse(alice.sign(TalkEvents.delete(listOf(post), 8))))
+        val deletion = assertIs<TalkEvent.Deletion>(TalkEvent.parse(alice.sign(TalkEvents.delete(mapOf(post.id to post.kind), 8))))
         assertEquals(listOf(post.id), deletion.eventIds)
     }
 

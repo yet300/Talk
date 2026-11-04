@@ -70,11 +70,15 @@ class DaoTest {
     fun deletedPostsDisappearAndNeverComeBack() = dbTest { dao ->
         assertTrue(dao.posts.insert(post("p")))
         assertFalse(dao.posts.insert(post("p")), "duplicate")
-        dao.posts.markDeleted(listOf("p"))
+        dao.posts.markDeleted(listOf("p"), author = BOB)
+        assertTrue(dao.posts.observePost("p", "").first() != null, "only the author can delete")
+        assertTrue(dao.posts.insert(post("q", author = BOB)))
 
+        dao.posts.markDeleted(listOf("p"), author = ALICE)
         assertNull(dao.posts.observePost("p", "").first())
-        assertTrue(dao.posts.observeFeed(PostFeed.Latest, "", 20).first().isEmpty())
+        assertTrue(dao.posts.observeFeed(PostFeed.Latest, "", 20).first().all { it.id != "p" })
         assertFalse(dao.posts.insert(post("p2").copy(id = "p")), "tombstoned")
+        assertEquals(ALICE, dao.posts.authorOf("p"))
     }
 
     @Test
@@ -107,7 +111,9 @@ class DaoTest {
         assertTrue(asBob.viewerLiked && asBob.viewerReposted && asBob.viewerBookmarked)
         assertFalse(dao.posts.observePost("p", CAROL).first()!!.viewerReposted)
 
-        dao.reactions.delete(dao.reactions.reactionIds("p", BOB, ReactionTypes.LIKE))
+        dao.reactions.delete(listOf("l3"), user = BOB)
+        assertEquals(2, dao.posts.observePost("p", BOB).first()!!.likeCount, "Bob cannot delete Carol's like")
+        dao.reactions.delete(dao.reactions.reactionIds("p", BOB, ReactionTypes.LIKE), user = BOB)
         assertEquals(1, dao.posts.observePost("p", BOB).first()!!.likeCount)
         assertFalse(dao.reactions.insert(reaction("l1", "p", BOB)), "deleted reaction stays deleted")
     }
