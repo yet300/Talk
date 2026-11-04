@@ -54,12 +54,24 @@ kotlin {
             api(libs.essenty.lifecycle)
             api(libs.essenty.stateKeeper)
             api(libs.essenty.backHandler)
-            // Not exported: contributes repository bindings to the app graph.
+            // Not exported: contribute bindings to the app graph, which provides their platform parts.
             implementation(projects.core.data)
+            implementation(projects.core.database)
+            implementation(projects.core.api)
             implementation(projects.core.common)
+            implementation(libs.ktor.client.core)
+            implementation(libs.ktor.client.websockets)
+            implementation(libs.ksafe)
+        }
+        androidMain.dependencies {
+            implementation(libs.ktor.client.okhttp)
+        }
+        iosMain.dependencies {
+            implementation(libs.ktor.client.darwin)
         }
         jsMain.dependencies {
             implementation(libs.wrappers.browser)
+            implementation(libs.ktor.client.js)
         }
         getByName("androidHostTest").dependencies {
             implementation(libs.kotlin.testJunit)

@@ -1,0 +1,157 @@
+package com.yet.talk.data.repository
+
+import com.yet.talk.api.PostRef
+import com.yet.talk.api.TalkEvents
+import com.yet.talk.api.TalkSchema
+import com.yet.talk.api.source.PostRemoteSource
+import com.yet.talk.data.EventIngestor
+import com.yet.talk.data.FeedPager
+import com.yet.talk.data.FetchedPage
+import com.yet.talk.data.Publisher
+import com.yet.talk.data.RemoteSync
+import com.yet.talk.data.Session
+import com.yet.talk.data.remote
+import com.yet.talk.data.toImeta
+import com.yet.talk.data.toPost
+import com.yet.talk.data.toRevision
+import com.yet.talk.database.dao.PostDao
+import com.yet.talk.database.dao.PostFeed
+import com.yet.talk.database.dao.PostRecord
+import com.yet.talk.database.dao.SocialDao
+import com.yet.talk.domain.model.DomainError
+import com.yet.talk.domain.model.Image
+import com.yet.talk.domain.model.Pager
+import com.yet.talk.domain.model.Post
+import com.yet.talk.domain.model.PostId
+import com.yet.talk.domain.model.Revision
+import com.yet.talk.domain.model.ThreadReply
+import com.yet.talk.domain.repository.Feed
+import com.yet.talk.domain.repository.PostRepository
+import com.yet.talk.nostr.nip.Kinds
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
+
+@OptIn(ExperimentalCoroutinesApi::class)
+@ContributesBinding(AppScope::class)
+@Inject
+class PostRepositoryImpl(
+    private val posts: PostDao,
+    private val social: SocialDao,
+    private val postsRemote: PostRemoteSource,
+    private val sync: RemoteSync,
+    private val ingestor: EventIngestor,
+    private val session: Session,
+    private val publisher: Publisher,
+) : PostRepository {
+
+    override fun feed(feed: Feed): Pager<Post> = FeedPager(
+        observe = { limit ->
+            session.viewer.flatMapLatest { viewer -> posts.observeFeed(feed.toDao(), viewer, limit) }
+                .map { records -> records.map(PostRecord::toPost) }
+        },
+        fetch = { until -> fetchFeed(feed, until) },
+    )
+
+    private suspend fun fetchFeed(feed: Feed, until: Long?): FetchedPage {
+        val authors = when (feed) {
+            Feed.Latest -> null
+            Feed.Following -> {
+                val viewer = session.viewer.first()
+                if (viewer.isEmpty()) return FetchedPage(0, null)
+                sync.ensureListsSynced(viewer)
+                social.observeFollowees(viewer).first() + viewer
+            }
+            is Feed.UserPosts -> listOf(feed.userId.value)
+            is Feed.UserReplies -> listOf(feed.userId.value)
+        }
+        val page = postsRemote.timeline(authors, until, Pager.PAGE_SIZE)
+        return FetchedPage(sync.storeWithContext(page), page.minOfOrNull { it.event.createdAt })
+    }
+
+    override fun observePost(id: PostId): Flow<Post?> =
+        session.viewer.flatMapLatest { viewer -> posts.observePost(id.value, viewer) }.map { it?.toPost() }
+
+    override suspend fun refreshPost(id: PostId): Result<Unit> = remote {
+        sync.storeWithContext(postsRemote.byIds(listOf(id.value)))
+    }
+
+    override fun observeThread(id: PostId): Flow<List<ThreadReply>> =
+        session.viewer.flatMapLatest { viewer -> posts.observeThread(id.value, viewer) }
+            .map { records -> records.map { ThreadReply(it.toPost(), it.depth) } }
+
+    override suspend fun refreshThread(id: PostId): Result<Unit> = remote {
+        val post = requirePost(id)
+        // NIP-10 replies tag the thread root, so one query returns the whole thread.
+        sync.storeWithContext(postsRemote.thread(post.rootId ?: post.id))
+    }
+
+    override fun observeRevisions(id: PostId): Flow<List<Revision>> =
+        posts.observeRevisions(id.value).map { revisions -> revisions.map { it.toRevision() } }
+
+    override suspend fun refreshRevisions(id: PostId): Result<Unit> = remote {
+        ingestor.ingest(postsRemote.related(listOf(id.value)))
+    }
+
+    override suspend fun publish(content: String, images: List<Image>, quoteOf: PostId?): Result<PostId> = remote {
+        val quote = quoteOf?.let { PostRef(it.value, posts.authorOf(it.value).orEmpty(), editedRevisionId(it.value)) }
+        val event = publisher.sign { TalkEvents.post(content, images.toImeta(), quote, it) }
+        publisher.storeAndPublish(event)
+        PostId(event.id)
+    }
+
+    override suspend fun reply(parent: PostId, content: String, images: List<Image>): Result<PostId> = remote {
+        val parentPost = requirePost(parent)
+        val root = parentPost.rootId?.let { PostRef(it, posts.authorOf(it).orEmpty()) }
+        val parentRef = PostRef(parentPost.id, parentPost.author, editedRevisionId(parentPost.id))
+        val event = publisher.sign { TalkEvents.reply(content, images.toImeta(), parentRef, root, it) }
+        publisher.storeAndPublish(event)
+        PostId(event.id)
+    }
+
+    override suspend fun edit(id: PostId, content: String, images: List<Image>): Result<Unit> = remote {
+        val post = requireOwnPost(id)
+        // Number after the newest revision relays know of, not only the ones cached here.
+        runCatching { ingestor.ingest(postsRemote.related(listOf(id.value))) }
+        val number = posts.observeRevisions(id.value).first().maxOfOrNull { it.number }?.plus(1) ?: (post.revision + 1)
+        val event = publisher.sign { TalkEvents.revision(id.value, number, content, images.toImeta(), it) }
+        publisher.storeAndPublish(event)
+    }
+
+    override suspend fun delete(id: PostId): Result<Unit> = remote {
+        val post = requireOwnPost(id)
+        val revisions = posts.observeRevisions(id.value).first().filter { it.number > 1 }.associate { it.id to TalkSchema.KIND_REVISION }
+        val event = publisher.sign { TalkEvents.delete(mapOf(post.id to Kinds.TEXT_NOTE) + revisions, it) }
+        // Deletions are not optimistic: tombstones cannot be undone if no relay takes the request.
+        publisher.publish(event)
+        posts.markDeleted(listOf(post.id) + revisions.keys, author = post.author)
+    }
+
+    private suspend fun requirePost(id: PostId): PostRecord {
+        posts.observePost(id.value, "").first()?.let { return it }
+        sync.storeWithContext(postsRemote.byIds(listOf(id.value)))
+        return posts.observePost(id.value, "").first() ?: throw DomainError.NotFound
+    }
+
+    private suspend fun requireOwnPost(id: PostId): PostRecord {
+        val post = requirePost(id)
+        if (post.author != publisher.me()) throw DomainError.NotFound
+        return post
+    }
+
+    /** The revision event id to pin when the post was edited; null for an unedited post. */
+    private suspend fun editedRevisionId(postId: String): String? =
+        posts.observeRevisions(postId).first().firstOrNull()?.takeIf { it.number > 1 }?.id
+
+    private fun Feed.toDao(): PostFeed = when (this) {
+        Feed.Latest -> PostFeed.Latest
+        Feed.Following -> PostFeed.Following
+        is Feed.UserPosts -> PostFeed.ByAuthor(userId.value, replies = false)
+        is Feed.UserReplies -> PostFeed.ByAuthor(userId.value, replies = true)
+    }
+}

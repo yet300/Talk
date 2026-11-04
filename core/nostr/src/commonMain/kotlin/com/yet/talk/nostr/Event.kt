@@ -16,6 +16,13 @@ data class Event(
 ) {
     /** The id recomputed from the content; equals [id] for an untampered event. */
     fun computeId(): String = EventHash.id(pubkey, createdAt, kind, tags, content)
+
+    fun toJson(): String = NostrJson.encodeToString(serializer(), this)
+
+    companion object {
+        /** Parses only; check the result with [EventVerifier] before trusting it. */
+        fun fromJson(json: String): Event = NostrJson.decodeFromString(serializer(), json)
+    }
 }
 
 /** An event before signing. The [Signer] fills in the public key, the id and the signature. */

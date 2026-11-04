@@ -8,6 +8,9 @@ import dev.zacsweers.metro.BindingContainer
 import dev.zacsweers.metro.ContributesTo
 import dev.zacsweers.metro.Provides
 import dev.zacsweers.metro.SingleIn
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
+import kotlin.time.Clock
 
 @ContributesTo(AppScope::class)
 @BindingContainer
@@ -19,4 +22,12 @@ object CommonBindings {
     @SingleIn(AppScope::class)
     @Provides
     fun provideAppDispatchers(): AppDispatchers = AppDispatchers()
+
+    /** Lives as long as the app: relay connections and background sync. */
+    @SingleIn(AppScope::class)
+    @Provides
+    fun provideAppScope(dispatchers: AppDispatchers): CoroutineScope = CoroutineScope(SupervisorJob() + dispatchers.default)
+
+    @Provides
+    fun provideClock(): Clock = Clock.System
 }

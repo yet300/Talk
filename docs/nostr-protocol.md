@@ -107,12 +107,14 @@ Rules:
 | like | kind 7, `content: "+"` (NIP-25) |
 | follow | kind 3 contact list (NIP-02) |
 | bookmark | kind 10003 public bookmark list (NIP-51) |
-| delete | kind 5 for the post and all of its revisions (NIP-09); relays may ignore it |
+| delete | kind 5 for the post and all of its revisions (NIP-09); relays may ignore it. A deletion only counts for the requester's own events, so clients keep tombstones per (event, author) |
 | image upload | Blossom (BUD-01/02) and an `imeta` tag (NIP-92); 5 MB limit; PNG/JPEG/GIF/WebP |
 
 Every event the app writes, apart from kinds 0, 3 and 10003, carries the label namespace.
 
 ## Feeds
+
+As in KarpathyTalk, timelines list posts only: reposts are counted on the post, not shown as timeline items.
 
 | Tab | Query |
 |---|---|

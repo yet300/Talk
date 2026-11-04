@@ -30,11 +30,11 @@ Clean Architecture, SOLID, KISS, YAGNI. In practice:
 | `:sharedLogic` | `shared/logic` | Composition root: the Metro graph (`AndroidAppGraph`, `IosAppGraph`) and the umbrella exported to iOS (`SharedLogic.framework`) and JS |
 | `:sharedUI` | `shared/ui` | Android Compose UI (Android-only on purpose) |
 | `:core:common` | `core/common` | Dispatchers, `Log` (Kermit), Decompose/MVIKotlin helpers, `StoreFactory` binding. Package `com.app.common` |
-| `:core:domain` | `core/domain` | Entities, repository interfaces, use cases; pure Kotlin |
-| `:core:nostr` | `core/nostr` | Protocol only: NIP-01 events, signing (secp256k1-kmp / `@noble/curves`), bech32, relay pool |
-| `:core:api` | `core/api` | Remote data sources on top of `core:nostr`: posts and reactions over relays, Blossom uploads, NIP-05 |
-| `:core:database` | `core/database` | SQLDelight cache (`TalkDatabase`); exposes DAOs to `core:data` |
-| `:core:data` | `core/data` | Repository implementations (`core:api` + `core:database`) bound to `core:domain` interfaces |
+| `:core:domain` | `core/domain` | Models, repository interfaces, `Pager`, `ContentRules`, `TrendingRanker`, use cases; pure Kotlin |
+| `:core:nostr` | `core/nostr` | Protocol only: NIP-01 events and ids, BIP-340 signing (libsecp256k1 on Android/iOS, `@noble/curves` on JS), NIP-19, `RelayClient`/`RelayPool`, NIP helpers |
+| `:core:api` | `core/api` | Talk schema (`TalkSchema`, `TalkEvents`, `TalkEvent`) and remote sources over `RelayClient`; Blossom, NIP-05 |
+| `:core:database` | `core/database` | SQLDelight cache (`TalkDatabase`), DAO interfaces + implementations, `SqlDriverFactory` per platform |
+| `:core:data` | `core/data` | Repository implementations, `Session` + KSafe key vault, `EventIngestor`, `FeedPager`, optimistic `Publisher` |
 | `:core:resources` | `core/resources` | moko-resources (`MR`, package `com.yet.talk.resources`) and platform helpers |
 | `:feature:root` | `feature/root` | Root `ChildStack`: full-screen destinations above the tabs |
 | `:feature:tab:main` | `feature/tab/main` | Tab container (`ChildStack` + `bringToFront`) |
@@ -50,6 +50,28 @@ sharedLogic → features (api, exported) + core:data (implementation, not export
 
 More tabs (activity, bookmarks, profile) and screens (post, compose, auth) are added together with
 their UI, following the design file.
+
+## Data flow
+
+- **The database is the single source of truth.** Repositories fetch from relays, verify (in `RelayPool`),
+  parse (`TalkEvent.parse`), store (`EventIngestor`), and expose `Flow`s read from the DAOs.
+- `EventIngestor` enforces authorship: revisions and NIP-09 deletions only count for the author's own events.
+- Paging (`FeedPager`): a window of 20 rows that grows on `loadMore`; the remote cursor is the oldest event
+  relays returned, minus one second.
+- Writes are optimistic (`Publisher.storeAndPublish`): stored as pending, then published or failed. Deletions
+  and unlikes are published first, because tombstones cannot be undone.
+- Replaceable lists (contacts, bookmarks, relays) are synced from relays before they are changed
+  (`RemoteSync.ensureListsSynced`), and each new version gets a strictly newer `created_at`.
+- Errors reach callers as `Result` with a `DomainError`; network failures become `DomainError.Network`.
+
+## Platform notes
+
+- **iOS:** the SQLDelight native driver needs the system SQLite: `OTHER_LDFLAGS = -lsqlite3` in
+  `app/iosApp/Configuration/Config.xcconfig`, and `linkerOpts("-lsqlite3")` in Kotlin modules that link native
+  test binaries without the SQLDelight plugin (see `core/data/build.gradle.kts`).
+- **Web:** the web app creates the sql.js worker and passes it to `createJsAppGraph(worker)`; the database is
+  in memory. DAO and repository tests skip on JS (no driver without a bundler).
+- **Keys:** `KSafeKeyVault` is the only place the secret key is persisted. `SecretKey.toString()` is redacted.
 
 ## Components and DI
 
@@ -104,5 +126,7 @@ iOS: open `app/iosApp/iosApp.xcodeproj`; the build phase runs `:sharedLogic:embe
 - Keep the Nostr schema in `docs/nostr-protocol.md` and the code in sync; events already on relays
   cannot be migrated.
 - Never log, print or persist private keys (`nsec`) outside KSafe.
+- After `kotlinUpgradeYarnLock` is needed, run it on its own before other Gradle tasks in the same invocation.
+- Live relay checks are opt-in and read-only: `TALK_LIVE_RELAYS=1 ./gradlew :core:nostr:testAndroidHostTest --tests '*LiveRelayTest*'`.
 - Skills for this stack are in `.agents/skills/` (index: `.agents/AGENTS.md`). Use them before
   writing Decompose, MVIKotlin, Metro, Compose, SwiftUI-interop or KSafe code.

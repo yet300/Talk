@@ -1,6 +1,7 @@
 package com.yet.talk.domain.model
 
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.StateFlow
 
 /**
  * A list that grows page by page, KarpathyTalk style ("load more"). [items] always reflects the
@@ -8,7 +9,7 @@ import kotlinx.coroutines.flow.Flow
  */
 interface Pager<T> {
     val items: Flow<List<T>>
-    val state: Flow<PagingState>
+    val state: StateFlow<PagingState>
 
     /** Fetches what is newer than the first item. */
     suspend fun refresh()
