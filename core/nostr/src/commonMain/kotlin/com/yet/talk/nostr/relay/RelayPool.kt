@@ -23,6 +23,17 @@ import kotlin.random.Random
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 
+/** Reading from and writing to a set of relays. Implemented by [RelayPool]; faked in tests of its users. */
+interface RelayClient {
+    suspend fun query(filters: List<Filter>, relays: Collection<String>, timeout: Duration = 10.seconds): List<Event>
+
+    fun subscribe(filters: List<Filter>, relays: Collection<String>): Flow<Event>
+
+    suspend fun publish(event: Event, relays: Collection<String>, timeout: Duration = 10.seconds): PublishResult
+
+    suspend fun count(filters: List<Filter>, relays: Collection<String>, timeout: Duration = 5.seconds): Long?
+}
+
 /**
  * Talks to many relays at once. Every incoming event is verified (id and signature) before it is
  * emitted, and events are de-duplicated by id across relays.
@@ -31,7 +42,7 @@ class RelayPool(
     private val transport: RelayTransport,
     private val scope: CoroutineScope,
     private val verify: (Event) -> Boolean = EventVerifier::verify,
-) {
+) : RelayClient {
     private val connections = MutableStateFlow<Map<String, RelayConnection>>(emptyMap())
 
     fun connection(url: String): RelayConnection {
@@ -44,7 +55,7 @@ class RelayPool(
      * Stored events matching [filters], newest first. Finishes when every relay has sent EOSE or
      * closed the subscription, or after [timeout] with whatever arrived until then.
      */
-    suspend fun query(filters: List<Filter>, relays: Collection<String>, timeout: Duration = 10.seconds): List<Event> {
+    override suspend fun query(filters: List<Filter>, relays: Collection<String>, timeout: Duration): List<Event> {
         if (relays.isEmpty()) return emptyList()
         val subscriptionId = newSubscriptionId()
         val events = LinkedHashMap<String, Event>()
@@ -57,7 +68,7 @@ class RelayPool(
     }
 
     /** Stored and then live events matching [filters], de-duplicated. Cancelling the collector closes the subscription. */
-    fun subscribe(filters: List<Filter>, relays: Collection<String>): Flow<Event> = flow {
+    override fun subscribe(filters: List<Filter>, relays: Collection<String>): Flow<Event> = flow {
         val subscriptionId = newSubscriptionId()
         val seen = HashSet<String>()
         merge(*relays.map { stream(it, subscriptionId, filters, untilEose = false) }.toTypedArray())
@@ -66,7 +77,7 @@ class RelayPool(
     }
 
     /** Sends [event] to [relays] and waits up to [timeout] for each relay's `OK`. */
-    suspend fun publish(event: Event, relays: Collection<String>, timeout: Duration = 10.seconds): PublishResult {
+    override suspend fun publish(event: Event, relays: Collection<String>, timeout: Duration): PublishResult {
         val accepted = mutableSetOf<String>()
         val rejected = mutableMapOf<String, String>()
         withTimeoutOrNull(timeout) {
@@ -86,7 +97,7 @@ class RelayPool(
     }
 
     /** NIP-45 count: the highest count any relay reports, or null when no relay supports it. */
-    suspend fun count(filters: List<Filter>, relays: Collection<String>, timeout: Duration = 5.seconds): Long? {
+    override suspend fun count(filters: List<Filter>, relays: Collection<String>, timeout: Duration): Long? {
         val subscriptionId = newSubscriptionId()
         var best: Long? = null
         withTimeoutOrNull(timeout) {
