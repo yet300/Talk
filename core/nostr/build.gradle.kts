@@ -4,22 +4,41 @@ plugins {
 }
 
 kotlin {
+    android {
+        withHostTest {}
+    }
+
     sourceSets {
         commonMain.dependencies {
             implementation(libs.ktor.client.core)
             implementation(libs.ktor.client.websockets)
             implementation(libs.kotlincrypto.sha2)
         }
-        // secp256k1-kmp has no JS target, so it is declared per platform; JS uses @noble/curves.
-        androidMain.dependencies {
-            implementation(libs.secp256k1.kmp)
-            implementation(libs.secp256k1.kmp.jniAndroid)
+
+        // libsecp256k1 has no JS build: Android and iOS share one actual, JS uses @noble/curves.
+        val secp256k1Main by creating {
+            dependsOn(commonMain.get())
+            dependencies {
+                implementation(libs.secp256k1.kmp)
+            }
         }
-        iosMain.dependencies {
-            implementation(libs.secp256k1.kmp)
+        androidMain {
+            dependsOn(secp256k1Main)
+            dependencies {
+                implementation(libs.secp256k1.kmp.jniAndroid)
+            }
+        }
+        iosMain {
+            dependsOn(secp256k1Main)
         }
         jsMain.dependencies {
             implementation(npm("@noble/curves", libs.versions.noble.curves.get()))
+        }
+
+        getByName("androidHostTest").dependencies {
+            implementation(libs.kotlin.testJunit)
+            implementation(libs.secp256k1.kmp.jniJvm)
+            implementation(libs.ktor.client.okhttp)
         }
     }
 }
