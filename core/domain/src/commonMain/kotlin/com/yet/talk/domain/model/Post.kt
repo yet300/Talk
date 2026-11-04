@@ -49,14 +49,6 @@ data class Revision(
 /** A reply inside a thread; [depth] 0 is a direct reply to the opened post. */
 data class ThreadReply(val post: Post, val depth: Int)
 
-sealed interface FeedItem {
-    val post: Post
-
-    data class PostItem(override val post: Post) : FeedItem
-
-    data class Repost(override val post: Post, val repostedBy: User, val repostedAt: Instant) : FeedItem
-}
-
 data class ActivityItem(
     val type: Type,
     val actor: User,

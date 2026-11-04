@@ -1,7 +1,6 @@
 package com.yet.talk.domain.usecase
 
 import com.yet.talk.domain.model.DomainError
-import com.yet.talk.domain.model.FeedItem
 import com.yet.talk.domain.model.Image
 import com.yet.talk.domain.model.ImageFile
 import com.yet.talk.domain.model.MediaUpload
@@ -42,7 +41,7 @@ class UseCaseTest {
             return Result.success(PostId("reply"))
         }
 
-        override fun feed(feed: Feed): Pager<FeedItem> = error("unused")
+        override fun feed(feed: Feed): Pager<Post> = error("unused")
         override fun observePost(id: PostId): Flow<Post?> = error("unused")
         override suspend fun refreshPost(id: PostId): Result<Unit> = error("unused")
         override fun observeThread(id: PostId): Flow<List<ThreadReply>> = error("unused")

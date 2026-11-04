@@ -1,0 +1,13 @@
+-- Sign-out wipes everything except public profiles.
+clearUserData {
+    DELETE FROM post;
+    DELETE FROM revision;
+    DELETE FROM reaction;
+    DELETE FROM tombstone;
+    DELETE FROM replaceable_version;
+    DELETE FROM follow;
+    DELETE FROM bookmark;
+    DELETE FROM relay;
+    DELETE FROM trending;
+    DELETE FROM sync_state;
+}

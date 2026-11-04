@@ -1,6 +1,5 @@
 package com.yet.talk.domain.repository
 
-import com.yet.talk.domain.model.FeedItem
 import com.yet.talk.domain.model.Image
 import com.yet.talk.domain.model.Pager
 import com.yet.talk.domain.model.Post
@@ -14,7 +13,7 @@ sealed interface Feed {
     /** Every top-level Talk post. */
     data object Latest : Feed
 
-    /** Top-level posts and reposts from people the viewer follows. */
+    /** Top-level posts by the viewer and the people they follow. */
     data object Following : Feed
 
     data class UserPosts(val userId: UserId) : Feed
@@ -27,7 +26,8 @@ sealed interface Feed {
  * use-case rules ([com.yet.talk.domain.rule.ContentRules]).
  */
 interface PostRepository {
-    fun feed(feed: Feed): Pager<FeedItem>
+    /** Top-level posts (or, for [Feed.UserReplies], replies), newest first. Reposts are not timeline items, as in KarpathyTalk. */
+    fun feed(feed: Feed): Pager<Post>
 
     /** Emits null while the post is unknown locally. */
     fun observePost(id: PostId): Flow<Post?>

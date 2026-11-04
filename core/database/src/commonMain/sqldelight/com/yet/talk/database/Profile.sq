@@ -1,0 +1,23 @@
+-- Kind 0 profiles. updated_at is the created_at of the stored metadata event; only newer ones replace it.
+CREATE TABLE profile (
+    pubkey TEXT NOT NULL PRIMARY KEY,
+    name TEXT,
+    display_name TEXT,
+    about TEXT,
+    picture TEXT,
+    website TEXT,
+    nip05 TEXT,
+    updated_at INTEGER NOT NULL
+);
+
+insertIfAbsent:
+INSERT OR IGNORE INTO profile(pubkey, name, display_name, about, picture, website, nip05, updated_at)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+
+updateIfNewer:
+UPDATE profile
+SET name = :name, display_name = :displayName, about = :about, picture = :picture, website = :website, nip05 = :nip05, updated_at = :updatedAt
+WHERE pubkey = :pubkey AND updated_at < :updatedAt;
+
+selectByPubkey:
+SELECT * FROM profile WHERE pubkey = ?;

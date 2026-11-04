@@ -1,0 +1,161 @@
+-- Kind 1 posts and replies with their current revision. event_json is the original signed event,
+-- needed to build reposts (NIP-18 embeds it) and reactions.
+CREATE TABLE post (
+    id TEXT NOT NULL PRIMARY KEY,
+    author TEXT NOT NULL,
+    root_id TEXT,
+    parent_id TEXT,
+    quote_id TEXT,
+    created_at INTEGER NOT NULL,
+    content TEXT NOT NULL,
+    images_json TEXT NOT NULL,
+    revision INTEGER NOT NULL DEFAULT 1,
+    revision_count INTEGER NOT NULL DEFAULT 1,
+    edited_at INTEGER,
+    deleted INTEGER NOT NULL DEFAULT 0,
+    publish_state TEXT NOT NULL,
+    event_json TEXT NOT NULL
+);
+
+CREATE INDEX post_timeline ON post(parent_id, deleted, created_at);
+CREATE INDEX post_author ON post(author, created_at);
+
+-- Kind 1010 revisions; number 1 is the original post itself.
+CREATE TABLE revision (
+    id TEXT NOT NULL PRIMARY KEY,
+    post_id TEXT NOT NULL,
+    number INTEGER NOT NULL,
+    content TEXT NOT NULL,
+    images_json TEXT NOT NULL,
+    created_at INTEGER NOT NULL
+);
+
+CREATE INDEX revision_post ON revision(post_id, number);
+
+-- Counters and author fields shared by every post query; viewer flags are added per query.
+CREATE VIEW post_with_stats AS
+SELECT
+    p.id, p.author, p.root_id, p.parent_id, p.quote_id, p.created_at, p.content, p.images_json,
+    p.revision, p.revision_count, p.edited_at, p.deleted, p.publish_state,
+    a.name AS author_name, a.display_name AS author_display_name, a.picture AS author_picture, a.nip05 AS author_nip05,
+    (SELECT COUNT(DISTINCT r.user) FROM reaction r WHERE r.post_id = p.id AND r.type = 'like') AS like_count,
+    (SELECT COUNT(DISTINCT r.user) FROM reaction r WHERE r.post_id = p.id AND r.type = 'repost') AS repost_count,
+    (SELECT COUNT(*) FROM post c WHERE c.parent_id = p.id AND c.deleted = 0) AS reply_count
+FROM post p
+LEFT JOIN profile a ON a.pubkey = p.author;
+
+insertIfAbsent:
+INSERT OR IGNORE INTO post(id, author, root_id, parent_id, quote_id, created_at, content, images_json, publish_state, event_json)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+setPublishState:
+UPDATE post SET publish_state = :state WHERE id = :id;
+
+markDeleted:
+UPDATE post SET deleted = 1 WHERE id IN ?;
+
+insertRevision:
+INSERT OR IGNORE INTO revision(id, post_id, number, content, images_json, created_at)
+VALUES (?, ?, ?, ?, ?, ?);
+
+applyLatestRevision:
+UPDATE post
+SET content = (SELECT r.content FROM revision r WHERE r.post_id = post.id ORDER BY r.number DESC, r.created_at DESC LIMIT 1),
+    images_json = (SELECT r.images_json FROM revision r WHERE r.post_id = post.id ORDER BY r.number DESC, r.created_at DESC LIMIT 1),
+    revision = (SELECT MAX(r.number) FROM revision r WHERE r.post_id = post.id),
+    revision_count = (SELECT COUNT(*) FROM revision r WHERE r.post_id = post.id),
+    edited_at = (SELECT MAX(r.created_at) FROM revision r WHERE r.post_id = post.id AND r.number > 1)
+WHERE id = :postId AND EXISTS (SELECT 1 FROM revision r WHERE r.post_id = :postId);
+
+selectEventJson:
+SELECT event_json FROM post WHERE id = ?;
+
+selectRevisions:
+SELECT * FROM revision WHERE post_id = ? ORDER BY number DESC, created_at DESC;
+
+selectPost:
+SELECT v.*,
+    EXISTS (SELECT 1 FROM reaction r WHERE r.post_id = v.id AND r.user = :viewer AND r.type = 'like') AS viewer_liked,
+    EXISTS (SELECT 1 FROM reaction r WHERE r.post_id = v.id AND r.user = :viewer AND r.type = 'repost') AS viewer_reposted,
+    EXISTS (SELECT 1 FROM bookmark b WHERE b.post_id = v.id AND b.owner = :viewer) AS viewer_bookmarked
+FROM post_with_stats v
+WHERE v.id = :id AND v.deleted = 0;
+
+selectLatest:
+SELECT v.*,
+    EXISTS (SELECT 1 FROM reaction r WHERE r.post_id = v.id AND r.user = :viewer AND r.type = 'like') AS viewer_liked,
+    EXISTS (SELECT 1 FROM reaction r WHERE r.post_id = v.id AND r.user = :viewer AND r.type = 'repost') AS viewer_reposted,
+    EXISTS (SELECT 1 FROM bookmark b WHERE b.post_id = v.id AND b.owner = :viewer) AS viewer_bookmarked
+FROM post_with_stats v
+WHERE v.parent_id IS NULL AND v.deleted = 0
+ORDER BY v.created_at DESC, v.id DESC
+LIMIT :limit;
+
+selectFollowing:
+SELECT v.*,
+    EXISTS (SELECT 1 FROM reaction r WHERE r.post_id = v.id AND r.user = :viewer AND r.type = 'like') AS viewer_liked,
+    EXISTS (SELECT 1 FROM reaction r WHERE r.post_id = v.id AND r.user = :viewer AND r.type = 'repost') AS viewer_reposted,
+    EXISTS (SELECT 1 FROM bookmark b WHERE b.post_id = v.id AND b.owner = :viewer) AS viewer_bookmarked
+FROM post_with_stats v
+WHERE v.parent_id IS NULL AND v.deleted = 0
+  AND (v.author = :viewer OR v.author IN (SELECT f.followee FROM follow f WHERE f.follower = :viewer))
+ORDER BY v.created_at DESC, v.id DESC
+LIMIT :limit;
+
+selectUserPosts:
+SELECT v.*,
+    EXISTS (SELECT 1 FROM reaction r WHERE r.post_id = v.id AND r.user = :viewer AND r.type = 'like') AS viewer_liked,
+    EXISTS (SELECT 1 FROM reaction r WHERE r.post_id = v.id AND r.user = :viewer AND r.type = 'repost') AS viewer_reposted,
+    EXISTS (SELECT 1 FROM bookmark b WHERE b.post_id = v.id AND b.owner = :viewer) AS viewer_bookmarked
+FROM post_with_stats v
+WHERE v.author = :author AND v.parent_id IS NULL AND v.deleted = 0
+ORDER BY v.created_at DESC, v.id DESC
+LIMIT :limit;
+
+selectUserReplies:
+SELECT v.*,
+    EXISTS (SELECT 1 FROM reaction r WHERE r.post_id = v.id AND r.user = :viewer AND r.type = 'like') AS viewer_liked,
+    EXISTS (SELECT 1 FROM reaction r WHERE r.post_id = v.id AND r.user = :viewer AND r.type = 'repost') AS viewer_reposted,
+    EXISTS (SELECT 1 FROM bookmark b WHERE b.post_id = v.id AND b.owner = :viewer) AS viewer_bookmarked
+FROM post_with_stats v
+WHERE v.author = :author AND v.parent_id IS NOT NULL AND v.deleted = 0
+ORDER BY v.created_at DESC, v.id DESC
+LIMIT :limit;
+
+selectBookmarked:
+SELECT v.*,
+    EXISTS (SELECT 1 FROM reaction r WHERE r.post_id = v.id AND r.user = :viewer AND r.type = 'like') AS viewer_liked,
+    EXISTS (SELECT 1 FROM reaction r WHERE r.post_id = v.id AND r.user = :viewer AND r.type = 'repost') AS viewer_reposted,
+    EXISTS (SELECT 1 FROM bookmark own WHERE own.post_id = v.id AND own.owner = :viewer) AS viewer_bookmarked
+FROM bookmark b
+JOIN post_with_stats v ON v.id = b.post_id
+WHERE b.owner = :viewer AND v.deleted = 0
+ORDER BY b.position DESC
+LIMIT :limit;
+
+selectTrending:
+SELECT v.*,
+    EXISTS (SELECT 1 FROM reaction r WHERE r.post_id = v.id AND r.user = :viewer AND r.type = 'like') AS viewer_liked,
+    EXISTS (SELECT 1 FROM reaction r WHERE r.post_id = v.id AND r.user = :viewer AND r.type = 'repost') AS viewer_reposted,
+    EXISTS (SELECT 1 FROM bookmark b WHERE b.post_id = v.id AND b.owner = :viewer) AS viewer_bookmarked
+FROM trending t
+JOIN post_with_stats v ON v.id = t.post_id
+WHERE v.deleted = 0
+ORDER BY t.rank
+LIMIT :limit;
+
+-- Replies below :rootId, flattened in chronological order with their depth (KarpathyTalk caps it at 50).
+selectThread:
+WITH RECURSIVE tree(id, depth) AS (
+    SELECT id, 0 FROM post WHERE parent_id = :rootId AND deleted = 0
+    UNION ALL
+    SELECT p.id, tree.depth + 1 FROM post p JOIN tree ON p.parent_id = tree.id WHERE tree.depth < 50 AND p.deleted = 0
+)
+SELECT v.*,
+    EXISTS (SELECT 1 FROM reaction r WHERE r.post_id = v.id AND r.user = :viewer AND r.type = 'like') AS viewer_liked,
+    EXISTS (SELECT 1 FROM reaction r WHERE r.post_id = v.id AND r.user = :viewer AND r.type = 'repost') AS viewer_reposted,
+    EXISTS (SELECT 1 FROM bookmark b WHERE b.post_id = v.id AND b.owner = :viewer) AS viewer_bookmarked,
+    tree.depth
+FROM tree
+JOIN post_with_stats v ON v.id = tree.id
+ORDER BY v.created_at, v.id;

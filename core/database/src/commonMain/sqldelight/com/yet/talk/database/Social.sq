@@ -1,0 +1,124 @@
+-- Likes and reposts. Unliking deletes the row (and publishes a NIP-09 deletion of event_id).
+CREATE TABLE reaction (
+    event_id TEXT NOT NULL PRIMARY KEY,
+    post_id TEXT NOT NULL,
+    user TEXT NOT NULL,
+    type TEXT NOT NULL,
+    created_at INTEGER NOT NULL
+);
+
+CREATE INDEX reaction_post ON reaction(post_id, type);
+CREATE INDEX reaction_user ON reaction(user, type);
+
+-- Ids of events deleted via NIP-09, so a relay that ignores deletions cannot bring them back.
+CREATE TABLE tombstone (
+    event_id TEXT NOT NULL PRIMARY KEY
+);
+
+-- The newest replaceable list (contacts, bookmarks, relay list) applied per author and kind.
+CREATE TABLE replaceable_version (
+    pubkey TEXT NOT NULL,
+    kind INTEGER NOT NULL,
+    created_at INTEGER NOT NULL,
+    PRIMARY KEY (pubkey, kind)
+);
+
+CREATE TABLE follow (
+    follower TEXT NOT NULL,
+    followee TEXT NOT NULL,
+    created_at INTEGER NOT NULL,
+    PRIMARY KEY (follower, followee)
+);
+
+CREATE INDEX follow_followee ON follow(followee);
+
+CREATE TABLE bookmark (
+    owner TEXT NOT NULL,
+    post_id TEXT NOT NULL,
+    position INTEGER NOT NULL,
+    PRIMARY KEY (owner, post_id)
+);
+
+CREATE TABLE relay (
+    owner TEXT NOT NULL,
+    url TEXT NOT NULL,
+    read INTEGER NOT NULL,
+    write INTEGER NOT NULL,
+    PRIMARY KEY (owner, url)
+);
+
+insertReaction:
+INSERT OR IGNORE INTO reaction(event_id, post_id, user, type, created_at) VALUES (?, ?, ?, ?, ?);
+
+deleteReactions:
+DELETE FROM reaction WHERE event_id IN ?;
+
+selectReactionIds:
+SELECT event_id FROM reaction WHERE post_id = :postId AND user = :user AND type = :type;
+
+insertTombstone:
+INSERT OR IGNORE INTO tombstone(event_id) VALUES (?);
+
+isTombstoned:
+SELECT EXISTS (SELECT 1 FROM tombstone WHERE event_id = ?);
+
+selectReplaceableVersion:
+SELECT created_at FROM replaceable_version WHERE pubkey = ? AND kind = ?;
+
+setReplaceableVersion:
+INSERT OR REPLACE INTO replaceable_version(pubkey, kind, created_at) VALUES (?, ?, ?);
+
+deleteFollows:
+DELETE FROM follow WHERE follower = ?;
+
+insertFollow:
+INSERT OR REPLACE INTO follow(follower, followee, created_at) VALUES (?, ?, ?);
+
+selectFollowees:
+SELECT followee FROM follow WHERE follower = ? ORDER BY followee;
+
+isFollowing:
+SELECT EXISTS (SELECT 1 FROM follow WHERE follower = :follower AND followee = :followee);
+
+countFollowing:
+SELECT COUNT(*) FROM follow WHERE follower = ?;
+
+deleteBookmarks:
+DELETE FROM bookmark WHERE owner = ?;
+
+insertBookmark:
+INSERT OR REPLACE INTO bookmark(owner, post_id, position) VALUES (?, ?, ?);
+
+selectBookmarkIds:
+SELECT post_id FROM bookmark WHERE owner = ? ORDER BY position;
+
+deleteRelays:
+DELETE FROM relay WHERE owner = ?;
+
+insertRelay:
+INSERT OR REPLACE INTO relay(owner, url, read, write) VALUES (?, ?, ?, ?);
+
+selectRelays:
+SELECT url, read, write FROM relay WHERE owner = ? ORDER BY url;
+
+-- What happened to :me's posts and account, newest first (KarpathyTalk's Activity tab).
+selectActivity:
+SELECT * FROM (
+    SELECT 'reply' AS type, p.author AS actor, p.created_at AS created_at, p.id AS event_post_id, p.parent_id AS subject_post_id
+    FROM post p JOIN post parent ON parent.id = p.parent_id
+    WHERE parent.author = :me AND p.author != :me AND p.deleted = 0
+    UNION ALL
+    SELECT 'quote', p.author, p.created_at, p.id, p.quote_id
+    FROM post p JOIN post quoted ON quoted.id = p.quote_id
+    WHERE quoted.author = :me AND p.author != :me AND p.deleted = 0
+    UNION ALL
+    SELECT r.type, r.user, r.created_at, CAST(NULL AS TEXT), r.post_id
+    FROM reaction r JOIN post target ON target.id = r.post_id
+    WHERE target.author = :me AND r.user != :me
+    UNION ALL
+    SELECT 'follow', f.follower, f.created_at, CAST(NULL AS TEXT), CAST(NULL AS TEXT)
+    FROM follow f
+    WHERE f.followee = :me AND f.follower != :me
+)
+ORDER BY created_at DESC
+LIMIT :limit;

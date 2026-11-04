@@ -5,6 +5,21 @@ plugins {
     alias(libs.plugins.metro)
 }
 
+kotlin {
+    android {
+        withHostTest {}
+    }
+
+    sourceSets {
+        commonMain.dependencies {
+            implementation(projects.core.common)
+        }
+        getByName("androidHostTest").dependencies {
+            implementation(libs.kotlin.testJunit)
+        }
+    }
+}
+
 sqldelight {
     databases {
         create("TalkDatabase") {
