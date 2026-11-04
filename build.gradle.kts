@@ -11,5 +11,7 @@ plugins {
     alias(libs.plugins.metro) apply false
     alias(libs.plugins.kotlin.serialization) apply false
     alias(libs.plugins.mokkery) apply false
+    alias(libs.plugins.android.test) apply false
     alias(libs.plugins.mokoResources) apply false
+    alias(libs.plugins.aboutLibraries) apply false
 }
