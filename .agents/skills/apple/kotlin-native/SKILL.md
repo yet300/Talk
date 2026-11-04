@@ -1,9 +1,9 @@
 ---
 name: kotlin-native
-description: Use the Kotlin/Native SharedLogic framework from Swift in Thaler — how it is built and linked, how Kotlin types look in Swift through SKIE, threading, memory, money and dates, resources, and the rebuild loop. Use when writing or debugging Swift that calls Kotlin, or when a Kotlin API is awkward from Swift.
+description: Use the Kotlin/Native SharedLogic framework from Swift in Talk — how it is built and linked, how Kotlin types look in Swift through SKIE, threading, memory, money and dates, resources, and the rebuild loop. Use when writing or debugging Swift that calls Kotlin, or when a Kotlin API is awkward from Swift.
 ---
 
-# Kotlin/Native from Swift (Thaler)
+# Kotlin/Native from Swift (Talk)
 
 The Apple apps link one Kotlin framework, **`SharedLogic`**, built by `:sharedLogic`. It carries the component tree
 (Decompose + MVIKotlin), the domain types, the resources (`:core:resources`, moko) and the app graph (Metro). Swift
@@ -68,9 +68,9 @@ Collision names get prefixes: `SharedLogic.ColorResource` vs iOS 17's `ColorReso
   Send dates back to Kotlin as `LocalDate(year:month:day:)` (add a Kotlin helper if a constructor is awkward).
   "Today" is decided by the model (profile time zone), not by `Date()` in Swift.
 - **Text:** UI copy comes from `MR.strings` (`Text(resource: \.key)`), domain labels from Kotlin `StringDesc`
-  (`Text(desc: …)`). See `app/iosApp/iosApp/Resources/ThalerResources.swift`. No hard-coded user-facing strings.
-- **Colours, fonts, tokens** come from `:core:resources`: `Color(resource:)`, `AccentPalette`, `ThalerType`
-  (`.thalerText(style)`), `ThalerSpacing`, `ThalerRadius`, `ThalerMotion`. No hard-coded accent green anywhere.
+  (`Text(desc: …)`). See `app/iosApp/iosApp/Resources/TalkResources.swift`. No hard-coded user-facing strings.
+- **Colours, fonts, tokens** come from `:core:resources`: `Color(resource:)`, `AccentPalette`, `TalkType`
+  (`.talkText(style)`), `TalkSpacing`, `TalkRadius`, `TalkMotion`. No hard-coded accent green anywhere.
 
 ## Kotlin-side fixes are allowed
 

@@ -1,9 +1,9 @@
 ---
 name: decompose-swiftui
-description: Render Thaler's Decompose component tree in SwiftUI with native containers — observing Value, ChildStack as NavigationStack, ChildPanels as NavigationSplitView or a stack, ChildSlot as sheets and dialogs, the main tabs as a Liquid Glass TabView, back and swipe-back, lifecycle, state restoration and previews. Use when building or changing any Apple screen.
+description: Render Talk's Decompose component tree in SwiftUI with native containers — observing Value, ChildStack as NavigationStack, ChildPanels as NavigationSplitView or a stack, ChildSlot as sheets and dialogs, the main tabs as a Liquid Glass TabView, back and swipe-back, lifecycle, state restoration and previews. Use when building or changing any Apple screen.
 ---
 
-# Decompose in SwiftUI (Thaler)
+# Decompose in SwiftUI (Talk)
 
 Navigation and state live in Kotlin components (ADR-028). SwiftUI **renders** them: every view takes its component,
 observes `Value`s, and forwards user actions to `component.onXxx(...)`. A view never decides where to navigate on its
@@ -111,7 +111,7 @@ written directly under `if #available(iOS 27.1, *)`, next to the fallback for ea
   `iOS 27.1` (iPhone Duo: `ArrangementView`, `reservedRegions`, `onHingeChange`, `toolbarVerticalEdge`). The fallback is the native
   equivalent of that version (materials such as `.regularMaterial`, `.borderedProminent`, a plain split/stack),
   never a hand-drawn imitation of glass.
-- Wrap each such pair once in a small modifier in `Component/` (e.g. `.thalerGlass()`), so screens don't repeat
+- Wrap each such pair once in a small modifier in `Component/` (e.g. `.talkGlass()`), so screens don't repeat
   `#available` checks.
 
 ## Back, swipe-back, keyboard

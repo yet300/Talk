@@ -18,10 +18,10 @@ class FeaturePlugin : Plugin<Project> {
         pluginManager.apply(KotlinMultiplatformPlugin::class.java)
         pluginManager.apply(libs.findPlugin("metro").get().get().pluginId)
 
-        val featureNamespace = "com.yet.thaler." + path.removePrefix(":").replace(':', '.').replace('-', '.')
+        val featureNamespace = "com.yet.talk." + path.removePrefix(":").replace(':', '.').replace('-', '.')
 
         extensions.configure<KotlinMultiplatformExtension> {
-            // :feature:tab:home → com.yet.thaler.feature.tab.home (the KMP convention drops the first segment).
+            // :feature:tab:home → com.yet.talk.feature.tab.home (the KMP convention drops the first segment).
             extensions.configure<KotlinMultiplatformAndroidLibraryExtension>("android") {
                 namespace = featureNamespace
             }

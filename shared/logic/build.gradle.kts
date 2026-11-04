@@ -1,8 +1,5 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-
 plugins {
-    alias(libs.plugins.kotlinMultiplatform)
-    alias(libs.plugins.androidMultiplatformLibrary)
+    alias(libs.plugins.local.kotlin.multiplatform)
 }
 
 kotlin {
@@ -17,7 +14,6 @@ kotlin {
     }
     js {
         outputModuleName = "sharedLogic"
-        browser()
         binaries.library()
         generateTypeScriptDefinitions()
         compilerOptions {
@@ -26,28 +22,21 @@ kotlin {
         }
     }
     android {
-       namespace = "com.yet.talk.sharedLogic"
-       compileSdk = libs.versions.android.compileSdk.get().toInt()
-       minSdk = libs.versions.android.minSdk.get().toInt()
-       compilerOptions {
-           jvmTarget = JvmTarget.JVM_11
-       }
-       androidResources {
-           enable = true
-       }
-       withHostTest {
-           isIncludeAndroidResources = true
-       }
+        // The convention derives "com.yet.talk" for root-level modules; the app already owns it.
+        namespace = "com.yet.talk.sharedLogic"
+        androidResources {
+            enable = true
+        }
+        withHostTest {
+            isIncludeAndroidResources = true
+        }
     }
     sourceSets {
-        commonMain.dependencies {
-            // put your Multiplatform dependencies here
-        }
-        commonTest.dependencies {
-            implementation(libs.kotlin.test)
-        }
         jsMain.dependencies {
             implementation(libs.wrappers.browser)
+        }
+        getByName("androidHostTest").dependencies {
+            implementation(libs.kotlin.testJunit)
         }
     }
 }

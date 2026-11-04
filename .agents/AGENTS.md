@@ -1,22 +1,25 @@
-# .agents/AGENTS.md — Agent Capabilities & Skills Index
+# .agents/AGENTS.md: skills index
 
-This directory contains AI Agent skills and capability definitions for **ThalerApp**.
+AI agent skills for **Talk**. Project architecture and build rules are in the root
+[AGENTS.md](../AGENTS.md). Claude Code reads these skills through the `.claude/skills` symlink.
 
-## Skill Index (`.agents/skills/`)
-- **Decompose & MVIKotlin**: `.agents/skills/decompose-mvikotlin/`
-  - `decompose-component`: ComponentContext, InstanceKeeper, StateKeeper, lifecycle management
+## Skill index (`.agents/skills/`)
+
+- **Decompose & MVIKotlin** (`decompose-mvikotlin/`)
+  - `decompose-component`: ComponentContext, InstanceKeeper, StateKeeper, lifecycle
   - `decompose-navigation`: ChildStack, ChildSlot, ChildPages
-  - `decompose-compose`: Compose extensions & UI binding
+  - `decompose-compose`: Compose extensions and UI binding
   - `mvikotlin-code`: StoreFactory, CoroutineExecutor, Reducer, Labels
-- **Compose Multiplatform**: `.agents/skills/compose-multiplatform/`
-  - State hoisting, deferred reads, side-effects, stability diagnostics, animations, testing
-- **Metro DI**: `.agents/skills/metro-di/`
-  - `@DependencyGraph`, `@ContributesBinding`, `@ContributesTo`, `@Inject`
-- **Android & System**: `.agents/skills/android/`
-  - Edge-to-edge, R8 analyzer
-- **Design & UI Polish**: `.agents/skills/design/`
-  - Better UI, layout, colors, typography, accessibility, motion
-- **App Store Optimization**: `.agents/skills/aso/`
-  - Metadata, keywords, app store listing optimization
-
-Refer to `AGENTS.md` in the project root for overall project architecture and build guidelines.
+- **Compose Multiplatform** (`compose-multiplatform/`): state hoisting, deferred reads, side effects,
+  stability, animations, adaptive layouts, testing
+- **Apple** (`apple/`)
+  - `decompose-swiftui`: the Decompose tree rendered with native SwiftUI containers
+  - `kotlin-native`: using the `SharedLogic` framework from Swift (SKIE, threading, memory)
+  - `iphone-duo`: SwiftUI/UIKit guidelines
+- **Android** (`android/`): edge-to-edge, performance, R8
+- **Kotlin** (`kotlin/`): control flow, coroutines and structured concurrency, Flow state/events,
+  functions, value classes
+- **Metro DI** (`metro-di/`): `@DependencyGraph`, `@ContributesTo`, `@ContributesBinding`, KMP wiring
+- **KSafe** (`ksafe/`): encrypted key/value storage; this is where the Nostr `nsec` is stored
+- **Design** (`design/`): app system, polish, motion
+- **Hindsight docs** (`hindsight-docs/`)

@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "private": true,
   "workspaces": [
-    "webApp",
-    "sharedLogic/build/dist/js/developmentLibrary"
+    "app/webApp",
+    "shared/logic/build/dist/js/developmentLibrary"
   ],
   "scripts": {
     "build:shared": "./gradlew :sharedLogic:jsBrowserDevelopmentLibraryDistribution",

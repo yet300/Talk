@@ -22,7 +22,11 @@ internal fun Project.configureKotlinMultiplatform(
     }
 
     js {
-        browser()
+        // Tests run on Node: no headless browser is needed locally or on CI.
+        browser {
+            testTask { enabled = false }
+        }
+        nodejs()
     }
 
     //apple targets

@@ -20,6 +20,7 @@ class ComposeMultiplatformPlugin : Plugin<Project> {
                     dependencies {
                         implementation(libs.findLibrary("compose-runtime").get())
                         implementation(libs.findLibrary("compose-foundation").get())
+                        implementation(libs.findLibrary("compose-ui").get())
                         implementation(libs.findLibrary("compose-material3").get())
                         implementation(libs.findLibrary("compose-material3-adaptive").get())
                     }

@@ -1,47 +1,52 @@
-This is a Kotlin Multiplatform project targeting Android, iOS, Web.
+# Talk
 
-* [/iosApp](./iosApp/iosApp) contains an iOS application. Even if you’re sharing your UI with Compose Multiplatform,
-  you need this entry point for your iOS app. This is also where you should add SwiftUI code for your project.
+A serverless take on [KarpathyTalk](https://karpathytalk.com): a small, positive network for
+builders where posts are markdown documents with a Twitter-like social layer (likes, reposts,
+quotes, replies, follows). The original site is gone; Talk keeps the idea but stores everything
+on **Nostr**, so there is no backend to pay for and every post is open data by design.
 
-* [/sharedLogic](./sharedLogic/src) is for the code that will be shared between app targets in the project.
-  The most important subfolder is [commonMain](./sharedLogic/src/commonMain/kotlin). If preferred, you
-  can add code to the platform-specific folders here too.
+Native apps for **Android** (Compose), **iOS** (SwiftUI) and the **web** (React), sharing all
+logic through Kotlin Multiplatform.
 
-* [/sharedUI](./sharedUI/src) is for code that will be shared across your Compose Multiplatform applications.
-  It contains several subfolders:
-  - [commonMain](./sharedUI/src/commonMain/kotlin) is for code that’s common for all targets.
-  - Other folders are for Kotlin code that will be compiled for only the platform indicated in the folder name.
-    For example, if you want to use Apple’s CoreCrypto for the iOS part of your Kotlin app,
-    the [iosMain](./sharedUI/src/iosMain/kotlin) folder would be the right place for such calls.
-    Similarly, if you want to edit the Desktop (JVM) specific part, the [jvmMain](./sharedUI/src/jvmMain/kotlin)
-    folder is the appropriate location.
+## Features (parity with KarpathyTalk)
 
-* [/webApp](./webApp) contains a React web application. It uses the Kotlin/JS library produced
-  by the [sharedLogic](./sharedLogic) module.
+- Sign in with a Nostr key: an external signer (Amber, NIP-07) or a key stored on the device
+- Markdown posts (GFM, code blocks, images) up to 10,000 characters
+- Replies, quote posts, reposts, likes, bookmarks, follows
+- Editable posts with a full revision history
+- Feeds: Latest, Following, Trending (Hacker News-style ranking), Activity
+- Profiles with Posts and Replies tabs
 
-### Running the apps
+How each feature maps to Nostr events: [docs/nostr-protocol.md](docs/nostr-protocol.md).
 
-Use the run configurations provided by the run widget in your IDE's toolbar. You can also use these commands and options:
+## Project layout
 
-- Android app: `./gradlew :androidApp:assembleDebug`
-- Web app:
-  1. Install [Node.js](https://nodejs.org/en/download) (which includes `npm`)
-  2. Build and run the web application:
-     ```shell
-     npm run build:shared
-     npm install
-     npm run start
-     ```
-- iOS app: open the [/iosApp](./iosApp) directory in Xcode and run it from there.
+```
+app/androidApp    Android app (Compose)
+app/iosApp        iOS app (SwiftUI)
+app/webApp        Web app (React + Vite)
+shared/logic      Shared logic, exported to iOS (SharedLogic.framework) and JS
+shared/ui         Android Compose UI
+core/common       Dispatchers, logging, Decompose/MVIKotlin helpers
+build-logic       Gradle convention plugins
+docs              Protocol and research notes
+```
 
-### Running tests
+Architecture, conventions and commands are in [AGENTS.md](AGENTS.md).
 
-Use the run button in your IDE's editor gutter, or run tests using Gradle tasks:
+## Running
 
-- Android tests: `./gradlew :sharedUI:testAndroidHostTest :sharedLogic:testAndroidHostTest`
-- Web tests: `./gradlew :sharedLogic:jsTest`
-- iOS tests: `./gradlew :sharedLogic:iosSimulatorArm64Test`
+- **Android:** `./gradlew :androidApp:assembleDebug`, or the run configuration in the IDE.
+- **iOS:** open `app/iosApp/iosApp.xcodeproj` in Xcode and run.
+- **Web:** install Node.js, then
 
----
+  ```bash
+  npm install
+  npm run start
+  ```
 
-Learn more about [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html)…
+## Tests
+
+```bash
+./gradlew :sharedLogic:testAndroidHostTest :sharedLogic:jsTest :sharedLogic:iosSimulatorArm64Test
+```
