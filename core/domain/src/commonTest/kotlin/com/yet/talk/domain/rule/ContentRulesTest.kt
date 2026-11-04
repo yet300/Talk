@@ -22,7 +22,8 @@ class ContentRulesTest {
 
     @Test
     fun rejectsUnpairedSurrogatesButKeepsEmoji() {
-        assertEquals(DomainError.InvisibleCharacters, ContentRules.sanitize("bad\uD800x").exceptionOrNull())
+        // Built at runtime: Kotlin/JS turns a lone surrogate in a string literal into U+FFFD.
+        assertEquals(DomainError.InvisibleCharacters, ContentRules.sanitize("bad" + Char(0xD800) + "x").exceptionOrNull())
         assertEquals("ok 🚀", ContentRules.sanitize("ok 🚀").getOrThrow())
     }
 
