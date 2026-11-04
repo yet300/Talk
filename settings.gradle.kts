@@ -36,3 +36,6 @@ include(":sharedLogic")
 project(":sharedLogic").projectDir = file("shared/logic")
 include(":sharedUI")
 project(":sharedUI").projectDir = file("shared/ui")
+
+include(":core")
+include(":core:common")
