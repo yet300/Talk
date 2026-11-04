@@ -17,3 +17,6 @@ captures
 !*.xcworkspace/contents.xcworkspacedata
 **/xcshareddata/WorkspaceSettings.xcsettings
 node_modules/
+
+# Copied by app/webApp/scripts/copy-sqlite.mjs
+app/webApp/public/sqlite/

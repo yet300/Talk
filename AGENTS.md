@@ -34,7 +34,7 @@ Clean Architecture, SOLID, KISS, YAGNI. In practice:
 | `:core:nostr` | `core/nostr` | Protocol only: NIP-01 events and ids, BIP-340 signing (libsecp256k1 on Android/iOS, `@noble/curves` on JS), NIP-19, `RelayClient`/`RelayPool`, NIP helpers |
 | `:core:api` | `core/api` | Talk schema (`TalkSchema`, `TalkEvents`, `TalkEvent`) and remote sources over `RelayClient`; Blossom, NIP-05 |
 | `:core:database` | `core/database` | SQLDelight cache (`TalkDatabase`), DAO interfaces + implementations, `SqlDriverFactory` per platform |
-| `:core:data` | `core/data` | Repository implementations, `Session` + KSafe key vault, `EventIngestor`, `FeedPager`, optimistic `Publisher` |
+| `:core:data` | `core/data` | Repository implementations, `Session` + KSafe key vault, `EventIngestor`, `FeedPaging` (Paging 3 + `RemoteMediator`), optimistic `Publisher` |
 | `:core:resources` | `core/resources` | moko-resources (`MR`, package `com.yet.talk.resources`) and platform helpers |
 | `:feature:root` | `feature/root` | Root `ChildStack`: full-screen destinations above the tabs |
 | `:feature:tab:main` | `feature/tab/main` | Tab container (`ChildStack` + `bringToFront`) |
@@ -56,8 +56,10 @@ their UI, following the design file.
 - **The database is the single source of truth.** Repositories fetch from relays, verify (in `RelayPool`),
   parse (`TalkEvent.parse`), store (`EventIngestor`), and expose `Flow`s read from the DAOs.
 - `EventIngestor` enforces authorship: revisions and NIP-09 deletions only count for the author's own events.
-- Paging (`FeedPager`): a window of 20 rows that grows on `loadMore`; the remote cursor is the oldest event
-  relays returned, minus one second.
+- Paging: AndroidX Paging 3 (`paging-common`, KMP). Repositories return `Flow<PagingData<T>>`; the database pages
+  through SQLDelight's `QueryPagingSource` (20 rows, `FeedRules.PAGE_SIZE`), and `FeedRemoteMediator` fetches older
+  pages from relays. Its cursor (the oldest event relays returned) and end flag live in `sync_state`.
+  Plan for the UI phase: on iOS and the web, collect `PagingData` through a `PagingDataPresenter` in the feature layer.
 - Writes are optimistic (`Publisher.storeAndPublish`): stored as pending, then published or failed. Deletions
   and unlikes are published first, because tombstones cannot be undone.
 - Replaceable lists (contacts, bookmarks, relays) are synced from relays before they are changed
@@ -69,8 +71,12 @@ their UI, following the design file.
 - **iOS:** the SQLDelight native driver needs the system SQLite: `OTHER_LDFLAGS = -lsqlite3` in
   `app/iosApp/Configuration/Config.xcconfig`, and `linkerOpts("-lsqlite3")` in Kotlin modules that link native
   test binaries without the SQLDelight plugin (see `core/data/build.gradle.kts`).
-- **Web:** the web app creates the sql.js worker and passes it to `createJsAppGraph(worker)`; the database is
-  in memory. DAO and repository tests skip on JS (no driver without a bundler).
+- **Web:** SQLite WASM (`@sqlite.org/sqlite-wasm`) in a module worker, persisted in OPFS (SAH pool, no COOP/COEP
+  needed; falls back to the plain OPFS VFS, then memory). The worker lives in
+  `core/database/src/jsMain/resources/sqlite/talk-sqlite.worker.mjs`; `app/webApp/scripts/copy-sqlite.mjs` copies it
+  and the WASM build into `public/sqlite/` before `npm start`/`npm run build`. It answers statements without result
+  columns with `db.changes()`, because `WebWorkerDriver` reads the changed-row count from `values[0][0]`. The schema is
+  created and migrated by `PRAGMA user_version`. DAO and repository tests skip on JS (Node has no Web Worker/OPFS).
 - **Keys:** `KSafeKeyVault` is the only place the secret key is persisted. `SecretKey.toString()` is redacted.
 
 ## Components and DI

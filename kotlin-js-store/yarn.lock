@@ -2,11 +2,6 @@
 # yarn lockfile v1
 
 
-"@cashapp/sqldelight-sqljs-worker@2.4.1":
-  version "2.4.1"
-  resolved "https://registry.yarnpkg.com/@cashapp/sqldelight-sqljs-worker/-/sqldelight-sqljs-worker-2.4.1.tgz#39969b4f7b1f506a0a753674ea38afdde95e2f68"
-  integrity sha512-gk2I6YtVQ5YElygOCB+FJYubloo1U8JbSFP5KRGkEOL1qiUzx2bmFCvtE2cUcTLNqAqRGGV4osIPA1f1zoJmwA==
-
 "@isaacs/cliui@^8.0.2":
   version "8.0.2"
   resolved "https://registry.yarnpkg.com/@isaacs/cliui/-/cliui-8.0.2.tgz#b37667b7bc181c168782259bab42474fbf52b550"
@@ -680,11 +675,6 @@ source-map@^0.6.0:
   version "0.6.1"
   resolved "https://registry.yarnpkg.com/source-map/-/source-map-0.6.1.tgz#74722af32e9614e9c287a8d0bbde48b5e2f1a263"
   integrity sha512-UjgapumWlbMhkBgzT7Ykc5YXUT46F0iKu8SGXq0bcwP5dz/h0Plj6enJqjz1Zbq2l5WaqYnrVbwWOWMyF3F47g==
-
-sql.js@1.15.2:
-  version "1.15.2"
-  resolved "https://registry.yarnpkg.com/sql.js/-/sql.js-1.15.2.tgz#ee1f9fc47c9886b71aefc3338d3774e11faedc97"
-  integrity sha512-ZmMYFsZPZWDKIJUh3A5rdnpRV3hB/r7AijwAzSzLnfv/9CSx4obUmDtA8brAjWJWjGtUVh43nIEJ+6nl6HuOUg==
 
 "string-width-cjs@npm:string-width@^4.2.0":
   version "4.2.3"

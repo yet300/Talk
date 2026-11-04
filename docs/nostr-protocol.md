@@ -40,7 +40,7 @@ Key storage per platform:
 
 - **Android:** an external signer (Amber, NIP-55) when installed, otherwise the `nsec` in KSafe.
 - **iOS:** the `nsec` in KSafe (Keychain).
-- **Web:** a NIP-07 browser extension (`window.nostr`). The app never sees the key.
+- **Web:** the `nsec` in KSafe (WebCrypto, non-extractable key in IndexedDB); a NIP-07 browser extension later.
 
 ## Posts
 

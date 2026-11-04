@@ -5,9 +5,12 @@
   "type": "module",
   "scripts": {
     "build": "tsc && vite build",
-    "start": "vite"
+    "start": "vite",
+    "prestart": "node scripts/copy-sqlite.mjs",
+    "prebuild": "node scripts/copy-sqlite.mjs"
   },
   "dependencies": {
+    "@sqlite.org/sqlite-wasm": "3.54.1-build1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "sharedLogic": "0.0.0-unspecified"

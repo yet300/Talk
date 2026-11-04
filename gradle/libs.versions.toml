@@ -40,7 +40,6 @@ mvi = "4.4.0"
 
 androidx-paging = "3.5.3"
 sqldelight = "2.4.1"
-sqljs = "1.15.2"
 ksafe = "3.3.0"
 ktor = "3.6.1"
 secp256k1 = "0.24.0"
