@@ -18,21 +18,21 @@ class SqlReactionDao(private val holder: DatabaseHolder, private val dispatchers
     override suspend fun insert(reaction: ReactionRecord): Boolean = withContext(dispatchers.io) {
         val database = holder.get()
         database.transactionWithResult {
-            if (database.socialQueries.isTombstoned(reaction.eventId, reaction.user).awaitAsOne()) return@transactionWithResult false
-            with(reaction) { database.socialQueries.insertReaction(eventId, postId, user, type, createdAt) } > 0
+            if (database.tombstoneQueries.isTombstoned(reaction.eventId, reaction.user).awaitAsOne()) return@transactionWithResult false
+            with(reaction) { database.reactionQueries.insertReaction(eventId, postId, user, type, createdAt) } > 0
         }
     }
 
     override suspend fun reactionIds(postId: String, user: String, type: String): List<String> = withContext(dispatchers.io) {
-        holder.get().socialQueries.selectReactionIds(postId, user, type).awaitAsList()
+        holder.get().reactionQueries.selectReactionIds(postId, user, type).awaitAsList()
     }
 
     override suspend fun delete(eventIds: Collection<String>, user: String) = withContext(dispatchers.io) {
         if (eventIds.isEmpty()) return@withContext
         val database = holder.get()
         database.transaction {
-            database.socialQueries.deleteReactions(eventIds, user)
-            eventIds.forEach { database.socialQueries.insertTombstone(it, user) }
+            database.reactionQueries.deleteReactions(eventIds, user)
+            eventIds.forEach { database.tombstoneQueries.insertTombstone(it, user) }
         }
     }
 }

@@ -1,31 +1,29 @@
 package com.yet.talk.data.repository
 
+import androidx.paging.PagingData
+import androidx.paging.map
 import com.yet.talk.api.source.post.PostRemoteSource
 import com.yet.talk.data.mapper.toPost
-import com.yet.talk.data.paging.FeedPager
-import com.yet.talk.data.paging.FetchedPage
+import com.yet.talk.data.paging.FeedPaging
 import com.yet.talk.data.session.Session
 import com.yet.talk.data.sync.EventIngestor
 import com.yet.talk.data.sync.Publisher
 import com.yet.talk.data.sync.RemoteSync
 import com.yet.talk.data.sync.publishReplaceable
 import com.yet.talk.data.sync.remote
+import com.yet.talk.database.dao.BookmarkDao
 import com.yet.talk.database.dao.PostDao
-import com.yet.talk.database.dao.SocialDao
 import com.yet.talk.database.model.PostFeed
 import com.yet.talk.database.model.PostRecord
-import com.yet.talk.domain.model.Pager
 import com.yet.talk.domain.model.post.Post
 import com.yet.talk.domain.model.post.PostId
 import com.yet.talk.domain.repository.BookmarkRepository
-import com.yet.talk.nostr.event.EventTemplate
-import com.yet.talk.nostr.nip.Kinds
 import com.yet.talk.nostr.nip.bookmarkList
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 
@@ -34,40 +32,37 @@ import kotlinx.coroutines.flow.map
 @Inject
 class BookmarkRepositoryImpl(
     private val posts: PostDao,
-    private val social: SocialDao,
+    private val bookmarks: BookmarkDao,
     private val postsRemote: PostRemoteSource,
     private val sync: RemoteSync,
     private val ingestor: EventIngestor,
     private val session: Session,
     private val publisher: Publisher,
+    private val paging: FeedPaging,
 ) : BookmarkRepository {
 
     override suspend fun setBookmarked(postId: PostId, bookmarked: Boolean): Result<Unit> = remote {
         val me = publisher.me()
         sync.ensureListsSynced(me)
-        val current = social.bookmarkIds(me)
+        val current = bookmarks.bookmarkIds(me)
         val updated = if (bookmarked) current + postId.value else current - postId.value
         if (updated.distinct() == current) return@remote
-        publishList(me, Kinds.BOOKMARKS) { bookmarkList(updated, it) }
+        publishReplaceable(bookmarks.version(me), ingestor, publisher) { bookmarkList(updated, it) }
     }
 
-    override fun bookmarks(): Pager<Post> = FeedPager(
-        observe = { limit ->
-            session.viewer.flatMapLatest { viewer -> posts.observeFeed(PostFeed.Bookmarks, viewer, limit) }
-                .map { records -> records.map(PostRecord::toPost) }
-        },
-        // The whole list arrives at once; there is nothing older to page in from relays.
-        fetch = { until ->
-            val viewer = session.viewer.first()
-            if (until != null || viewer.isEmpty()) {
-                FetchedPage(0, null)
-            } else {
-                sync.syncLists(viewer)
-                FetchedPage(sync.storeWithContext(postsRemote.byIds(social.bookmarkIds(viewer))), null)
-            }
-        },
-    )
+    // The whole list arrives at once: refresh fetches every bookmarked post, there are no older pages.
+    override fun bookmarks(): Flow<PagingData<Post>> =
+        session.viewer.flatMapLatest { viewer ->
+            paging.feed(
+                feedKey = "bookmarks:$viewer",
+                pages = { posts.feedPages(PostFeed.Bookmarks, viewer) },
+                fetcher = { until -> if (until == null && viewer.isNotEmpty()) fetchAll(viewer) else null },
+            )
+        }.map { page -> page.map(PostRecord::toPost) }
 
-    private suspend fun publishList(me: String, kind: Int, build: (Long) -> EventTemplate) =
-        publishReplaceable(social, ingestor, publisher, me, kind, build)
+    private suspend fun fetchAll(viewer: String): Long {
+        sync.syncLists(viewer)
+        sync.storeWithContext(postsRemote.byIds(bookmarks.bookmarkIds(viewer)))
+        return publisher.now()
+    }
 }

@@ -1,0 +1,28 @@
+-- What happened to :me's posts and account, newest first (KarpathyTalk's Activity tab).
+selectActivity:
+SELECT * FROM (
+    SELECT 'reply' AS type, p.author AS actor, p.created_at AS created_at, p.id AS event_post_id, p.parent_id AS subject_post_id
+    FROM post p JOIN post parent ON parent.id = p.parent_id
+    WHERE parent.author = :me AND p.author != :me AND p.deleted = 0
+    UNION ALL
+    SELECT 'quote', p.author, p.created_at, p.id, p.quote_id
+    FROM post p JOIN post quoted ON quoted.id = p.quote_id
+    WHERE quoted.author = :me AND p.author != :me AND p.deleted = 0
+    UNION ALL
+    SELECT r.type, r.user, r.created_at, CAST(NULL AS TEXT), r.post_id
+    FROM reaction r JOIN post target ON target.id = r.post_id
+    WHERE target.author = :me AND r.user != :me
+    UNION ALL
+    SELECT 'follow', f.follower, f.created_at, CAST(NULL AS TEXT), CAST(NULL AS TEXT)
+    FROM follow f
+    WHERE f.followee = :me AND f.follower != :me
+)
+ORDER BY created_at DESC
+LIMIT :limit OFFSET :offset;
+
+countActivity:
+SELECT
+    (SELECT COUNT(*) FROM post p JOIN post parent ON parent.id = p.parent_id WHERE parent.author = :me AND p.author != :me AND p.deleted = 0) +
+    (SELECT COUNT(*) FROM post p JOIN post quoted ON quoted.id = p.quote_id WHERE quoted.author = :me AND p.author != :me AND p.deleted = 0) +
+    (SELECT COUNT(*) FROM reaction r JOIN post target ON target.id = r.post_id WHERE target.author = :me AND r.user != :me) +
+    (SELECT COUNT(*) FROM follow f WHERE f.followee = :me AND f.follower != :me);

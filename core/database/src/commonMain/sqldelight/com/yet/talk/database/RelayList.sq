@@ -1,0 +1,17 @@
+-- NIP-65 relay lists.
+CREATE TABLE relay (
+    owner TEXT NOT NULL,
+    url TEXT NOT NULL,
+    read INTEGER NOT NULL,
+    write INTEGER NOT NULL,
+    PRIMARY KEY (owner, url)
+);
+
+deleteRelays:
+DELETE FROM relay WHERE owner = ?;
+
+insertRelay:
+INSERT OR REPLACE INTO relay(owner, url, read, write) VALUES (?, ?, ?, ?);
+
+selectRelays:
+SELECT url, read, write FROM relay WHERE owner = ? ORDER BY url;

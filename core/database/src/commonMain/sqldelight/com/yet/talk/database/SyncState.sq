@@ -1,0 +1,13 @@
+-- Remote paging state per feed: the oldest event time relays returned, and whether they have no more.
+CREATE TABLE sync_state (
+    feed_key TEXT NOT NULL PRIMARY KEY,
+    end_reached INTEGER NOT NULL DEFAULT 0,
+    cursor INTEGER,
+    synced_at INTEGER NOT NULL DEFAULT 0
+);
+
+selectSyncState:
+SELECT end_reached, cursor, synced_at FROM sync_state WHERE feed_key = ?;
+
+setSyncState:
+INSERT OR REPLACE INTO sync_state(feed_key, end_reached, cursor, synced_at) VALUES (?, ?, ?, ?);

@@ -84,46 +84,62 @@ SELECT v.*,
 FROM post_with_stats v
 WHERE v.id = :id AND v.deleted = 0;
 
+-- Paged feeds: each select has a count query for QueryPagingSource.
+
 selectLatest:
 SELECT v.*,
     EXISTS (SELECT 1 FROM reaction r WHERE r.post_id = v.id AND r.user = :viewer AND r.type = 'like') AS viewer_liked,
     EXISTS (SELECT 1 FROM reaction r WHERE r.post_id = v.id AND r.user = :viewer AND r.type = 'repost') AS viewer_reposted,
-    EXISTS (SELECT 1 FROM bookmark b WHERE b.post_id = v.id AND b.owner = :viewer) AS viewer_bookmarked
+    EXISTS (SELECT 1 FROM bookmark own WHERE own.post_id = v.id AND own.owner = :viewer) AS viewer_bookmarked
 FROM post_with_stats v
 WHERE v.parent_id IS NULL AND v.deleted = 0
 ORDER BY v.created_at DESC, v.id DESC
-LIMIT :limit;
+LIMIT :limit OFFSET :offset;
+
+countLatest:
+SELECT COUNT(*) FROM post WHERE parent_id IS NULL AND deleted = 0;
 
 selectFollowing:
 SELECT v.*,
     EXISTS (SELECT 1 FROM reaction r WHERE r.post_id = v.id AND r.user = :viewer AND r.type = 'like') AS viewer_liked,
     EXISTS (SELECT 1 FROM reaction r WHERE r.post_id = v.id AND r.user = :viewer AND r.type = 'repost') AS viewer_reposted,
-    EXISTS (SELECT 1 FROM bookmark b WHERE b.post_id = v.id AND b.owner = :viewer) AS viewer_bookmarked
+    EXISTS (SELECT 1 FROM bookmark own WHERE own.post_id = v.id AND own.owner = :viewer) AS viewer_bookmarked
 FROM post_with_stats v
 WHERE v.parent_id IS NULL AND v.deleted = 0
   AND (v.author = :viewer OR v.author IN (SELECT f.followee FROM follow f WHERE f.follower = :viewer))
 ORDER BY v.created_at DESC, v.id DESC
-LIMIT :limit;
+LIMIT :limit OFFSET :offset;
+
+countFollowing:
+SELECT COUNT(*) FROM post p
+WHERE p.parent_id IS NULL AND p.deleted = 0
+  AND (p.author = :viewer OR p.author IN (SELECT f.followee FROM follow f WHERE f.follower = :viewer));
 
 selectUserPosts:
 SELECT v.*,
     EXISTS (SELECT 1 FROM reaction r WHERE r.post_id = v.id AND r.user = :viewer AND r.type = 'like') AS viewer_liked,
     EXISTS (SELECT 1 FROM reaction r WHERE r.post_id = v.id AND r.user = :viewer AND r.type = 'repost') AS viewer_reposted,
-    EXISTS (SELECT 1 FROM bookmark b WHERE b.post_id = v.id AND b.owner = :viewer) AS viewer_bookmarked
+    EXISTS (SELECT 1 FROM bookmark own WHERE own.post_id = v.id AND own.owner = :viewer) AS viewer_bookmarked
 FROM post_with_stats v
 WHERE v.author = :author AND v.parent_id IS NULL AND v.deleted = 0
 ORDER BY v.created_at DESC, v.id DESC
-LIMIT :limit;
+LIMIT :limit OFFSET :offset;
+
+countUserPosts:
+SELECT COUNT(*) FROM post WHERE author = :author AND parent_id IS NULL AND deleted = 0;
 
 selectUserReplies:
 SELECT v.*,
     EXISTS (SELECT 1 FROM reaction r WHERE r.post_id = v.id AND r.user = :viewer AND r.type = 'like') AS viewer_liked,
     EXISTS (SELECT 1 FROM reaction r WHERE r.post_id = v.id AND r.user = :viewer AND r.type = 'repost') AS viewer_reposted,
-    EXISTS (SELECT 1 FROM bookmark b WHERE b.post_id = v.id AND b.owner = :viewer) AS viewer_bookmarked
+    EXISTS (SELECT 1 FROM bookmark own WHERE own.post_id = v.id AND own.owner = :viewer) AS viewer_bookmarked
 FROM post_with_stats v
 WHERE v.author = :author AND v.parent_id IS NOT NULL AND v.deleted = 0
 ORDER BY v.created_at DESC, v.id DESC
-LIMIT :limit;
+LIMIT :limit OFFSET :offset;
+
+countUserReplies:
+SELECT COUNT(*) FROM post WHERE author = :author AND parent_id IS NOT NULL AND deleted = 0;
 
 selectBookmarked:
 SELECT v.*,
@@ -134,18 +150,24 @@ FROM bookmark b
 JOIN post_with_stats v ON v.id = b.post_id
 WHERE b.owner = :viewer AND v.deleted = 0
 ORDER BY b.position DESC
-LIMIT :limit;
+LIMIT :limit OFFSET :offset;
+
+countBookmarked:
+SELECT COUNT(*) FROM bookmark b JOIN post p ON p.id = b.post_id WHERE b.owner = :viewer AND p.deleted = 0;
 
 selectTrending:
 SELECT v.*,
     EXISTS (SELECT 1 FROM reaction r WHERE r.post_id = v.id AND r.user = :viewer AND r.type = 'like') AS viewer_liked,
     EXISTS (SELECT 1 FROM reaction r WHERE r.post_id = v.id AND r.user = :viewer AND r.type = 'repost') AS viewer_reposted,
-    EXISTS (SELECT 1 FROM bookmark b WHERE b.post_id = v.id AND b.owner = :viewer) AS viewer_bookmarked
+    EXISTS (SELECT 1 FROM bookmark own WHERE own.post_id = v.id AND own.owner = :viewer) AS viewer_bookmarked
 FROM trending t
 JOIN post_with_stats v ON v.id = t.post_id
 WHERE v.deleted = 0
 ORDER BY t.rank
-LIMIT :limit;
+LIMIT :limit OFFSET :offset;
+
+countTrending:
+SELECT COUNT(*) FROM trending t JOIN post p ON p.id = t.post_id WHERE p.deleted = 0;
 
 -- Replies below :rootId, flattened in chronological order with their depth (KarpathyTalk caps it at 50).
 selectThread:

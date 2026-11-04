@@ -1,0 +1,24 @@
+-- NIP-02 contact lists of the viewer and of the people whose lists were fetched (followers).
+CREATE TABLE follow (
+    follower TEXT NOT NULL,
+    followee TEXT NOT NULL,
+    created_at INTEGER NOT NULL,
+    PRIMARY KEY (follower, followee)
+);
+
+CREATE INDEX follow_followee ON follow(followee);
+
+deleteFollows:
+DELETE FROM follow WHERE follower = ?;
+
+insertFollow:
+INSERT OR REPLACE INTO follow(follower, followee, created_at) VALUES (?, ?, ?);
+
+selectFollowees:
+SELECT followee FROM follow WHERE follower = ? ORDER BY followee;
+
+isFollowing:
+SELECT EXISTS (SELECT 1 FROM follow WHERE follower = :follower AND followee = :followee);
+
+countFollowing:
+SELECT COUNT(*) FROM follow WHERE follower = ?;

@@ -1,0 +1,16 @@
+-- NIP-51 bookmark lists; position keeps the list order.
+CREATE TABLE bookmark (
+    owner TEXT NOT NULL,
+    post_id TEXT NOT NULL,
+    position INTEGER NOT NULL,
+    PRIMARY KEY (owner, post_id)
+);
+
+deleteBookmarks:
+DELETE FROM bookmark WHERE owner = ?;
+
+insertBookmark:
+INSERT OR REPLACE INTO bookmark(owner, post_id, position) VALUES (?, ?, ?);
+
+selectBookmarkIds:
+SELECT post_id FROM bookmark WHERE owner = ? ORDER BY position;

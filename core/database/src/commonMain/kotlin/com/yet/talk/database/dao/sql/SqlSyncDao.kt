@@ -15,13 +15,13 @@ import kotlinx.coroutines.withContext
 class SqlSyncDao(private val holder: DatabaseHolder, private val dispatchers: AppDispatchers) : SyncDao {
 
     override suspend fun state(feedKey: String): SyncStateRecord? = withContext(dispatchers.io) {
-        holder.get().trendingQueries.selectSyncState(feedKey) { _, endReached, syncedAt ->
-            SyncStateRecord(endReached != 0L, syncedAt)
+        holder.get().syncStateQueries.selectSyncState(feedKey) { endReached, cursor, syncedAt ->
+            SyncStateRecord(endReached != 0L, cursor, syncedAt)
         }.awaitAsOneOrNull()
     }
 
     override suspend fun setState(feedKey: String, state: SyncStateRecord) = withContext(dispatchers.io) {
-        holder.get().trendingQueries.setSyncState(feedKey, if (state.endReached) 1 else 0, state.syncedAt)
+        holder.get().syncStateQueries.setSyncState(feedKey, if (state.endReached) 1 else 0, state.cursor, state.syncedAt)
         Unit
     }
 }

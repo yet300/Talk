@@ -1,5 +1,7 @@
 package com.yet.talk.data.repository
 
+import androidx.paging.PagingData
+import androidx.paging.map
 import com.yet.talk.api.schema.PostRef
 import com.yet.talk.api.schema.TalkEvents
 import com.yet.talk.api.schema.TalkSchema
@@ -7,18 +9,16 @@ import com.yet.talk.api.source.post.PostRemoteSource
 import com.yet.talk.data.mapper.toImeta
 import com.yet.talk.data.mapper.toPost
 import com.yet.talk.data.mapper.toRevision
-import com.yet.talk.data.paging.FeedPager
-import com.yet.talk.data.paging.FetchedPage
+import com.yet.talk.data.paging.FeedPaging
 import com.yet.talk.data.session.Session
 import com.yet.talk.data.sync.EventIngestor
 import com.yet.talk.data.sync.Publisher
 import com.yet.talk.data.sync.RemoteSync
 import com.yet.talk.data.sync.remote
+import com.yet.talk.database.dao.FollowDao
 import com.yet.talk.database.dao.PostDao
-import com.yet.talk.database.dao.SocialDao
 import com.yet.talk.database.model.PostFeed
 import com.yet.talk.database.model.PostRecord
-import com.yet.talk.domain.model.Pager
 import com.yet.talk.domain.model.error.DomainError
 import com.yet.talk.domain.model.post.Image
 import com.yet.talk.domain.model.post.Post
@@ -27,6 +27,7 @@ import com.yet.talk.domain.model.post.Revision
 import com.yet.talk.domain.model.post.ThreadReply
 import com.yet.talk.domain.repository.Feed
 import com.yet.talk.domain.repository.PostRepository
+import com.yet.talk.domain.rule.FeedRules
 import com.yet.talk.nostr.nip.Kinds
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.ContributesBinding
@@ -42,36 +43,38 @@ import kotlinx.coroutines.flow.map
 @Inject
 class PostRepositoryImpl(
     private val posts: PostDao,
-    private val social: SocialDao,
+    private val follows: FollowDao,
     private val postsRemote: PostRemoteSource,
     private val sync: RemoteSync,
     private val ingestor: EventIngestor,
     private val session: Session,
     private val publisher: Publisher,
+    private val paging: FeedPaging,
 ) : PostRepository {
 
-    override fun feed(feed: Feed): Pager<Post> = FeedPager(
-        observe = { limit ->
-            session.viewer.flatMapLatest { viewer -> posts.observeFeed(feed.toDao(), viewer, limit) }
-                .map { records -> records.map(PostRecord::toPost) }
-        },
-        fetch = { until -> fetchFeed(feed, until) },
-    )
+    override fun feed(feed: Feed): Flow<PagingData<Post>> =
+        session.viewer.flatMapLatest { viewer ->
+            paging.feed(
+                feedKey = feed.key(viewer),
+                pages = { posts.feedPages(feed.toDao(), viewer) },
+                fetcher = { until -> fetchFeed(feed, viewer, until) },
+            )
+        }.map { page -> page.map(PostRecord::toPost) }
 
-    private suspend fun fetchFeed(feed: Feed, until: Long?): FetchedPage {
+    private suspend fun fetchFeed(feed: Feed, viewer: String, until: Long?): Long? {
         val authors = when (feed) {
             Feed.Latest -> null
             Feed.Following -> {
-                val viewer = session.viewer.first()
-                if (viewer.isEmpty()) return FetchedPage(0, null)
+                if (viewer.isEmpty()) return null
                 sync.ensureListsSynced(viewer)
-                social.observeFollowees(viewer).first() + viewer
+                follows.observeFollowees(viewer).first() + viewer
             }
             is Feed.UserPosts -> listOf(feed.userId.value)
             is Feed.UserReplies -> listOf(feed.userId.value)
         }
-        val page = postsRemote.timeline(authors, until, Pager.PAGE_SIZE)
-        return FetchedPage(sync.storeWithContext(page), page.minOfOrNull { it.event.createdAt })
+        val page = postsRemote.timeline(authors, until, FeedRules.PAGE_SIZE)
+        sync.storeWithContext(page)
+        return page.minOfOrNull { it.event.createdAt }
     }
 
     override fun observePost(id: PostId): Flow<Post?> =
@@ -147,6 +150,13 @@ class PostRepositoryImpl(
     /** The revision event id to pin when the post was edited; null for an unedited post. */
     private suspend fun editedRevisionId(postId: String): String? =
         posts.observeRevisions(postId).first().firstOrNull()?.takeIf { it.number > 1 }?.id
+
+    private fun Feed.key(viewer: String): String = when (this) {
+        Feed.Latest -> "latest"
+        Feed.Following -> "following:$viewer"
+        is Feed.UserPosts -> "posts:${userId.value}"
+        is Feed.UserReplies -> "replies:${userId.value}"
+    }
 
     private fun Feed.toDao(): PostFeed = when (this) {
         Feed.Latest -> PostFeed.Latest

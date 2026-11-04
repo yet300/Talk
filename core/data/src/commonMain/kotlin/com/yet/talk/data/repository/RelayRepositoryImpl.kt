@@ -6,10 +6,9 @@ import com.yet.talk.data.sync.EventIngestor
 import com.yet.talk.data.sync.Publisher
 import com.yet.talk.data.sync.publishReplaceable
 import com.yet.talk.data.sync.remote
-import com.yet.talk.database.dao.SocialDao
+import com.yet.talk.database.dao.RelayListDao
 import com.yet.talk.domain.model.relay.Relay
 import com.yet.talk.domain.repository.RelayRepository
-import com.yet.talk.nostr.nip.Kinds
 import com.yet.talk.nostr.nip.RelayListEntry
 import com.yet.talk.nostr.nip.relayList
 import dev.zacsweers.metro.AppScope
@@ -25,7 +24,7 @@ import kotlinx.coroutines.flow.map
 @ContributesBinding(AppScope::class)
 @Inject
 class RelayRepositoryImpl(
-    private val social: SocialDao,
+    private val relayLists: RelayListDao,
     private val ingestor: EventIngestor,
     private val session: Session,
     private val publisher: Publisher,
@@ -36,13 +35,13 @@ class RelayRepositoryImpl(
         if (viewer.isEmpty()) {
             flowOf(defaults)
         } else {
-            social.observeRelays(viewer).map { stored -> stored.map { Relay(it.url, it.read, it.write) }.ifEmpty { defaults } }
+            relayLists.observe(viewer).map { stored -> stored.map { Relay(it.url, it.read, it.write) }.ifEmpty { defaults } }
         }
     }
 
     override suspend fun setRelays(relays: List<Relay>): Result<Unit> = remote {
         val me = publisher.me()
         val entries = relays.map { RelayListEntry(it.url, it.read, it.write) }
-        publishReplaceable(social, ingestor, publisher, me, Kinds.RELAY_LIST) { relayList(entries, it) }
+        publishReplaceable(relayLists.version(me), ingestor, publisher) { relayList(entries, it) }
     }
 }

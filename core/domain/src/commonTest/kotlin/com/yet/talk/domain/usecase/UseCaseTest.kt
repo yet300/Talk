@@ -1,6 +1,6 @@
 package com.yet.talk.domain.usecase
 
-import com.yet.talk.domain.model.Pager
+import androidx.paging.PagingData
 import com.yet.talk.domain.model.error.DomainError
 import com.yet.talk.domain.model.media.ImageFile
 import com.yet.talk.domain.model.media.MediaUpload
@@ -46,7 +46,7 @@ class UseCaseTest {
             return Result.success(PostId("reply"))
         }
 
-        override fun feed(feed: Feed): Pager<Post> = error("unused")
+        override fun feed(feed: Feed): Flow<PagingData<Post>> = error("unused")
         override fun observePost(id: PostId): Flow<Post?> = error("unused")
         override suspend fun refreshPost(id: PostId): Result<Unit> = error("unused")
         override fun observeThread(id: PostId): Flow<List<ThreadReply>> = error("unused")

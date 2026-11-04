@@ -1,8 +1,8 @@
 package com.yet.talk.data
 
+import androidx.paging.testing.asSnapshot
 import com.yet.talk.api.schema.TalkEvents
 import com.yet.talk.data.fake.TestData
-import com.yet.talk.domain.model.Pager
 import com.yet.talk.domain.model.error.DomainError
 import com.yet.talk.domain.model.post.PostId
 import com.yet.talk.domain.model.post.PublishState
@@ -19,6 +19,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.runTest
 
@@ -28,7 +29,8 @@ class DataTest {
 
     private fun dataTest(body: suspend TestScope.(TestData) -> Unit) = runTest {
         val factory = testDriverFactory() ?: return@runTest
-        body(TestData(factory, backgroundScope))
+        // Database work on the test scheduler, so Paging's idle detection (asSnapshot) sees every load.
+        body(TestData(factory, backgroundScope, StandardTestDispatcher(testScheduler)))
     }
 
     private suspend fun TestData.bobPost(content: String, createdAt: Long) =
@@ -61,7 +63,7 @@ class DataTest {
         data.network.accept = false
         data.clock.seconds += 1
         assertEquals(DomainError.NoRelayAccepted, data.posts.publish("again", emptyList(), null).exceptionOrNull())
-        val failed = data.posts.feed(Feed.Latest).items.first().first()
+        val failed = data.posts.feed(Feed.Latest).asSnapshot().first()
         assertEquals("again" to PublishState.Failed, failed.content to failed.publishState)
     }
 
@@ -73,18 +75,10 @@ class DataTest {
     @Test
     fun latestFeedPagesOlderPostsUntilTheEnd() = dataTest { data ->
         repeat(25) { data.bobPost("post $it", createdAt = 1_000L + it) }
-        val pager = data.posts.feed(Feed.Latest)
-
-        pager.refresh()
-        assertEquals(Pager.PAGE_SIZE, pager.items.first().size)
-        assertEquals("post 24", pager.items.first().first().content)
-
-        pager.loadMore()
-        assertEquals(25, pager.items.first().size)
-        assertEquals(1_005L - 1, data.network.timelineUntils.last(), "cursor is one second before the oldest event seen")
-
-        pager.loadMore()
-        assertTrue(pager.state.value.endReached)
+        val all = data.posts.feed(Feed.Latest).asSnapshot { appendScrollWhile { true } }
+        assertEquals((24 downTo 0).map { "post $it" }, all.map { it.content })
+        // Refresh (20 newest), then pages that start one second before the oldest event seen, until relays have nothing older.
+        assertEquals(listOf(null, 1_004L, 999L), data.network.timelineUntils)
     }
 
     @Test
@@ -154,10 +148,7 @@ class DataTest {
         }
         data.network.events += bob.sign(TalkEvents.like(quiet, now - 60)) // self-like, not counted
 
-        val pager = data.trending.trending()
-        pager.refresh()
-
-        assertEquals(listOf("popular"), pager.items.first().map { it.content })
+        assertEquals(listOf("popular"), data.trending.trending().asSnapshot().map { it.content })
     }
 
     @Test
@@ -175,9 +166,7 @@ class DataTest {
         assertTrue(data.follows.observeIsFollowing(UserId(bob.publicKey())).first())
 
         data.bobPost("for followers", 1_000)
-        val following = data.posts.feed(Feed.Following)
-        following.refresh()
-        assertEquals(listOf("for followers"), following.items.first().map { it.content })
+        assertEquals(listOf("for followers"), data.posts.feed(Feed.Following).asSnapshot().map { it.content })
         assertTrue(me.value.isNotEmpty())
     }
 
@@ -188,11 +177,11 @@ class DataTest {
         data.posts.refreshPost(PostId(post.id)).getOrThrow()
 
         data.bookmarks.setBookmarked(PostId(post.id), true).getOrThrow()
-        assertEquals(listOf("save me"), data.bookmarks.bookmarks().items.first().map { it.content })
+        assertEquals(listOf("save me"), data.bookmarks.bookmarks().asSnapshot().map { it.content })
         assertTrue(data.posts.observePost(PostId(post.id)).first()!!.viewer.bookmarked)
 
         data.clock.seconds += 1
         data.bookmarks.setBookmarked(PostId(post.id), false).getOrThrow()
-        assertTrue(data.bookmarks.bookmarks().items.first().isEmpty())
+        assertTrue(data.bookmarks.bookmarks().asSnapshot().isEmpty())
     }
 }

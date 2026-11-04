@@ -1,0 +1,20 @@
+-- Likes and reposts. Unliking deletes the row (and publishes a NIP-09 deletion of event_id).
+CREATE TABLE reaction (
+    event_id TEXT NOT NULL PRIMARY KEY,
+    post_id TEXT NOT NULL,
+    user TEXT NOT NULL,
+    type TEXT NOT NULL,
+    created_at INTEGER NOT NULL
+);
+
+CREATE INDEX reaction_post ON reaction(post_id, type);
+CREATE INDEX reaction_user ON reaction(user, type);
+
+insertReaction:
+INSERT OR IGNORE INTO reaction(event_id, post_id, user, type, created_at) VALUES (?, ?, ?, ?, ?);
+
+deleteReactions:
+DELETE FROM reaction WHERE event_id IN :eventIds AND user = :user;
+
+selectReactionIds:
+SELECT event_id FROM reaction WHERE post_id = :postId AND user = :user AND type = :type;

@@ -1,5 +1,6 @@
 package com.yet.talk.database.dao
 
+import androidx.paging.PagingSource
 import com.yet.talk.database.model.NewPostRecord
 import com.yet.talk.database.model.PostFeed
 import com.yet.talk.database.model.PostRecord
@@ -7,7 +8,7 @@ import com.yet.talk.database.model.RevisionRecord
 import kotlinx.coroutines.flow.Flow
 
 /**
- * The local cache, the single source of truth for the UI. `viewer` is the signed-in pubkey, or ""
+ * Posts and their revisions: the local cache the UI reads. `viewer` is the signed-in pubkey, or ""
  * when signed out (all viewer flags are then false). Writes ignore events that were deleted (NIP-09).
  */
 interface PostDao {
@@ -29,7 +30,8 @@ interface PostDao {
 
     fun observePost(id: String, viewer: String): Flow<PostRecord?>
 
-    fun observeFeed(feed: PostFeed, viewer: String, limit: Int): Flow<List<PostRecord>>
+    /** A factory of paging sources over [feed]; each source invalidates itself when the tables change. */
+    suspend fun feedPages(feed: PostFeed, viewer: String): () -> PagingSource<Int, PostRecord>
 
     fun observeThread(rootId: String, viewer: String): Flow<List<PostRecord>>
 

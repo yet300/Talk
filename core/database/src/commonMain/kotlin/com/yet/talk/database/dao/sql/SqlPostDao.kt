@@ -2,6 +2,8 @@ package com.yet.talk.database.dao.sql
 
 import app.cash.sqldelight.async.coroutines.awaitAsOne
 import app.cash.sqldelight.async.coroutines.awaitAsOneOrNull
+import androidx.paging.PagingSource
+import app.cash.sqldelight.paging3.QueryPagingSource
 import com.app.common.AppDispatchers
 import com.yet.talk.database.DatabaseHolder
 import com.yet.talk.database.dao.PostDao
@@ -26,7 +28,7 @@ class SqlPostDao(
     override suspend fun insert(post: NewPostRecord): Boolean = withContext(dispatchers.io) {
         val database = holder.get()
         database.transactionWithResult {
-            if (database.socialQueries.isTombstoned(post.id, post.author).awaitAsOne()) return@transactionWithResult false
+            if (database.tombstoneQueries.isTombstoned(post.id, post.author).awaitAsOne()) return@transactionWithResult false
             with(post) {
                 database.postQueries.insertIfAbsent(id, author, rootId, parentId, quoteId, createdAt, content, imagesJson, publishState, eventJson)
             } > 0
@@ -51,7 +53,7 @@ class SqlPostDao(
         val database = holder.get()
         database.transaction {
             database.postQueries.markDeleted(ids, author)
-            ids.forEach { database.socialQueries.insertTombstone(it, author) }
+            ids.forEach { database.tombstoneQueries.insertTombstone(it, author) }
         }
     }
 
@@ -66,18 +68,27 @@ class SqlPostDao(
     override fun observePost(id: String, viewer: String): Flow<PostRecord?> =
         holder.observeOneOrNull(dispatchers.io) { postQueries.selectPost(viewer, id, ::postRecord) }
 
-    override fun observeFeed(feed: PostFeed, viewer: String, limit: Int): Flow<List<PostRecord>> {
-        val count = limit.toLong()
-        return holder.observeList(dispatchers.io) {
-            when (feed) {
-                PostFeed.Latest -> postQueries.selectLatest(viewer, count, ::postRecord)
-                PostFeed.Following -> postQueries.selectFollowing(viewer, count, ::postRecord)
-                is PostFeed.ByAuthor ->
-                    if (feed.replies) postQueries.selectUserReplies(viewer, feed.author, count, ::postRecord)
-                    else postQueries.selectUserPosts(viewer, feed.author, count, ::postRecord)
-                PostFeed.Bookmarks -> postQueries.selectBookmarked(viewer, count, ::postRecord)
-                PostFeed.Trending -> postQueries.selectTrending(viewer, count, ::postRecord)
-            }
+    override suspend fun feedPages(feed: PostFeed, viewer: String): () -> PagingSource<Int, PostRecord> {
+        val queries = holder.get().postQueries
+        val count = when (feed) {
+            PostFeed.Latest -> queries.countLatest()
+            PostFeed.Following -> queries.countFollowing(viewer)
+            is PostFeed.ByAuthor -> if (feed.replies) queries.countUserReplies(feed.author) else queries.countUserPosts(feed.author)
+            PostFeed.Bookmarks -> queries.countBookmarked(viewer)
+            PostFeed.Trending -> queries.countTrending()
+        }
+        return {
+            QueryPagingSource(countQuery = count, transacter = queries, context = dispatchers.io, queryProvider = { limit: Long, offset: Long ->
+                when (feed) {
+                    PostFeed.Latest -> queries.selectLatest(viewer, limit, offset, ::postRecord)
+                    PostFeed.Following -> queries.selectFollowing(viewer, limit, offset, ::postRecord)
+                    is PostFeed.ByAuthor ->
+                        if (feed.replies) queries.selectUserReplies(viewer, feed.author, limit, offset, ::postRecord)
+                        else queries.selectUserPosts(viewer, feed.author, limit, offset, ::postRecord)
+                    PostFeed.Bookmarks -> queries.selectBookmarked(viewer, limit, offset, ::postRecord)
+                    PostFeed.Trending -> queries.selectTrending(viewer, limit, offset, ::postRecord)
+                }
+            })
         }
     }
 

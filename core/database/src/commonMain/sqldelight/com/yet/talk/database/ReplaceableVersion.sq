@@ -1,0 +1,13 @@
+-- The newest replaceable list (contacts, bookmarks, relay list) applied per author and kind.
+CREATE TABLE replaceable_version (
+    pubkey TEXT NOT NULL,
+    kind INTEGER NOT NULL,
+    created_at INTEGER NOT NULL,
+    PRIMARY KEY (pubkey, kind)
+);
+
+selectVersion:
+SELECT created_at FROM replaceable_version WHERE pubkey = ? AND kind = ?;
+
+setVersion:
+INSERT OR REPLACE INTO replaceable_version(pubkey, kind, created_at) VALUES (?, ?, ?);

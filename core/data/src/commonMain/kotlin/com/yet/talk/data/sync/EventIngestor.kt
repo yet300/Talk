@@ -2,10 +2,12 @@ package com.yet.talk.data.sync
 
 import com.yet.talk.api.schema.TalkEvent
 import com.yet.talk.data.mapper.toImagesJson
+import com.yet.talk.database.dao.BookmarkDao
+import com.yet.talk.database.dao.FollowDao
 import com.yet.talk.database.dao.PostDao
 import com.yet.talk.database.dao.ProfileDao
 import com.yet.talk.database.dao.ReactionDao
-import com.yet.talk.database.dao.SocialDao
+import com.yet.talk.database.dao.RelayListDao
 import com.yet.talk.database.model.NewPostRecord
 import com.yet.talk.database.model.ProfileRecord
 import com.yet.talk.database.model.PublishStates
@@ -24,7 +26,9 @@ class EventIngestor(
     private val posts: PostDao,
     private val profiles: ProfileDao,
     private val reactions: ReactionDao,
-    private val social: SocialDao,
+    private val follows: FollowDao,
+    private val bookmarks: BookmarkDao,
+    private val relayLists: RelayListDao,
 ) {
     /** Returns how many posts were new. Posts go first so revisions can be checked against their author. */
     suspend fun ingest(events: List<TalkEvent>, publishState: String = PublishStates.PUBLISHED): Int {
@@ -50,9 +54,9 @@ class EventIngestor(
                     posts.markDeleted(event.eventIds, author = event.event.pubkey)
                     reactions.delete(event.eventIds, user = event.event.pubkey)
                 }
-                is TalkEvent.Contacts -> social.replaceFollows(event.event.pubkey, event.pubkeys, event.event.createdAt)
-                is TalkEvent.Bookmarks -> social.replaceBookmarks(event.event.pubkey, event.eventIds, event.event.createdAt)
-                is TalkEvent.RelayList -> social.replaceRelays(
+                is TalkEvent.Contacts -> follows.replace(event.event.pubkey, event.pubkeys, event.event.createdAt)
+                is TalkEvent.Bookmarks -> bookmarks.replace(event.event.pubkey, event.eventIds, event.event.createdAt)
+                is TalkEvent.RelayList -> relayLists.replace(
                     event.event.pubkey,
                     event.relays.map { RelayRecord(it.url, it.read, it.write) },
                     event.event.createdAt,

@@ -24,6 +24,7 @@ kotlin {
         }
         commonTest.dependencies {
             implementation(libs.sqldelight.async.extensions)
+            implementation(libs.androidx.paging.testing)
         }
         getByName("androidHostTest").dependencies {
             implementation(libs.kotlin.testJunit)

@@ -1,0 +1,13 @@
+-- Events deleted via NIP-09, so a relay that ignores deletions cannot bring them back. Keyed by
+-- author too: a deletion only counts for the deleter's own events.
+CREATE TABLE tombstone (
+    event_id TEXT NOT NULL,
+    author TEXT NOT NULL,
+    PRIMARY KEY (event_id, author)
+);
+
+insertTombstone:
+INSERT OR IGNORE INTO tombstone(event_id, author) VALUES (?, ?);
+
+isTombstoned:
+SELECT EXISTS (SELECT 1 FROM tombstone WHERE event_id = :eventId AND author = :author);

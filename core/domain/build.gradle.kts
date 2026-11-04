@@ -10,6 +10,10 @@ kotlin {
     }
 
     sourceSets {
+        commonMain.dependencies {
+            // PagingData is the paging contract of the repositories (KMP: Android, iOS, JS).
+            api(libs.androidx.paging.common)
+        }
         getByName("androidHostTest").dependencies {
             implementation(libs.kotlin.testJunit)
         }

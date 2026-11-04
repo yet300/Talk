@@ -1,6 +1,6 @@
 package com.yet.talk.domain.repository
 
-import com.yet.talk.domain.model.Pager
+import androidx.paging.PagingData
 import com.yet.talk.domain.model.post.Image
 import com.yet.talk.domain.model.post.Post
 import com.yet.talk.domain.model.post.PostId
@@ -14,7 +14,7 @@ import kotlinx.coroutines.flow.Flow
  */
 interface PostRepository {
     /** Top-level posts (or, for [Feed.UserReplies], replies), newest first. Reposts are not timeline items, as in KarpathyTalk. */
-    fun feed(feed: Feed): Pager<Post>
+    fun feed(feed: Feed): Flow<PagingData<Post>>
 
     /** Emits null while the post is unknown locally. */
     fun observePost(id: PostId): Flow<Post?>

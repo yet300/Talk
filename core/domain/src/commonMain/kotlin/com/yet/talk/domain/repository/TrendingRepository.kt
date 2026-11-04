@@ -1,9 +1,10 @@
 package com.yet.talk.domain.repository
 
-import com.yet.talk.domain.model.Pager
+import androidx.paging.PagingData
 import com.yet.talk.domain.model.post.Post
+import kotlinx.coroutines.flow.Flow
 
-/** Ranked by [com.yet.talk.domain.rule.TrendingRanker]; the cursor is the rank. */
+/** Ranked by [com.yet.talk.domain.rule.TrendingRanker], best first. */
 interface TrendingRepository {
-    fun trending(): Pager<Post>
+    fun trending(): Flow<PagingData<Post>>
 }

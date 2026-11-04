@@ -6,26 +6,19 @@ CREATE TABLE trending (
     computed_at INTEGER NOT NULL
 );
 
--- Paging and refresh state per feed key.
-CREATE TABLE sync_state (
-    feed_key TEXT NOT NULL PRIMARY KEY,
-    end_reached INTEGER NOT NULL DEFAULT 0,
-    synced_at INTEGER NOT NULL DEFAULT 0
-);
-
 deleteTrending:
 DELETE FROM trending;
 
 insertTrending:
 INSERT INTO trending(rank, post_id, score, computed_at) VALUES (?, ?, ?, ?);
 
-selectTrendingComputedAt:
+selectComputedAt:
 SELECT MAX(computed_at) FROM trending;
 
-selectTrendingCandidates:
+selectCandidates:
 SELECT id, author, created_at FROM post WHERE parent_id IS NULL AND deleted = 0 AND created_at > :since;
 
-selectTrendingEngagements:
+selectEngagements:
 SELECT c.parent_id AS post_id, c.author AS actor, 'reply' AS type
 FROM post c JOIN post p ON p.id = c.parent_id
 WHERE p.parent_id IS NULL AND p.created_at > :since AND c.deleted = 0
@@ -33,12 +26,3 @@ UNION ALL
 SELECT r.post_id, r.user, r.type
 FROM reaction r JOIN post p ON p.id = r.post_id
 WHERE p.parent_id IS NULL AND p.created_at > :since;
-
-selectSyncState:
-SELECT * FROM sync_state WHERE feed_key = ?;
-
-setSyncState:
-INSERT OR REPLACE INTO sync_state(feed_key, end_reached, synced_at) VALUES (?, ?, ?);
-
-clearSyncState:
-DELETE FROM sync_state;

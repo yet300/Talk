@@ -8,7 +8,7 @@ import com.yet.talk.data.sync.Publisher
 import com.yet.talk.data.sync.RemoteSync
 import com.yet.talk.data.sync.remote
 import com.yet.talk.database.dao.ProfileDao
-import com.yet.talk.database.dao.SocialDao
+import com.yet.talk.database.dao.FollowDao
 import com.yet.talk.domain.model.user.ProfileEdit
 import com.yet.talk.domain.model.user.User
 import com.yet.talk.domain.model.user.UserId
@@ -30,7 +30,7 @@ import kotlinx.coroutines.flow.update
 @Inject
 class ProfileRepositoryImpl(
     private val profiles: ProfileDao,
-    private val social: SocialDao,
+    private val follows: FollowDao,
     private val socialRemote: SocialRemoteSource,
     private val sync: RemoteSync,
     private val ingestor: EventIngestor,
@@ -42,7 +42,7 @@ class ProfileRepositoryImpl(
     override fun observeUser(id: UserId): Flow<User> = profiles.observe(id.value).map { userOf(id.value, it) }
 
     override fun observeStats(id: UserId): Flow<UserStats> =
-        combine(social.observeFollowingCount(id.value), counts) { following, counts ->
+        combine(follows.observeFollowingCount(id.value), counts) { following, counts ->
             val (followers, posts) = counts[id.value] ?: (null to null)
             UserStats(followers = followers, following = following.toInt(), posts = posts)
         }

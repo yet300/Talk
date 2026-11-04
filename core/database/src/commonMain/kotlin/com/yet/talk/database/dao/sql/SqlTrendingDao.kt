@@ -18,11 +18,11 @@ import kotlinx.coroutines.withContext
 class SqlTrendingDao(private val holder: DatabaseHolder, private val dispatchers: AppDispatchers) : TrendingDao {
 
     override suspend fun candidates(since: Long): List<TrendingCandidateRecord> = withContext(dispatchers.io) {
-        holder.get().trendingQueries.selectTrendingCandidates(since, ::TrendingCandidateRecord).awaitAsList()
+        holder.get().trendingQueries.selectCandidates(since, ::TrendingCandidateRecord).awaitAsList()
     }
 
     override suspend fun engagements(since: Long): List<EngagementRecord> = withContext(dispatchers.io) {
-        holder.get().trendingQueries.selectTrendingEngagements(since) { postId, actor, type ->
+        holder.get().trendingQueries.selectEngagements(since) { postId, actor, type ->
             EngagementRecord(postId!!, actor, type)
         }.awaitAsList()
     }
@@ -36,6 +36,6 @@ class SqlTrendingDao(private val holder: DatabaseHolder, private val dispatchers
     }
 
     override suspend fun computedAt(): Long? = withContext(dispatchers.io) {
-        holder.get().trendingQueries.selectTrendingComputedAt().awaitAsOneOrNull()?.MAX
+        holder.get().trendingQueries.selectComputedAt().awaitAsOneOrNull()?.MAX
     }
 }
