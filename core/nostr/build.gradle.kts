@@ -16,7 +16,7 @@ kotlin {
         }
 
         // libsecp256k1 has no JS build: Android and iOS share one actual, JS uses @noble/curves.
-        val secp256k1Main by creating {
+        val secp256k1Main = create("secp256k1Main") {
             dependsOn(commonMain.get())
             dependencies {
                 implementation(libs.secp256k1.kmp)
