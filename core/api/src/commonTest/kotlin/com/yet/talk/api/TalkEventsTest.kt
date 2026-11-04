@@ -1,15 +1,19 @@
 package com.yet.talk.api
 
-import com.yet.talk.nostr.EventTemplate
-import com.yet.talk.nostr.LocalKeySigner
-import com.yet.talk.nostr.SecretKey
+import com.yet.talk.api.schema.PostRef
+import com.yet.talk.api.schema.TalkEvent
+import com.yet.talk.api.schema.TalkEvents
+import com.yet.talk.api.schema.TalkSchema
+import com.yet.talk.nostr.event.EventTemplate
+import com.yet.talk.nostr.key.SecretKey
 import com.yet.talk.nostr.nip.Imeta
-import kotlinx.coroutines.test.runTest
+import com.yet.talk.nostr.signer.LocalKeySigner
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
+import kotlinx.coroutines.test.runTest
 
 class TalkEventsTest {
 

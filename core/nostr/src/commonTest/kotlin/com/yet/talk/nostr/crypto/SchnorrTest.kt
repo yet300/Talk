@@ -1,7 +1,7 @@
 package com.yet.talk.nostr.crypto
 
-import com.yet.talk.nostr.hexToBytes
-import com.yet.talk.nostr.toHex
+import com.yet.talk.nostr.encoding.hexToBytes
+import com.yet.talk.nostr.encoding.toHex
 import kotlin.test.Test
 import kotlin.test.assertEquals
 

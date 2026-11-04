@@ -1,7 +1,9 @@
 package com.yet.talk.nostr.relay
 
-import com.yet.talk.nostr.ClientMessage
-import com.yet.talk.nostr.RelayMessage
+import com.yet.talk.nostr.message.ClientMessage
+import com.yet.talk.nostr.message.RelayMessage
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
@@ -20,8 +22,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.seconds
 
 /**
  * One relay. Connects lazily on the first [send], reconnects with exponential backoff, and on every

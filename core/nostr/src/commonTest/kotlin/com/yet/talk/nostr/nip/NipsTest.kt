@@ -1,6 +1,6 @@
 package com.yet.talk.nostr.nip
 
-import com.yet.talk.nostr.Event
+import com.yet.talk.nostr.event.Event
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse

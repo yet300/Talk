@@ -1,13 +1,13 @@
 package com.yet.talk.api
 
-import com.yet.talk.api.source.RelaySelection
-import com.yet.talk.nostr.Event
-import com.yet.talk.nostr.Filter
+import com.yet.talk.api.source.relay.RelaySelection
+import com.yet.talk.nostr.event.Event
+import com.yet.talk.nostr.message.Filter
 import com.yet.talk.nostr.relay.PublishResult
 import com.yet.talk.nostr.relay.RelayClient
+import kotlin.time.Duration
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
-import kotlin.time.Duration
 
 /** Returns [events] for every query and records what was asked. */
 class FakeRelayClient(var events: List<Event> = emptyList(), var count: Long? = null) : RelayClient {

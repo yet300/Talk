@@ -1,23 +1,23 @@
 package com.yet.talk.nostr.relay
 
-import com.yet.talk.nostr.Event
-import com.yet.talk.nostr.EventTemplate
-import com.yet.talk.nostr.Filter
-import com.yet.talk.nostr.LocalKeySigner
-import com.yet.talk.nostr.SecretKey
+import com.yet.talk.nostr.event.Event
+import com.yet.talk.nostr.event.EventTemplate
+import com.yet.talk.nostr.key.SecretKey
+import com.yet.talk.nostr.message.Filter
+import com.yet.talk.nostr.signer.LocalKeySigner
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertNull
+import kotlin.test.assertTrue
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceTimeBy
-import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.currentTime
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
 
 class RelayPoolTest {
 

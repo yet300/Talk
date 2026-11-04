@@ -1,5 +1,8 @@
 package com.yet.talk.nostr
 
+import com.yet.talk.nostr.encoding.Nip19
+import com.yet.talk.nostr.encoding.toHex
+import com.yet.talk.nostr.key.SecretKey
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs

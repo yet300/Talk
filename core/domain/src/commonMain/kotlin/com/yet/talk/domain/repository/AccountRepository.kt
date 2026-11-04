@@ -1,6 +1,6 @@
 package com.yet.talk.domain.repository
 
-import com.yet.talk.domain.model.Account
+import com.yet.talk.domain.model.account.Account
 import kotlinx.coroutines.flow.Flow
 
 /** The signed-in identity. One account at a time; the secret key never leaves this boundary except through [exportSecretKey]. */
@@ -11,7 +11,7 @@ interface AccountRepository {
     /** Generates a new key and signs in with it. */
     suspend fun createAccount(): Result<Account>
 
-    /** Signs in with an `nsec` or a hex secret key. Fails with [com.yet.talk.domain.model.DomainError.InvalidKey]. */
+    /** Signs in with an `nsec` or a hex secret key. Fails with [com.yet.talk.domain.model.error.DomainError.InvalidKey]. */
     suspend fun importKey(secretKey: String): Result<Account>
 
     /** The `nsec`, for the user's own backup. */

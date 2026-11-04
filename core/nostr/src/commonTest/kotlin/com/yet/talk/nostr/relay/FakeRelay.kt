@@ -1,7 +1,7 @@
 package com.yet.talk.nostr.relay
 
-import com.yet.talk.nostr.Event
-import com.yet.talk.nostr.NostrJson
+import com.yet.talk.nostr.event.Event
+import com.yet.talk.nostr.message.NostrJson
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.consumeAsFlow

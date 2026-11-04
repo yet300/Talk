@@ -1,11 +1,18 @@
 package com.yet.talk.nostr
 
-import kotlinx.coroutines.test.runTest
-import kotlinx.serialization.json.Json
+import com.yet.talk.nostr.encoding.toHex
+import com.yet.talk.nostr.event.Event
+import com.yet.talk.nostr.event.EventHash
+import com.yet.talk.nostr.event.EventTemplate
+import com.yet.talk.nostr.event.EventVerifier
+import com.yet.talk.nostr.key.SecretKey
+import com.yet.talk.nostr.signer.LocalKeySigner
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
+import kotlinx.coroutines.test.runTest
+import kotlinx.serialization.json.Json
 
 class EventTest {
 

@@ -1,0 +1,27 @@
+package com.yet.talk.database.dao.sql
+
+import app.cash.sqldelight.async.coroutines.awaitAsOneOrNull
+import com.app.common.AppDispatchers
+import com.yet.talk.database.DatabaseHolder
+import com.yet.talk.database.dao.SyncDao
+import com.yet.talk.database.model.SyncStateRecord
+import dev.zacsweers.metro.AppScope
+import dev.zacsweers.metro.ContributesBinding
+import dev.zacsweers.metro.Inject
+import kotlinx.coroutines.withContext
+
+@ContributesBinding(AppScope::class)
+@Inject
+class SqlSyncDao(private val holder: DatabaseHolder, private val dispatchers: AppDispatchers) : SyncDao {
+
+    override suspend fun state(feedKey: String): SyncStateRecord? = withContext(dispatchers.io) {
+        holder.get().trendingQueries.selectSyncState(feedKey) { _, endReached, syncedAt ->
+            SyncStateRecord(endReached != 0L, syncedAt)
+        }.awaitAsOneOrNull()
+    }
+
+    override suspend fun setState(feedKey: String, state: SyncStateRecord) = withContext(dispatchers.io) {
+        holder.get().trendingQueries.setSyncState(feedKey, if (state.endReached) 1 else 0, state.syncedAt)
+        Unit
+    }
+}

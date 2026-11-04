@@ -1,29 +1,34 @@
 package com.yet.talk.domain.usecase
 
-import com.yet.talk.domain.model.DomainError
-import com.yet.talk.domain.model.Image
-import com.yet.talk.domain.model.ImageFile
-import com.yet.talk.domain.model.MediaUpload
 import com.yet.talk.domain.model.Pager
-import com.yet.talk.domain.model.Post
-import com.yet.talk.domain.model.PostId
-import com.yet.talk.domain.model.PostStats
-import com.yet.talk.domain.model.PublishState
-import com.yet.talk.domain.model.Revision
-import com.yet.talk.domain.model.ThreadReply
-import com.yet.talk.domain.model.User
-import com.yet.talk.domain.model.UserId
-import com.yet.talk.domain.model.ViewerState
+import com.yet.talk.domain.model.error.DomainError
+import com.yet.talk.domain.model.media.ImageFile
+import com.yet.talk.domain.model.media.MediaUpload
+import com.yet.talk.domain.model.post.Image
+import com.yet.talk.domain.model.post.Post
+import com.yet.talk.domain.model.post.PostId
+import com.yet.talk.domain.model.post.PostStats
+import com.yet.talk.domain.model.post.PublishState
+import com.yet.talk.domain.model.post.Revision
+import com.yet.talk.domain.model.post.ThreadReply
+import com.yet.talk.domain.model.post.ViewerState
+import com.yet.talk.domain.model.user.User
+import com.yet.talk.domain.model.user.UserId
 import com.yet.talk.domain.repository.Feed
 import com.yet.talk.domain.repository.MediaRepository
 import com.yet.talk.domain.repository.PostRepository
 import com.yet.talk.domain.repository.ReactionRepository
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.test.runTest
+import com.yet.talk.domain.usecase.media.UploadImage
+import com.yet.talk.domain.usecase.post.PublishPost
+import com.yet.talk.domain.usecase.post.ReplyToPost
+import com.yet.talk.domain.usecase.social.ToggleLike
+import com.yet.talk.domain.usecase.social.ToggleRepost
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import kotlin.time.Instant
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.test.runTest
 
 class UseCaseTest {
 

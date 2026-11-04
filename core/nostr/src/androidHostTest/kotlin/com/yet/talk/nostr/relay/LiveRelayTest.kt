@@ -1,18 +1,18 @@
 package com.yet.talk.nostr.relay
 
-import com.yet.talk.nostr.EventVerifier
-import com.yet.talk.nostr.Filter
+import com.yet.talk.nostr.event.EventVerifier
+import com.yet.talk.nostr.message.Filter
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.websocket.WebSockets
+import kotlin.test.Test
+import kotlin.test.assertTrue
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.runBlocking
 import org.junit.Assume.assumeTrue
-import kotlin.test.Test
-import kotlin.test.assertTrue
 
 /**
  * Reads from real public relays over the Ktor transport. Opt-in, read-only:

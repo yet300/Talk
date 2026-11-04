@@ -1,25 +1,12 @@
 package com.yet.talk.domain.repository
 
-import com.yet.talk.domain.model.Image
 import com.yet.talk.domain.model.Pager
-import com.yet.talk.domain.model.Post
-import com.yet.talk.domain.model.PostId
-import com.yet.talk.domain.model.Revision
-import com.yet.talk.domain.model.ThreadReply
-import com.yet.talk.domain.model.UserId
+import com.yet.talk.domain.model.post.Image
+import com.yet.talk.domain.model.post.Post
+import com.yet.talk.domain.model.post.PostId
+import com.yet.talk.domain.model.post.Revision
+import com.yet.talk.domain.model.post.ThreadReply
 import kotlinx.coroutines.flow.Flow
-
-sealed interface Feed {
-    /** Every top-level Talk post. */
-    data object Latest : Feed
-
-    /** Top-level posts by the viewer and the people they follow. */
-    data object Following : Feed
-
-    data class UserPosts(val userId: UserId) : Feed
-
-    data class UserReplies(val userId: UserId) : Feed
-}
 
 /**
  * Posts, replies and their revisions. Write methods expect content that already passed the

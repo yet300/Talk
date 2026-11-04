@@ -1,5 +1,6 @@
 package com.yet.talk.domain.model
 
+import com.yet.talk.domain.model.error.DomainError
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 

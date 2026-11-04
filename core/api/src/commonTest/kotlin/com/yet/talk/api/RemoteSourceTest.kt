@@ -1,30 +1,32 @@
 package com.yet.talk.api
 
-import com.yet.talk.api.source.BlossomClient
-import com.yet.talk.api.source.Nip05Client
-import com.yet.talk.api.source.RelayPostRemoteSource
-import com.yet.talk.api.source.RelayPublishRemoteSource
-import com.yet.talk.api.source.RelaySocialRemoteSource
-import com.yet.talk.nostr.Event
-import com.yet.talk.nostr.EventTemplate
-import com.yet.talk.nostr.EventVerifier
-import com.yet.talk.nostr.LocalKeySigner
-import com.yet.talk.nostr.SecretKey
+import com.yet.talk.api.schema.TalkEvents
+import com.yet.talk.api.schema.TalkSchema
+import com.yet.talk.api.source.media.BlossomClient
+import com.yet.talk.api.source.nip05.Nip05Client
+import com.yet.talk.api.source.post.RelayPostRemoteSource
+import com.yet.talk.api.source.publish.RelayPublishRemoteSource
+import com.yet.talk.api.source.social.RelaySocialRemoteSource
+import com.yet.talk.nostr.event.Event
+import com.yet.talk.nostr.event.EventTemplate
+import com.yet.talk.nostr.event.EventVerifier
+import com.yet.talk.nostr.key.SecretKey
 import com.yet.talk.nostr.nip.contactList
+import com.yet.talk.nostr.signer.LocalKeySigner
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
-import kotlinx.coroutines.test.runTest
-import kotlinx.serialization.json.Json
-import org.kotlincrypto.hash.sha2.SHA256
 import kotlin.io.encoding.Base64
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
+import kotlinx.coroutines.test.runTest
+import kotlinx.serialization.json.Json
+import org.kotlincrypto.hash.sha2.SHA256
 
 class RemoteSourceTest {
 

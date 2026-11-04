@@ -1,7 +1,7 @@
 package com.yet.talk.domain.rule
 
-import com.yet.talk.domain.model.DomainError
-import com.yet.talk.domain.model.ImageFile
+import com.yet.talk.domain.model.error.DomainError
+import com.yet.talk.domain.model.media.ImageFile
 
 /** KarpathyTalk's content limits and sanitising (`handlers.go`, `content_sanitize.go`). */
 object ContentRules {

@@ -1,25 +1,26 @@
 package com.yet.talk.data
 
-import com.yet.talk.api.TalkEvents
-import com.yet.talk.domain.model.DomainError
+import com.yet.talk.api.schema.TalkEvents
+import com.yet.talk.data.fake.TestData
 import com.yet.talk.domain.model.Pager
-import com.yet.talk.domain.model.PostId
-import com.yet.talk.domain.model.PublishState
-import com.yet.talk.domain.model.UserId
+import com.yet.talk.domain.model.error.DomainError
+import com.yet.talk.domain.model.post.PostId
+import com.yet.talk.domain.model.post.PublishState
+import com.yet.talk.domain.model.user.UserId
 import com.yet.talk.domain.repository.Feed
-import com.yet.talk.nostr.EventTemplate
-import com.yet.talk.nostr.LocalKeySigner
-import com.yet.talk.nostr.Nip19
-import com.yet.talk.nostr.SecretKey
+import com.yet.talk.nostr.encoding.Nip19
+import com.yet.talk.nostr.event.EventTemplate
+import com.yet.talk.nostr.key.SecretKey
 import com.yet.talk.nostr.nip.Kinds
 import com.yet.talk.nostr.nip.contactPubkeys
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.test.TestScope
-import kotlinx.coroutines.test.runTest
+import com.yet.talk.nostr.signer.LocalKeySigner
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.runTest
 
 class DataTest {
 

@@ -1,7 +1,7 @@
 package com.yet.talk.domain.rule
 
-import com.yet.talk.domain.model.PostId
-import com.yet.talk.domain.model.UserId
+import com.yet.talk.domain.model.post.PostId
+import com.yet.talk.domain.model.user.UserId
 import com.yet.talk.domain.rule.TrendingRanker.Candidate
 import com.yet.talk.domain.rule.TrendingRanker.Engagement
 import com.yet.talk.domain.rule.TrendingRanker.Engagement.Type

@@ -1,7 +1,7 @@
 package com.yet.talk.domain.rule
 
-import com.yet.talk.domain.model.PostId
-import com.yet.talk.domain.model.UserId
+import com.yet.talk.domain.model.post.PostId
+import com.yet.talk.domain.model.user.UserId
 import kotlin.math.pow
 import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.minutes

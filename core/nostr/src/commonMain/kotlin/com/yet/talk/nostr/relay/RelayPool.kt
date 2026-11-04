@@ -1,10 +1,12 @@
 package com.yet.talk.nostr.relay
 
-import com.yet.talk.nostr.ClientMessage
-import com.yet.talk.nostr.Event
-import com.yet.talk.nostr.EventVerifier
-import com.yet.talk.nostr.Filter
-import com.yet.talk.nostr.RelayMessage
+import com.yet.talk.nostr.event.Event
+import com.yet.talk.nostr.event.EventVerifier
+import com.yet.talk.nostr.message.ClientMessage
+import com.yet.talk.nostr.message.Filter
+import com.yet.talk.nostr.message.RelayMessage
+import kotlin.random.Random
+import kotlin.time.Duration
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,20 +21,6 @@ import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.transformWhile
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withTimeoutOrNull
-import kotlin.random.Random
-import kotlin.time.Duration
-import kotlin.time.Duration.Companion.seconds
-
-/** Reading from and writing to a set of relays. Implemented by [RelayPool]; faked in tests of its users. */
-interface RelayClient {
-    suspend fun query(filters: List<Filter>, relays: Collection<String>, timeout: Duration = 10.seconds): List<Event>
-
-    fun subscribe(filters: List<Filter>, relays: Collection<String>): Flow<Event>
-
-    suspend fun publish(event: Event, relays: Collection<String>, timeout: Duration = 10.seconds): PublishResult
-
-    suspend fun count(filters: List<Filter>, relays: Collection<String>, timeout: Duration = 5.seconds): Long?
-}
 
 /**
  * Talks to many relays at once. Every incoming event is verified (id and signature) before it is
@@ -137,12 +125,4 @@ class RelayPool(
     }
 
     private fun newSubscriptionId(): String = Random.nextLong().toULong().toString(16)
-}
-
-data class PublishResult(
-    val accepted: Set<String>,
-    val rejected: Map<String, String>,
-    val noAnswer: Set<String>,
-) {
-    val isAccepted: Boolean get() = accepted.isNotEmpty()
 }

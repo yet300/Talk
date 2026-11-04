@@ -1,5 +1,8 @@
 package com.yet.talk.nostr
 
+import com.yet.talk.nostr.message.ClientMessage
+import com.yet.talk.nostr.message.Filter
+import com.yet.talk.nostr.message.RelayMessage
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs

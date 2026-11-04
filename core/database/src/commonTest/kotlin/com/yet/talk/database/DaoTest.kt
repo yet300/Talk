@@ -1,31 +1,31 @@
 package com.yet.talk.database
 
 import com.app.common.AppDispatchers
-import com.yet.talk.database.dao.ActivityRecord
-import com.yet.talk.database.dao.NewPostRecord
-import com.yet.talk.database.dao.PostFeed
-import com.yet.talk.database.dao.ProfileRecord
-import com.yet.talk.database.dao.PublishStates
-import com.yet.talk.database.dao.ReactionRecord
-import com.yet.talk.database.dao.ReactionTypes
-import com.yet.talk.database.dao.RelayRecord
-import com.yet.talk.database.dao.RevisionRecord
-import com.yet.talk.database.dao.SqlMaintenanceDao
-import com.yet.talk.database.dao.SqlPostDao
-import com.yet.talk.database.dao.SqlProfileDao
-import com.yet.talk.database.dao.SqlReactionDao
-import com.yet.talk.database.dao.SqlSocialDao
-import com.yet.talk.database.dao.SqlTrendingDao
-import com.yet.talk.database.dao.TrendingRecord
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.test.TestScope
-import kotlinx.coroutines.test.runTest
+import com.yet.talk.database.dao.sql.SqlMaintenanceDao
+import com.yet.talk.database.dao.sql.SqlPostDao
+import com.yet.talk.database.dao.sql.SqlProfileDao
+import com.yet.talk.database.dao.sql.SqlReactionDao
+import com.yet.talk.database.dao.sql.SqlSocialDao
+import com.yet.talk.database.dao.sql.SqlTrendingDao
+import com.yet.talk.database.model.ActivityRecord
+import com.yet.talk.database.model.NewPostRecord
+import com.yet.talk.database.model.PostFeed
+import com.yet.talk.database.model.ProfileRecord
+import com.yet.talk.database.model.PublishStates
+import com.yet.talk.database.model.ReactionRecord
+import com.yet.talk.database.model.ReactionTypes
+import com.yet.talk.database.model.RelayRecord
+import com.yet.talk.database.model.RevisionRecord
+import com.yet.talk.database.model.TrendingRecord
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.runTest
 
 class DaoTest {
 
