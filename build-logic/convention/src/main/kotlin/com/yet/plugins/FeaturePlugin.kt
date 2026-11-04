@@ -33,6 +33,7 @@ class FeaturePlugin : Plugin<Project> {
 
             sourceSets.apply {
                 commonMain.dependencies {
+                    // Typesafe `projects` accessors are generated for build scripts only, not for build-logic.
                     api(project(":core:domain"))
                     implementation(project(":core:common"))
                     // Components expose Value, ChildStack/Slot/Panels and essenty owners; factories take StoreFactory.

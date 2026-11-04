@@ -73,12 +73,17 @@ ktor-client-js = …            # already added
 
 ## Markdown rendering (native UI)
 
-[Enriched Markdown](https://github.com/software-mansion/enriched-markdown) (Software Mansion):
+Decision: use the strongest native renderer on each platform. Posts are GFM (tables, task lists,
+fenced code with highlighting, images), so GFM completeness decides.
 
-- **Android:** `com.swmansion.enriched.markdown:compose:0.3.0` is an Android-only AAR, so it
-  belongs in Android UI code, not in commonMain.
-- **iOS:** a Swift package for SwiftUI (`enriched-markdown-ios`).
-- **Web:** available only through React Native for Web. Our web app is plain React + Vite, so
-  it needs either react-native-web or a regular React renderer (for example `react-markdown`).
-- On native platforms GFM is marked "available soon", while CommonMark is ready. Check GFM
-  tables and syntax highlighting before relying on them: KarpathyTalk posts use GFM.
+| Platform | Choice | Why |
+|---|---|---|
+| Android (Compose) | [multiplatform-markdown-renderer](https://github.com/mikepenz/multiplatform-markdown-renderer) 0.46.0: `-m3`, `-code` (syntax highlighting), `-coil3` (images) | Mature, full GFM tables, Material 3 theming, actively released |
+| iOS (SwiftUI) | [MarkdownUI](https://github.com/gonzalezreal/swift-markdown-ui) 2.4.1 | Full GFM (tables, task lists); stable. It is in maintenance mode: move to its successor [Textual](https://github.com/gonzalezreal/textual) (0.5.0, June 2026) once Textual covers GFM tables |
+| Web (React) | [react-markdown](https://github.com/remarkjs/react-markdown) 10.1.0 + remark-gfm 4.0.1 + rehype-highlight 7.0.2 | Builds React elements instead of injecting HTML; keep raw HTML off (`skipHtml`) and filter URLs with `urlTransform` |
+
+Rejected for now: [Enriched Markdown](https://github.com/software-mansion/enriched-markdown).
+Its Compose artifact (0.3.0) is Android-only, GFM on native platforms is still marked "available
+soon", and on the web it requires React Native for Web. Revisit once GFM ships on Android and iOS.
+
+The renderers are added to the version catalog together with the UI that uses them.

@@ -1,0 +1,14 @@
+// Local cache (SQLDelight). Exposes DAOs that core:data uses to implement repositories.
+plugins {
+    alias(libs.plugins.local.kotlin.multiplatform)
+    alias(libs.plugins.local.sqlDelight)
+    alias(libs.plugins.metro)
+}
+
+sqldelight {
+    databases {
+        create("TalkDatabase") {
+            packageName.set("com.yet.talk.database")
+        }
+    }
+}

@@ -27,12 +27,40 @@ Clean Architecture, SOLID, KISS, YAGNI. In practice:
 | `:androidApp` | `app/androidApp` | Android entry point (Compose) |
 | — | `app/iosApp` | iOS app (SwiftUI); links the `SharedLogic` framework |
 | — | `app/webApp` | Web app (React + Vite); consumes the `sharedLogic` JS library |
-| `:sharedLogic` | `shared/logic` | Umbrella module exported to iOS and JS; the root Metro graph and the root component |
+| `:sharedLogic` | `shared/logic` | Composition root: the Metro graph (`AndroidAppGraph`, `IosAppGraph`) and the umbrella exported to iOS (`SharedLogic.framework`) and JS |
 | `:sharedUI` | `shared/ui` | Android Compose UI (Android-only on purpose) |
 | `:core:common` | `core/common` | Dispatchers, `Log` (Kermit), Decompose/MVIKotlin helpers, `StoreFactory` binding. Package `com.app.common` |
-| `:core:domain` | planned | Entities, repository interfaces, use cases; pure Kotlin |
-| `:core:nostr` | planned | NIP-01 event model, relay pool (Ktor WebSockets), `Signer`, bech32 |
-| `:feature:*` | planned | Decompose components + MVIKotlin stores, no UI (`local.feature` plugin) |
+| `:core:domain` | `core/domain` | Entities, repository interfaces, use cases; pure Kotlin |
+| `:core:nostr` | `core/nostr` | Protocol only: NIP-01 events, signing (secp256k1-kmp / `@noble/curves`), bech32, relay pool |
+| `:core:api` | `core/api` | Remote data sources on top of `core:nostr`: posts and reactions over relays, Blossom uploads, NIP-05 |
+| `:core:database` | `core/database` | SQLDelight cache (`TalkDatabase`); exposes DAOs to `core:data` |
+| `:core:data` | `core/data` | Repository implementations (`core:api` + `core:database`) bound to `core:domain` interfaces |
+| `:core:resources` | `core/resources` | moko-resources (`MR`, package `com.yet.talk.resources`) and platform helpers |
+| `:feature:root` | `feature/root` | Root `ChildStack`: full-screen destinations above the tabs |
+| `:feature:tab:main` | `feature/tab/main` | Tab container (`ChildStack` + `bringToFront`) |
+| `:feature:tab:home` | `feature/tab/home` | Home timeline: Latest / Following / Trending |
+
+Dependency graph:
+
+```
+feature:root → feature:tab:main → feature:tab:home → core:domain, core:common
+core:data → core:domain, core:database, core:api → core:nostr
+sharedLogic → features (api, exported) + core:data (implementation, not exported)
+```
+
+More tabs (activity, bookmarks, profile) and screens (post, compose, auth) are added together with
+their UI, following the design file.
+
+## Components and DI
+
+- Each component is `interface XxxComponent` (with a nested `fun interface Factory`) +
+  `internal class DefaultXxxComponent` (`ComponentContext by componentContext`) +
+  a public `DefaultXxxComponentFactory` annotated `@ContributesBinding(AppScope::class) @Inject`.
+- A parent receives its children's `Factory` types through its own factory's constructor; Metro
+  wires the chain. Nothing calls a `Default…` constructor outside its own module.
+- State is exposed as Decompose `Value`; navigation configs are private `@Serializable` types.
+- The platform apps get the graph from `createAndroidAppGraph()` / `IosAppGraphKt.createIosAppGraph()`
+  and create the root with `graph.rootComponentFactory(componentContext)` on the main thread.
 
 KMP targets: Android, `iosArm64`, `iosSimulatorArm64`, `js` (browser library; tests run on Node).
 
@@ -46,7 +74,8 @@ KMP targets: Android, `iosArm64`, `iosSimulatorArm64`, `js` (browser library; te
 | `local.sqlDelight` | SQLDelight with `generateAsync = true` (required by the JS worker driver); Android, native and web-worker drivers |
 
 New modules use these plugins. Add every dependency to `gradle/libs.versions.toml` first; never put
-versions in build files.
+versions in build files. Reference modules with typesafe accessors (`implementation(projects.core.domain)`),
+never `project(":…")`. The one exception is convention plugins in `build-logic`, where the accessors do not exist.
 
 ## Stack
 
