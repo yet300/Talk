@@ -131,6 +131,16 @@ class RootComponentTest {
     }
 
     @Test
+    fun aTabsLinkSelectsThatTab() {
+        deepLink = "http://localhost:8080/bookmarks"
+        accounts.account.value = Account(UserId("me"), "npub1me")
+
+        assertIs<RootComponent.Child.Main>(active)
+        assertEquals(listOf(TabsComponent.Tab.Bookmarks), main!!.tabs)
+        assertEquals(null, main!!.link)
+    }
+
+    @Test
     fun aSharedLinkOpensInMainOnceSignedIn() {
         deepLink = "https://talk.example/post/abc/revisions?x=1"
         accounts.account.value = Account(UserId("me"), "npub1me")

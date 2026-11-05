@@ -131,19 +131,19 @@ internal class DefaultTabsComponent(
     @Serializable
     private sealed class Config(val path: String?) {
         @Serializable
-        data object Home : Config(null)
+        data object Home : Config(TabsComponent.Tab.Home.path)
 
         @Serializable
-        data object Search : Config("search")
+        data object Search : Config(TabsComponent.Tab.Search.path)
 
         @Serializable
-        data object Activity : Config("activity")
+        data object Activity : Config(TabsComponent.Tab.Activity.path)
 
         @Serializable
-        data object Bookmarks : Config("bookmarks")
+        data object Bookmarks : Config(TabsComponent.Tab.Bookmarks.path)
 
         @Serializable
-        data object Profile : Config("me")
+        data object Profile : Config(TabsComponent.Tab.Profile.path)
     }
 }
 

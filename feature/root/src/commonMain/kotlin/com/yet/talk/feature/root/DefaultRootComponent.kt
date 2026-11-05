@@ -98,9 +98,11 @@ internal class DefaultRootComponent(
             Config.Splash -> RootComponent.Child.Splash
             Config.Auth -> RootComponent.Child.Auth(factories.auth(context))
             Config.Main -> {
-                val link = pendingDeepLink?.main
+                val link = pendingDeepLink
                 pendingDeepLink = null
-                RootComponent.Child.Main(factories.main(context, link, ::onMainOutput))
+                val main = factories.main(context, link?.main, ::onMainOutput)
+                link?.tab?.let(main::onTabSelected)
+                RootComponent.Child.Main(main)
             }
             is Config.Revisions -> RootComponent.Child.Revisions(factories.revisions(context, PostId(config.id), navigation::pop))
             is Config.Compose -> RootComponent.Child.Compose(factories.compose(context, config.toMode()) { onComposeOutput(config, it) })
@@ -132,9 +134,10 @@ internal class DefaultRootComponent(
 
     /**
      * A shared link: `/post/<id>` and `/user/<id>` open in Main's details panel; `/post/<id>/revisions` also
-     * opens the revisions above it, `/settings` the settings. Anything else opens Main as it is.
+     * opens the revisions above it, `/settings` the settings; a tab's path (`/search`, `/activity`,
+     * `/bookmarks`, `/me`) selects that tab. Anything else opens Main as it is.
      */
-    private class DeepLink(val main: MainComponent.Link?, val above: List<Config>) {
+    private class DeepLink(val main: MainComponent.Link?, val above: List<Config>, val tab: TabsComponent.Tab? = null) {
         companion object {
             fun parse(link: String): DeepLink? {
                 val path = if ("://" in link) link.substringAfter("://").substringAfter('/', "") else link
@@ -145,6 +148,8 @@ internal class DefaultRootComponent(
                         DeepLink(MainComponent.Link.Post(PostId(segments[1])), listOf(Config.Revisions(segments[1])))
                     segments.size == 2 && segments[0] == "user" -> DeepLink(MainComponent.Link.Profile(UserId(segments[1])), emptyList())
                     segments == listOf("settings") -> DeepLink(null, listOf(Config.Settings))
+                    segments.size == 1 -> TabsComponent.Tab.entries.firstOrNull { it.path == segments[0] }
+                        ?.let { DeepLink(null, emptyList(), tab = it) }
                     else -> null
                 }
             }

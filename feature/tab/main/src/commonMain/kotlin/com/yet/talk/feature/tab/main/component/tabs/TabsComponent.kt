@@ -28,7 +28,8 @@ interface TabsComponent : WebNavigationOwner {
 
     data class Me(val user: User? = null, val npub: String? = null, val relayCount: Int = 0)
 
-    enum class Tab { Home, Search, Activity, Bookmarks, Profile }
+    /** [path] is the tab's web URL (`/search`…); Home is `/`. */
+    enum class Tab(val path: String?) { Home(null), Search("search"), Activity("activity"), Bookmarks("bookmarks"), Profile("me") }
 
     sealed class Child(val tab: Tab) {
         class Home(val component: HomeComponent) : Child(Tab.Home)
