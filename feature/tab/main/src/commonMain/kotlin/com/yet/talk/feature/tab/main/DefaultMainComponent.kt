@@ -5,6 +5,8 @@ import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.bringToFront
 import com.arkivanov.decompose.router.stack.childStack
+import com.arkivanov.decompose.router.stack.childStackWebNavigation
+import com.arkivanov.decompose.router.webhistory.WebNavigation
 import com.arkivanov.decompose.value.Value
 import com.yet.talk.feature.profile.ProfileComponent
 import com.yet.talk.feature.tab.activity.ActivityComponent
@@ -22,13 +24,24 @@ internal class DefaultMainComponent(
 
     private val navigation = StackNavigation<Config>()
 
-    override val stack: Value<ChildStack<*, MainComponent.Child>> =
+    private val configStack: Value<ChildStack<Config, MainComponent.Child>> =
         childStack(
             source = navigation,
             serializer = Config.serializer(),
             initialConfiguration = Config.Home,
             handleBackButton = true,
             childFactory = ::child,
+        )
+
+    override val stack: Value<ChildStack<*, MainComponent.Child>> = configStack
+
+    override val webNavigation: WebNavigation<*> =
+        childStackWebNavigation(
+            navigator = navigation,
+            stack = configStack,
+            serializer = Config.serializer(),
+            enableHistory = false,
+            pathMapper = { it.configuration.path },
         )
 
     override fun onTabClicked(tab: MainComponent.Tab) {
@@ -102,21 +115,21 @@ internal class DefaultMainComponent(
     }
 
     @Serializable
-    private sealed interface Config {
+    private sealed class Config(val path: String?) {
         @Serializable
-        data object Home : Config
+        data object Home : Config(null)
 
         @Serializable
-        data object Search : Config
+        data object Search : Config("search")
 
         @Serializable
-        data object Activity : Config
+        data object Activity : Config("activity")
 
         @Serializable
-        data object Bookmarks : Config
+        data object Bookmarks : Config("bookmarks")
 
         @Serializable
-        data object Profile : Config
+        data object Profile : Config("me")
     }
 }
 

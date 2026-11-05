@@ -2,7 +2,9 @@ package com.yet.talk.feature.root
 
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.ChildStack
+import com.arkivanov.decompose.router.webhistory.WebNavigationOwner
 import com.arkivanov.decompose.value.Value
+import com.arkivanov.essenty.backhandler.BackHandlerOwner
 import com.yet.talk.feature.auth.AuthComponent
 import com.yet.talk.feature.compose.ComposeComponent
 import com.yet.talk.feature.post.component.post.PostComponent
@@ -14,8 +16,11 @@ import com.yet.talk.feature.tab.main.MainComponent
 /**
  * The app's root: sign-in when there is no account, otherwise the tabs with full-screen destinations
  * (post, revisions, editor, someone's profile, settings) stacked above them.
+ *
+ * [backHandler] drives predictive back on Android and the swipe back on iOS; [webNavigation] binds the
+ * stack to the browser history (`/post/<id>`, `/user/<id>`, `/settings`, tabs below `Main`).
  */
-interface RootComponent {
+interface RootComponent : BackHandlerOwner, WebNavigationOwner {
     val stack: Value<ChildStack<*, Child>>
 
     /** Pops the top destination (the platform's back gesture is handled by the stack itself). */
@@ -41,6 +46,7 @@ interface RootComponent {
     }
 
     fun interface Factory {
-        operator fun invoke(componentContext: ComponentContext): RootComponent
+        /** [deepLink] is a URL or path to open once signed in (web: the address the page was opened at). */
+        operator fun invoke(componentContext: ComponentContext, deepLink: String?): RootComponent
     }
 }

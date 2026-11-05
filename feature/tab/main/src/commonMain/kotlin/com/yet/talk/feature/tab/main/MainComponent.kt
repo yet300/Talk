@@ -2,6 +2,7 @@ package com.yet.talk.feature.tab.main
 
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.ChildStack
+import com.arkivanov.decompose.router.webhistory.WebNavigationOwner
 import com.arkivanov.decompose.value.Value
 import com.yet.talk.domain.model.post.PostId
 import com.yet.talk.domain.model.user.UserId
@@ -11,8 +12,11 @@ import com.yet.talk.feature.tab.bookmarks.BookmarksComponent
 import com.yet.talk.feature.tab.home.HomeComponent
 import com.yet.talk.feature.tab.search.SearchComponent
 
-/** The bottom-bar tabs. Each tab keeps its state while another one is shown. */
-interface MainComponent {
+/**
+ * The bottom-bar tabs. Each tab keeps its state while another one is shown. On the web the active tab is
+ * the URL (`/`, `/search`, `/activity`, `/bookmarks`, `/me`) without adding history entries.
+ */
+interface MainComponent : WebNavigationOwner {
     val stack: Value<ChildStack<*, Child>>
 
     fun onTabClicked(tab: Tab)

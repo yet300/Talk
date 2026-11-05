@@ -25,7 +25,7 @@ class AppGraphTest {
         // Never advanced: the account is not read here, so the root stays on the splash.
         Dispatchers.setMain(StandardTestDispatcher())
         try {
-            val root = graph.rootComponentFactory(DefaultComponentContext(LifecycleRegistry()))
+            val root = graph.rootComponentFactory(DefaultComponentContext(LifecycleRegistry()), deepLink = null)
             assertIs<RootComponent.Child.Splash>(root.stack.value.active.instance)
         } finally {
             Dispatchers.resetMain()

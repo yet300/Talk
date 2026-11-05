@@ -3,6 +3,7 @@ package com.yet.talk.feature.root
 import com.app.common.decompose.coroutineScope
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.ChildStack
+import com.arkivanov.decompose.router.stack.childStackWebNavigation
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.childStack
 import com.arkivanov.decompose.router.stack.pop
@@ -10,6 +11,7 @@ import com.arkivanov.decompose.router.stack.pushNew
 import com.arkivanov.decompose.router.stack.pushToFront
 import com.arkivanov.decompose.router.stack.replaceAll
 import com.arkivanov.decompose.router.stack.replaceCurrent
+import com.arkivanov.decompose.router.webhistory.WebNavigation
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.mvikotlin.core.instancekeeper.getStore
 import com.arkivanov.mvikotlin.extensions.coroutines.states
@@ -35,12 +37,16 @@ internal class DefaultRootComponent(
     componentContext: ComponentContext,
     storeFactory: RootStoreFactory,
     private val factories: DestinationFactories,
+    deepLink: String?,
 ) : RootComponent, ComponentContext by componentContext {
 
     private val store = instanceKeeper.getStore { storeFactory.create() }
     private val navigation = StackNavigation<Config>()
 
-    override val stack: Value<ChildStack<*, RootComponent.Child>> =
+    /** Opened above Main on the first sign-in of this run; consumed once. */
+    private var pendingDeepLink: List<Config> = deepLink?.let(Config::fromPath).orEmpty()
+
+    private val configStack: Value<ChildStack<Config, RootComponent.Child>> =
         childStack(
             source = navigation,
             serializer = Config.serializer(),
@@ -49,13 +55,27 @@ internal class DefaultRootComponent(
             childFactory = ::child,
         )
 
+    override val stack: Value<ChildStack<*, RootComponent.Child>> = configStack
+
+    override val webNavigation: WebNavigation<*> =
+        childStackWebNavigation(
+            navigator = navigation,
+            stack = configStack,
+            serializer = Config.serializer(),
+            pathMapper = { it.configuration.path },
+            childSelector = { (it.instance as? RootComponent.Child.Main)?.component },
+        )
+
     init {
         coroutineScope().launch {
             store.states.map { it.signedIn }.filterNotNull().distinctUntilChanged().collect { signedIn ->
-                val atAuthOrSplash = stack.value.active.configuration.let { it == Config.Splash || it == Config.Auth }
+                val atAuthOrSplash = configStack.value.active.configuration.let { it == Config.Splash || it == Config.Auth }
                 when {
                     !signedIn -> navigation.replaceAll(Config.Auth)
-                    atAuthOrSplash -> navigation.replaceAll(Config.Main)
+                    atAuthOrSplash -> {
+                        navigation.replaceAll(Config.Main, *pendingDeepLink.toTypedArray())
+                        pendingDeepLink = emptyList()
+                    }
                 }
             }
         }
@@ -120,30 +140,45 @@ internal class DefaultRootComponent(
 
     @Serializable
     private sealed interface Config {
+        /** This destination's part of the web URL; null leaves the URL to the child (Main's tabs) or at `/`. */
+        val path: String? get() = null
+
         @Serializable
         data object Splash : Config
 
         @Serializable
-        data object Auth : Config
+        data object Auth : Config {
+            override val path get() = "signin"
+        }
 
         @Serializable
         data object Main : Config
 
         @Serializable
-        data class Post(val id: String) : Config
+        data class Post(val id: String) : Config {
+            override val path get() = "post/$id"
+        }
 
         @Serializable
-        data class Revisions(val id: String) : Config
+        data class Revisions(val id: String) : Config {
+            override val path get() = "post/$id/revisions"
+        }
 
         @Serializable
-        data class Profile(val id: String) : Config
+        data class Profile(val id: String) : Config {
+            override val path get() = "user/$id"
+        }
 
         @Serializable
-        data object Settings : Config
+        data object Settings : Config {
+            override val path get() = "settings"
+        }
 
         @Serializable
         data class Compose(val kind: Kind, val target: String?) : Config {
             enum class Kind { New, Reply, Quote, Edit }
+
+            override val path get() = "compose"
 
             fun toMode(): ComposeMode = when (kind) {
                 Kind.New -> ComposeMode.New
@@ -160,6 +195,25 @@ internal class DefaultRootComponent(
                 fun quote(quoted: PostId) = Compose(Kind.Quote, quoted.value)
 
                 fun edit(post: PostId) = Compose(Kind.Edit, post.value)
+            }
+        }
+
+        companion object {
+            /**
+             * The destinations a shared link opens above Main: `/post/<id>`, `/post/<id>/revisions`,
+             * `/user/<id>`, `/settings`. Anything else opens Main as it is.
+             */
+            fun fromPath(link: String): List<Config> {
+                val path = if ("://" in link) link.substringAfter("://").substringAfter('/', "") else link
+                val segments = path.substringBefore('?').substringBefore('#').split('/').filter(String::isNotEmpty)
+                return when {
+                    segments.size == 2 && segments[0] == "post" -> listOf(Post(segments[1]))
+                    segments.size == 3 && segments[0] == "post" && segments[2] == "revisions" ->
+                        listOf(Post(segments[1]), Revisions(segments[1]))
+                    segments.size == 2 && segments[0] == "user" -> listOf(Profile(segments[1]))
+                    segments == listOf("settings") -> listOf(Settings)
+                    else -> emptyList()
+                }
             }
         }
     }
@@ -182,6 +236,6 @@ internal class DefaultRootComponentFactory(
     private val storeFactory: RootStoreFactory,
     private val factories: DestinationFactories,
 ) : RootComponent.Factory {
-    override fun invoke(componentContext: ComponentContext): RootComponent =
-        DefaultRootComponent(componentContext, storeFactory, factories)
+    override fun invoke(componentContext: ComponentContext, deepLink: String?): RootComponent =
+        DefaultRootComponent(componentContext, storeFactory, factories, deepLink)
 }

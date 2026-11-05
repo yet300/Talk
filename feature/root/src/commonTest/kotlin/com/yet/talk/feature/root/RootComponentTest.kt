@@ -2,6 +2,7 @@ package com.yet.talk.feature.root
 
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.decompose.router.stack.ChildStack
+import com.arkivanov.decompose.router.webhistory.WebNavigationOwner
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.essenty.lifecycle.resume
@@ -41,7 +42,7 @@ class RootComponentTest {
         override suspend fun signOut() = Unit
     }
 
-    private class FakeMain(val output: (MainComponent.Output) -> Unit) : MainComponent {
+    private class FakeMain(val output: (MainComponent.Output) -> Unit) : MainComponent, WebNavigationOwner.NoOp {
         override val stack = MutableValue(
             ChildStack(configuration = MainComponent.Tab.Home, instance = MainComponent.Child.Home(PreviewHomeComponent()) as MainComponent.Child),
         )
@@ -50,6 +51,8 @@ class RootComponentTest {
 
     private val accounts = Accounts()
     private var main: FakeMain? = null
+
+    private var deepLink: String? = null
 
     private val root by lazy {
         val factories = DestinationFactories(
@@ -62,7 +65,7 @@ class RootComponentTest {
             settings = { _, _ -> PreviewSettingsComponent() },
         )
         val lifecycle = LifecycleRegistry().apply { resume() }
-        DefaultRootComponent(DefaultComponentContext(lifecycle), RootStoreFactory(DefaultStoreFactory(), accounts), factories)
+        DefaultRootComponent(DefaultComponentContext(lifecycle), RootStoreFactory(DefaultStoreFactory(), accounts), factories, deepLink)
     }
 
     private val active get() = root.stack.value.active.instance
@@ -92,5 +95,20 @@ class RootComponentTest {
         accounts.account.value = null
         assertIs<RootComponent.Child.Auth>(active)
         assertEquals(1, root.stack.value.items.size, "nothing from the signed-in session stays behind")
+    }
+
+    @Test
+    fun aSharedLinkOpensAboveMainOnceSignedIn() {
+        deepLink = "https://talk.example/post/abc/revisions?x=1"
+        accounts.account.value = Account(UserId("me"), "npub1me")
+
+        val items = root.stack.value.items.map { it.instance }
+        assertIs<RootComponent.Child.Main>(items[0])
+        assertIs<RootComponent.Child.Post>(items[1])
+        assertIs<RootComponent.Child.Revisions>(items[2])
+
+        accounts.account.value = null
+        accounts.account.value = Account(UserId("me"), "npub1me")
+        assertEquals(1, root.stack.value.items.size, "the link is opened once")
     }
 }
