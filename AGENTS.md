@@ -36,20 +36,30 @@ Clean Architecture, SOLID, KISS, YAGNI. In practice:
 | `:core:database` | `core/database` | SQLDelight cache (`TalkDatabase`), DAO interfaces + implementations, `SqlDriverFactory` per platform |
 | `:core:data` | `core/data` | Repository implementations, `Session` + KSafe key vault, `EventIngestor`, `FeedPaging` (Paging 3 + `RemoteMediator`), optimistic `Publisher` |
 | `:core:resources` | `core/resources` | moko-resources (`MR`, package `com.yet.talk.resources`) and platform helpers |
-| `:feature:root` | `feature/root` | Root `ChildStack`: full-screen destinations above the tabs |
-| `:feature:tab:main` | `feature/tab/main` | Tab container (`ChildStack` + `bringToFront`) |
-| `:feature:tab:home` | `feature/tab/home` | Home timeline: Latest / Following / Trending |
+| `:feature:root` | `feature/root` | Root `ChildStack`: Splash, Auth, Main and the full-screen destinations above the tabs; `RootStore` swaps Auth/Main on sign-in |
+| `:feature:auth` | `feature/auth` | Sign in with a local key (create or import an `nsec`) |
+| `:feature:post` | `feature/post` | Two components: `component/post` (post, reply thread, actions) and `component/revisions` |
+| `:feature:compose` | `feature/compose` | Editor for `ComposeMode` New / Reply / Quote / Edit, image upload, draft kept by StateKeeper |
+| `:feature:profile` | `feature/profile` | A profile (or your own, with `userId = null`): Posts / Replies, follow |
+| `:feature:settings` | `feature/settings` | Account, key export, relays (`RelayRules`), sign out |
+| `:feature:tab:main` | `feature/tab/main` | Tab container (`ChildStack` + `bringToFront`): Home, Search, Activity, Bookmarks, Profile |
+| `:feature:tab:home` | `feature/tab/home` | Home timeline: Following / Popular (trending) / Latest |
+| `:feature:tab:search` | `feature/tab/search` | Local search on every keystroke, NIP-50 relays after a 350 ms pause |
+| `:feature:tab:activity` | `feature/tab/activity` | Replies, quotes, reposts, likes and follows aimed at you (no store) |
+| `:feature:tab:bookmarks` | `feature/tab/bookmarks` | Your NIP-51 bookmarks |
 
 Dependency graph:
 
 ```
-feature:root → feature:tab:main → feature:tab:home → core:domain, core:common
+feature:root → feature:tab:main → feature:tab:{home,search,activity,bookmarks}, feature:profile
+feature:root → feature:{auth,post,compose,profile,settings}
+every feature → core:domain, core:common
 core:data → core:domain, core:database, core:api → core:nostr
 sharedLogic → features (api, exported) + core:data (implementation, not exported)
 ```
 
-More tabs (activity, bookmarks, profile) and screens (post, compose, auth) are added together with
-their UI, following the design file.
+Screens follow KarpathyTalk and the Claude Design file "Talk" (X design system). Post titles and
+excerpts are derived from the markdown (`PostSummaries`), as in KarpathyTalk.
 
 ## Data flow
 
@@ -85,7 +95,7 @@ their UI, following the design file.
   `di/<Module>Bindings` container (`@ContributesTo(AppScope::class) @BindingContainer abstract class`) with
   `@Binds internal abstract val Impl.bindX: Interface` and, for third-party types, `@Provides` in its companion.
   Containers: `NostrBindings`, `ApiBindings`, `DatabaseBindings`, `DataBindings` + `KeyVaultBindings`,
-  `CommonBindings`, and one per feature (`RootBindings`, `MainBindings`, `HomeBindings`). Bindings only the
+  `CommonBindings`, and one per feature (`RootBindings`, `AuthBindings`, `PostBindings`, …). Bindings only the
   data layer may reach (the session, the key vault) are `@GraphPrivate`.
 - Platform-only inputs (HTTP engine via `relayHttpClient(engine)`, `SqlDriverFactory`, KSafe, Android `Context`)
   are provided by the platform graphs in `sharedLogic` (`AndroidAppGraph`, `IosAppGraph`, `JsAppGraph`).
@@ -97,6 +107,15 @@ their UI, following the design file.
 - A parent receives its children's `Factory` types through its own factory's constructor; Metro
   wires the chain. Nothing calls a `Default…` constructor outside its own module.
 - State is exposed as Decompose `Value`; navigation configs are private `@Serializable` types.
+- Feature layout (as in TetrisLite `feature/history`): `XComponent`, `DefaultXComponent`, `PreviewXComponent`,
+  `store/XStore` + `store/XStoreFactory` (MVIKotlin, created with `instanceKeeper.getStore`), `mapper/XStateMapper`
+  (`State → Model`), `di/XBindings`. A module with several components puts each in `component/<name>/` with its
+  own `store/` and `mapper/`.
+- Navigation leaves a component through a single `Output` callback in its factory (or `onBack` when that is all);
+  the parent maps child outputs to its own. Paged lists are `Flow<PagingData<T>>` on the component (`cachedIn` its
+  scope), not in the store. A component with no state of its own has no store (Activity).
+- Store tests use `DefaultStoreFactory`, `isAssertOnMainThreadEnabled = false` and `Dispatchers.setMain(...)`
+  with hand-written fakes of the domain interfaces.
 - The platform apps get the graph from `createAndroidAppGraph()` / `IosAppGraphKt.createIosAppGraph()`
   and create the root with `graph.rootComponentFactory(componentContext)` on the main thread.
 

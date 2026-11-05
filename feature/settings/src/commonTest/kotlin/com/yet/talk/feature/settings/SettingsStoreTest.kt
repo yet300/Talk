@@ -1,0 +1,93 @@
+package com.yet.talk.feature.settings
+
+import com.arkivanov.mvikotlin.core.utils.isAssertOnMainThreadEnabled
+import com.arkivanov.mvikotlin.main.store.DefaultStoreFactory
+import com.yet.talk.domain.model.account.Account
+import com.yet.talk.domain.model.error.DomainError
+import com.yet.talk.domain.model.relay.Relay
+import com.yet.talk.domain.model.user.UserId
+import com.yet.talk.domain.repository.AccountRepository
+import com.yet.talk.domain.repository.RelayRepository
+import com.yet.talk.feature.settings.store.SettingsStore
+import com.yet.talk.feature.settings.store.SettingsStoreFactory
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.test.setMain
+import kotlin.test.AfterTest
+import kotlin.test.BeforeTest
+import kotlin.test.Test
+import kotlin.test.assertEquals
+
+class SettingsStoreTest {
+
+    private class FakeRelays : RelayRepository {
+        override val relays = MutableStateFlow(listOf(Relay("wss://a.example")))
+        override suspend fun setRelays(relays: List<Relay>): Result<Unit> {
+            this.relays.value = relays
+            return Result.success(Unit)
+        }
+    }
+
+    private class FakeAccounts : AccountRepository {
+        var signedOut = false
+        override val account = MutableStateFlow<Account?>(Account(UserId("me"), "npub1me"))
+        override suspend fun createAccount() = error("unused")
+        override suspend fun importKey(secretKey: String) = error("unused")
+        override suspend fun exportSecretKey() = Result.success("nsec1secret")
+        override suspend fun signOut() {
+            signedOut = true
+            account.value = null
+        }
+    }
+
+    private val relays = FakeRelays()
+    private val accounts = FakeAccounts()
+    private val store by lazy { SettingsStoreFactory(DefaultStoreFactory(), accounts, relays).create() }
+
+    @BeforeTest
+    fun setUp() {
+        isAssertOnMainThreadEnabled = false
+        Dispatchers.setMain(UnconfinedTestDispatcher())
+    }
+
+    @AfterTest
+    fun tearDown() = Dispatchers.resetMain()
+
+    @Test
+    fun addsANormalizedRelayOnceAndRemovesIt() = runTest {
+        store.accept(SettingsStore.Intent.ChangeRelayInput(" WSS://B.example/ "))
+        store.accept(SettingsStore.Intent.AddRelay)
+        store.accept(SettingsStore.Intent.ChangeRelayInput("wss://b.example"))
+        store.accept(SettingsStore.Intent.AddRelay)
+
+        assertEquals(listOf("wss://a.example", "wss://b.example"), store.state.relays.map { it.url })
+        assertEquals("", store.state.relayInput)
+
+        store.accept(SettingsStore.Intent.RemoveRelay("wss://a.example"))
+        assertEquals(listOf("wss://b.example"), store.state.relays.map { it.url })
+    }
+
+    @Test
+    fun rejectsAnAddressThatIsNotARelay() = runTest {
+        store.accept(SettingsStore.Intent.ChangeRelayInput("https://example.com"))
+        store.accept(SettingsStore.Intent.AddRelay)
+
+        assertEquals(DomainError.InvalidRelayUrl, store.state.error)
+        assertEquals(1, store.state.relays.size)
+    }
+
+    @Test
+    fun revealsTheKeyUntilHiddenAndSignsOut() = runTest {
+        store.accept(SettingsStore.Intent.ExportKey)
+        assertEquals("nsec1secret", store.state.exportedKey)
+        store.accept(SettingsStore.Intent.HideKey)
+        assertEquals(null, store.state.exportedKey)
+
+        store.accept(SettingsStore.Intent.SignOut)
+        assertEquals(true, accounts.signedOut)
+        assertEquals(null, store.state.account)
+    }
+}

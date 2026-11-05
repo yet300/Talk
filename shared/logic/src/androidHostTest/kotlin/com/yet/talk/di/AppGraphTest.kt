@@ -4,7 +4,11 @@ import android.content.ContextWrapper
 import com.arkivanov.decompose.DefaultComponentContext
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.yet.talk.feature.root.RootComponent
-import com.yet.talk.feature.tab.main.MainComponent
+import com.arkivanov.mvikotlin.core.utils.isAssertOnMainThreadEnabled
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.setMain
 import dev.zacsweers.metro.createGraphFactory
 import kotlin.test.Test
 import kotlin.test.assertIs
@@ -16,11 +20,16 @@ class AppGraphTest {
     private val graph = createGraphFactory<AndroidAppGraph.Factory>().create(ContextWrapper(null))
 
     @Test
-    fun rootStartsOnHomeTab() {
-        val root = graph.rootComponentFactory(DefaultComponentContext(LifecycleRegistry()))
-
-        val main = assertIs<RootComponent.Child.Main>(root.stack.value.active.instance).component
-        assertIs<MainComponent.Child.Home>(main.stack.value.active.instance)
+    fun rootWaitsOnSplashUntilTheAccountIsKnown() {
+        isAssertOnMainThreadEnabled = false
+        // Never advanced: the account is not read here, so the root stays on the splash.
+        Dispatchers.setMain(StandardTestDispatcher())
+        try {
+            val root = graph.rootComponentFactory(DefaultComponentContext(LifecycleRegistry()))
+            assertIs<RootComponent.Child.Splash>(root.stack.value.active.instance)
+        } finally {
+            Dispatchers.resetMain()
+        }
     }
 
     @Test

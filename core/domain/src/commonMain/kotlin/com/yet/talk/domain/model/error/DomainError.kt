@@ -22,6 +22,8 @@ sealed class DomainError(message: String) : Exception(message) {
 
     data object InvalidKey : Validation("Not a valid nsec or secret key")
 
+    data object InvalidRelayUrl : Validation("A relay address starts with wss://")
+
     data object NotSignedIn : DomainError("Sign in to do this")
 
     data object NotFound : DomainError("Not found")

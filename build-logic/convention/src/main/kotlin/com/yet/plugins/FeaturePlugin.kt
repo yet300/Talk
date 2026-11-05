@@ -24,6 +24,7 @@ class FeaturePlugin : Plugin<Project> {
             // :feature:tab:home → com.yet.talk.feature.tab.home (the KMP convention drops the first segment).
             extensions.configure<KotlinMultiplatformAndroidLibraryExtension>("android") {
                 namespace = featureNamespace
+                withHostTest {}
             }
 
             compilerOptions {
@@ -39,6 +40,9 @@ class FeaturePlugin : Plugin<Project> {
                     // Components expose Value, ChildStack/Slot/Panels and essenty owners; factories take StoreFactory.
                     api(libs.findBundle("decompose").get())
                     api(libs.findBundle("mvi").get())
+                }
+                getByName("androidHostTest").dependencies {
+                    implementation(libs.findLibrary("kotlin-testJunit").get())
                 }
             }
         }

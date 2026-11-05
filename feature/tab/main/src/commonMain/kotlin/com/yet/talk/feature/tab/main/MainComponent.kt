@@ -3,21 +3,50 @@ package com.yet.talk.feature.tab.main
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.value.Value
+import com.yet.talk.domain.model.post.PostId
+import com.yet.talk.domain.model.user.UserId
+import com.yet.talk.feature.profile.ProfileComponent
+import com.yet.talk.feature.tab.activity.ActivityComponent
+import com.yet.talk.feature.tab.bookmarks.BookmarksComponent
 import com.yet.talk.feature.tab.home.HomeComponent
+import com.yet.talk.feature.tab.search.SearchComponent
 
-/** The tab container: one child per bottom-bar tab. */
+/** The bottom-bar tabs. Each tab keeps its state while another one is shown. */
 interface MainComponent {
     val stack: Value<ChildStack<*, Child>>
 
     fun onTabClicked(tab: Tab)
 
-    enum class Tab { Home }
+    enum class Tab { Home, Search, Activity, Bookmarks, Profile }
 
-    sealed class Child {
-        class Home(val component: HomeComponent) : Child()
+    sealed class Child(val tab: Tab) {
+        class Home(val component: HomeComponent) : Child(Tab.Home)
+
+        class Search(val component: SearchComponent) : Child(Tab.Search)
+
+        class Activity(val component: ActivityComponent) : Child(Tab.Activity)
+
+        class Bookmarks(val component: BookmarksComponent) : Child(Tab.Bookmarks)
+
+        class Profile(val component: ProfileComponent) : Child(Tab.Profile)
+    }
+
+    /** Where the tabs lead: full-screen destinations that the root opens above the tabs. */
+    sealed interface Output {
+        data class OpenPost(val id: PostId) : Output
+
+        data class OpenProfile(val id: UserId) : Output
+
+        data class Reply(val parent: PostId) : Output
+
+        data class Quote(val quoted: PostId) : Output
+
+        data object NewPost : Output
+
+        data object OpenSettings : Output
     }
 
     fun interface Factory {
-        operator fun invoke(componentContext: ComponentContext): MainComponent
+        operator fun invoke(componentContext: ComponentContext, output: (Output) -> Unit): MainComponent
     }
 }
