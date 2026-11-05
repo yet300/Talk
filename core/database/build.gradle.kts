@@ -14,7 +14,6 @@ kotlin {
         commonMain.dependencies {
             implementation(projects.core.common)
             api(libs.androidx.paging.common)
-            implementation(libs.sqldelight.paging)
         }
         getByName("androidHostTest").dependencies {
             implementation(libs.kotlin.testJunit)

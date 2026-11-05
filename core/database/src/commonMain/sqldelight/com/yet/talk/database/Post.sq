@@ -84,7 +84,7 @@ SELECT v.*,
 FROM post_with_stats v
 WHERE v.id = :id AND v.deleted = 0;
 
--- Paged feeds: each select has a count query for QueryPagingSource.
+-- Paged feeds: each select has a count query for OffsetPagingSource.
 
 selectLatest:
 SELECT v.*,

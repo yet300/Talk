@@ -3,7 +3,6 @@ package com.yet.talk.database.dao.sql
 import app.cash.sqldelight.async.coroutines.awaitAsOne
 import app.cash.sqldelight.async.coroutines.awaitAsOneOrNull
 import androidx.paging.PagingSource
-import app.cash.sqldelight.paging3.QueryPagingSource
 import com.app.common.AppDispatchers
 import com.yet.talk.database.DatabaseHolder
 import com.yet.talk.database.dao.PostDao
@@ -75,7 +74,7 @@ internal class SqlPostDao(
             PostFeed.Trending -> queries.countTrending()
         }
         return {
-            QueryPagingSource(countQuery = count, transacter = queries, context = dispatchers.io, queryProvider = { limit: Long, offset: Long ->
+            OffsetPagingSource(countQuery = count, context = dispatchers.io, pageQuery = { limit: Long, offset: Long ->
                 when (feed) {
                     PostFeed.Latest -> queries.selectLatest(viewer, limit, offset, ::postRecord)
                     PostFeed.Following -> queries.selectFollowing(viewer, limit, offset, ::postRecord)
