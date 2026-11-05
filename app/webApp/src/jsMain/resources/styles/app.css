@@ -95,3 +95,29 @@
 .t-auth-title{margin:0;font-size:23px;line-height:28px;font-weight:700}
 .t-add-relay .x-input{flex:1}
 .t-strong{font-weight:700}
+
+/* Images inside rendered markdown (article, editor preview, replies): as the design's media (x-media),
+   at most the column's width and 510 px high, rounded, never larger than the image itself. */
+.t-markdown img{display:block;max-width:100%;height:auto;max-height:var(--media-max);object-fit:contain;
+  border-radius:var(--radius-card);margin:var(--space-sm) 0;background:var(--surface)}
+.t-markdown pre{max-width:100%;overflow-x:auto}
+.t-markdown table{display:block;max-width:100%;overflow-x:auto;border-collapse:collapse}
+.t-markdown td,.t-markdown th{border:1px solid var(--border);padding:var(--space-xs) var(--space-sm)}
+.t-card-title,.t-excerpt,.x-post-head{overflow-wrap:anywhere}
+.t-reply-body{overflow-wrap:anywhere}
+
+/* Phone (below 688 px): the phone artboards, not the design's narrow-web fallback. */
+.t-phone-page{min-height:100vh;display:flex;flex-direction:column}
+.t-phone-main{flex:1;min-width:0;padding-bottom:calc(var(--capsule-height) + var(--capsule-offset) + var(--space-lg))}
+.t-phone-page .x-mobile-header{position:sticky;top:0;z-index:2}
+.t-header-end{margin-right:-10px}
+.t-mobile-dock{z-index:var(--z-nav)}
+.t-mobile-dock .x-bottom-nav{max-width:100%}
+.t-fab{position:fixed;right:var(--space-lg);bottom:calc(var(--capsule-height) + var(--capsule-offset) + var(--space-lg));z-index:3}
+.t-fab .x-fab{color:var(--on-accent)}
+.t-phone-page .t-composer-page{min-height:100vh}
+.t-phone-page .t-composer-bar{gap:var(--space-xs)}
+.t-phone-page .t-split .t-body-input{min-height:calc(100vh - var(--bar-height) - 2 * var(--space-lg))}
+.t-phone-page .t-article-actions{padding-inline:var(--space-xs)}
+.t-phone-page .x-actions{max-width:none}
+.t-phone-page .t-narrow-only{display:block}

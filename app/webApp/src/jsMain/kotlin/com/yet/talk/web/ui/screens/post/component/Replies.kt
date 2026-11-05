@@ -53,7 +53,7 @@ private fun ReplyCard(reply: ThreadReply, component: PostComponent) {
         Avatar(post.author, onClick = { component.onOpenAuthor(post.author.id) })
         Div({ classes("x-post-body") }) {
             PostHead(post)
-            Markdown(post.content, className = "x-post-text t-reply-body")
+            Markdown(post.content, "t-reply-body")
             Div({ classes("x-actions", "t-reply-actions") }) {
                 ActionButton("x-reply", TalkIcons.Reply, post.stats.replies, stringResource(MR.strings.a11y_replies, post.stats.replies.toInt())) {
                     component.onReplyInEditor(post)

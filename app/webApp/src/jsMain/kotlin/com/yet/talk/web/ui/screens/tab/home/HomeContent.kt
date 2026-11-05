@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import com.yet.talk.feature.tab.home.HomeComponent
 import com.yet.talk.resources.*
+import com.yet.talk.web.browser.rememberIsPhone
 import com.yet.talk.web.decompose.subscribeAsState
 import com.yet.talk.web.paging.collectAsPagingItems
 import com.yet.talk.web.ui.components.ErrorRow
@@ -22,7 +23,7 @@ fun HomeContent(component: HomeComponent) {
     val posts = component.posts.collectAsPagingItems()
     val actions = PostActionHandlers(component::onReply, component::onRepost, component::onLike, component::onBookmark)
 
-    TopBar(stringResource(MR.strings.tab_home))
+    if (!rememberIsPhone()) TopBar(stringResource(MR.strings.tab_home))
     FeedTabs(model.feed, component::onFeedSelected)
     model.error?.let { ErrorRow(it, onDismiss = component::onErrorShown) }
     PagedList(posts, empty = { FeedEmpty(model.feed, onBrowseLatest = { component.onFeedSelected(HomeComponent.Feed.Latest) }) }) { post ->

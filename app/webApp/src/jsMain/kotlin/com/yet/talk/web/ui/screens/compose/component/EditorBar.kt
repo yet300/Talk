@@ -1,6 +1,8 @@
 package com.yet.talk.web.ui.screens.compose.component
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import com.yet.talk.web.browser.rememberIsPhone
 import com.yet.talk.domain.model.media.ImageFile
 import com.yet.talk.feature.compose.ComposeComponent
 import com.yet.talk.feature.compose.ComposeMode
@@ -26,10 +28,16 @@ import org.w3c.files.get
 /** Close · Edit/Split/Preview · (counter, add image) · Publish. */
 @Composable
 fun EditorBar(model: ComposeComponent.Model, component: ComposeComponent) {
+    val phone = rememberIsPhone()
+    // Compose · Mobile has no Split: one view at a time.
+    LaunchedEffect(phone, model.view) {
+        if (phone && model.view == ComposeComponent.View.Split) component.onViewChanged(ComposeComponent.View.Edit)
+    }
+    val views = if (phone) listOf(ComposeComponent.View.Edit, ComposeComponent.View.Preview) else ComposeComponent.View.entries
     Div({ classes("t-composer-bar") }) {
         IconButton(TalkIcons.Close, stringResource(MR.strings.compose_close), component::onClose)
         Tabs(
-            items = ComposeComponent.View.entries,
+            items = views,
             selected = model.view,
             label = { stringResource(it.label) },
             onSelect = component::onViewChanged,
@@ -37,7 +45,7 @@ fun EditorBar(model: ComposeComponent.Model, component: ComposeComponent) {
             segmented = true,
         )
         Span({ classes("t-spacer") })
-        Span({ classes("t-counter") }) {
+        if (!phone) Span({ classes("t-counter") }) {
             Text(
                 when {
                     model.isUploading -> stringResource(MR.strings.compose_uploading)

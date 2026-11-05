@@ -90,7 +90,7 @@ private fun RailItem(icon: ImageResource, label: String, active: Boolean, onClic
     }
 }
 
-private fun TabsComponent.Tab.icon(active: Boolean): ImageResource = when (this) {
+internal fun TabsComponent.Tab.icon(active: Boolean): ImageResource = when (this) {
     TabsComponent.Tab.Home -> TalkIcons.Home
     TabsComponent.Tab.Search -> TalkIcons.Search
     TabsComponent.Tab.Activity -> TalkIcons.Activity
@@ -99,7 +99,7 @@ private fun TabsComponent.Tab.icon(active: Boolean): ImageResource = when (this)
 }
 
 @Composable
-private fun TabsComponent.Tab.label(): String = stringResource(
+internal fun TabsComponent.Tab.label(): String = stringResource(
     when (this) {
         TabsComponent.Tab.Home -> MR.strings.tab_home
         TabsComponent.Tab.Search -> MR.strings.tab_search
