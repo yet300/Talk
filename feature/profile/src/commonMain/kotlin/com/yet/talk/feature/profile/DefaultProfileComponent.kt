@@ -66,6 +66,8 @@ internal class DefaultProfileComponent(
 
     override fun onQuote(post: Post) = output(ProfileComponent.Output.Quote(post.id))
 
+    override fun onOpenRevisions(post: Post) = output(ProfileComponent.Output.OpenRevisions(post.id))
+
     override fun onOpenPost(id: PostId) = output(ProfileComponent.Output.OpenPost(id))
 
     override fun onOpenAuthor(id: UserId) = output(ProfileComponent.Output.OpenProfile(id))

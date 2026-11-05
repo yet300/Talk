@@ -12,7 +12,14 @@ interface AuthComponent {
 
     fun onImportKey()
 
+    /** Creates a key and shows it once ([Model.newKey]); signing in waits for [onNewKeySaved]. */
     fun onCreateKey()
+
+    /** The new key was copied: "I saved it" unlocks at once. */
+    fun onNewKeyCopied()
+
+    /** "I saved it": sign in with the new key. */
+    fun onNewKeySaved()
 
     fun onErrorShown()
 
@@ -20,6 +27,10 @@ interface AuthComponent {
         val key: String,
         val isWorking: Boolean,
         val canImport: Boolean,
+        /** The `nsec` of a key just created, shown once ("Save your key"); null otherwise. */
+        val newKey: String?,
+        val newKeyCopied: Boolean,
+        val canConfirmSaved: Boolean,
         val error: DomainError?,
     )
 

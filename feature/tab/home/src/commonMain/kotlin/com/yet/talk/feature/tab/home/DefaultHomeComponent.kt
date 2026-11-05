@@ -62,6 +62,8 @@ internal class DefaultHomeComponent(
 
     override fun onQuote(post: Post) = output(HomeComponent.Output.Quote(post.id))
 
+    override fun onOpenRevisions(post: Post) = output(HomeComponent.Output.OpenRevisions(post.id))
+
     override fun onOpenPost(id: PostId) = output(HomeComponent.Output.OpenPost(id))
 
     override fun onOpenAuthor(id: UserId) = output(HomeComponent.Output.OpenProfile(id))

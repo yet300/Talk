@@ -55,7 +55,7 @@ class DataTest {
 
     @Test
     fun publishingIsOptimisticAndReportsRejection() = dataTest { data ->
-        data.accounts.createAccount()
+        data.accounts.importKey(data.accounts.generateKey().getOrThrow())
 
         val id = data.posts.publish("hello", emptyList(), null).getOrThrow()
         assertEquals(PublishState.Published, data.posts.observePost(id).first()?.publishState)
@@ -96,7 +96,7 @@ class DataTest {
 
     @Test
     fun likeAndUnlikeUpdateTheViewerAndPublishADeletion() = dataTest { data ->
-        data.accounts.createAccount()
+        data.accounts.importKey(data.accounts.generateKey().getOrThrow())
         val post = data.bobPost("like me", 1_000)
         data.posts.refreshPost(PostId(post.id)).getOrThrow()
 
@@ -112,7 +112,7 @@ class DataTest {
 
     @Test
     fun failedLikeIsRolledBack() = dataTest { data ->
-        data.accounts.createAccount()
+        data.accounts.importKey(data.accounts.generateKey().getOrThrow())
         val post = data.bobPost("x", 1_000)
         data.posts.refreshPost(PostId(post.id)).getOrThrow()
         data.network.accept = false
@@ -123,7 +123,7 @@ class DataTest {
 
     @Test
     fun editingCreatesTheNextRevisionOnlyForTheAuthor() = dataTest { data ->
-        data.accounts.createAccount()
+        data.accounts.importKey(data.accounts.generateKey().getOrThrow())
         val id = data.posts.publish("v1", emptyList(), null).getOrThrow()
         data.clock.seconds += 10
 
@@ -166,7 +166,7 @@ class DataTest {
 
     @Test
     fun followingKeepsTheExistingListAndFeedsTheFollowingTimeline() = dataTest { data ->
-        val me = data.accounts.createAccount().getOrThrow().userId
+        val me = data.accounts.importKey(data.accounts.generateKey().getOrThrow()).getOrThrow().userId
         val carol = LocalKeySigner(SecretKey.generate())
         data.network.events += LocalKeySigner(SecretKey.fromHex(data.vault.stored!!)!!)
             .sign(EventTemplate(kind = Kinds.CONTACTS, content = "", tags = listOf(listOf("p", carol.publicKey())), createdAt = data.clock.seconds))
@@ -189,7 +189,7 @@ class DataTest {
 
     @Test
     fun bookmarksRoundTrip() = dataTest { data ->
-        data.accounts.createAccount()
+        data.accounts.importKey(data.accounts.generateKey().getOrThrow())
         val post = data.bobPost("save me", 1_000)
         data.posts.refreshPost(PostId(post.id)).getOrThrow()
 

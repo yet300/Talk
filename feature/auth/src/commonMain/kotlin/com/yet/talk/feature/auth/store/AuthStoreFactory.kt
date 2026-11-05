@@ -8,7 +8,9 @@ import com.yet.talk.domain.model.account.Account
 import com.yet.talk.domain.model.error.DomainError
 import com.yet.talk.domain.repository.AccountRepository
 import dev.zacsweers.metro.Inject
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlin.time.Duration.Companion.seconds
 
 @Inject
 internal class AuthStoreFactory(
@@ -30,8 +32,23 @@ internal class AuthStoreFactory(
             when (intent) {
                 is AuthStore.Intent.ChangeKey -> dispatch(AuthStore.Msg.KeyChanged(intent.key))
                 AuthStore.Intent.ImportKey -> signIn { accounts.importKey(state().key) }
-                AuthStore.Intent.CreateKey -> signIn { accounts.createAccount() }
+                AuthStore.Intent.CreateKey -> createKey()
+                AuthStore.Intent.NewKeyCopied -> dispatch(AuthStore.Msg.NewKeyCopied)
+                AuthStore.Intent.NewKeySaved -> state().newKey?.takeIf { state().newKeySaveReady }?.let { nsec -> signIn { accounts.importKey(nsec) } }
                 AuthStore.Intent.DismissError -> dispatch(AuthStore.Msg.ErrorDismissed)
+            }
+        }
+
+        private fun createKey() {
+            if (state().isWorking) return
+            scope.launch {
+                accounts.generateKey()
+                    .onSuccess { nsec ->
+                        dispatch(AuthStore.Msg.KeyCreated(nsec))
+                        delay(SAVE_DELAY)
+                        dispatch(AuthStore.Msg.SaveReady)
+                    }
+                    .onFailure { dispatch(AuthStore.Msg.Finished(it as? DomainError)) }
             }
         }
 
@@ -50,8 +67,17 @@ internal class AuthStoreFactory(
                 is AuthStore.Msg.KeyChanged -> copy(key = msg.key, error = null)
                 AuthStore.Msg.Started -> copy(isWorking = true, error = null)
                 // The key never stays in memory longer than needed: cleared once used.
-                is AuthStore.Msg.Finished -> copy(isWorking = false, error = msg.error, key = if (msg.error == null) "" else key)
+                is AuthStore.Msg.Finished ->
+                    if (msg.error == null) copy(isWorking = false, error = null, key = "", newKey = null) else copy(isWorking = false, error = msg.error)
+                is AuthStore.Msg.KeyCreated -> copy(newKey = msg.nsec, newKeyCopied = false, newKeySaveReady = false, error = null)
+                AuthStore.Msg.NewKeyCopied -> copy(newKeyCopied = true, newKeySaveReady = true)
+                AuthStore.Msg.SaveReady -> copy(newKeySaveReady = true)
                 AuthStore.Msg.ErrorDismissed -> copy(error = null)
             }
+    }
+
+    private companion object {
+        /** How long "Save your key" waits before "I saved it" unlocks without Copy (the design's 3 seconds). */
+        val SAVE_DELAY = 3.seconds
     }
 }

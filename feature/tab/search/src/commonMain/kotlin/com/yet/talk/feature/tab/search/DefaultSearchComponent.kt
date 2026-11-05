@@ -35,6 +35,8 @@ internal class DefaultSearchComponent(
 
     override fun onQuote(post: Post) = output(SearchComponent.Output.Quote(post.id))
 
+    override fun onOpenRevisions(post: Post) = output(SearchComponent.Output.OpenRevisions(post.id))
+
     override fun onOpenPost(id: PostId) = output(SearchComponent.Output.OpenPost(id))
 
     override fun onOpenProfile(id: UserId) = output(SearchComponent.Output.OpenProfile(id))

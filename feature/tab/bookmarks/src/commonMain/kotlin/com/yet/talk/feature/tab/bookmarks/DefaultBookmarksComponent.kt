@@ -41,6 +41,8 @@ internal class DefaultBookmarksComponent(
 
     override fun onQuote(post: Post) = output(BookmarksComponent.Output.Quote(post.id))
 
+    override fun onOpenRevisions(post: Post) = output(BookmarksComponent.Output.OpenRevisions(post.id))
+
     override fun onOpenPost(id: PostId) = output(BookmarksComponent.Output.OpenPost(id))
 
     override fun onOpenAuthor(id: UserId) = output(BookmarksComponent.Output.OpenProfile(id))

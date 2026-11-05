@@ -74,6 +74,7 @@ internal class DefaultDetailsComponent(
         is ProfileComponent.Output.Reply -> output(DetailsComponent.Output.Reply(event.parent))
         is ProfileComponent.Output.Quote -> output(DetailsComponent.Output.Quote(event.quoted))
         ProfileComponent.Output.OpenSettings -> output(DetailsComponent.Output.OpenSettings)
+        is ProfileComponent.Output.OpenRevisions -> output(DetailsComponent.Output.OpenRevisions(event.id))
     }
 
     @Serializable

@@ -39,7 +39,7 @@ class RootComponentTest {
 
     private class Accounts : AccountRepository {
         override val account = MutableStateFlow<Account?>(null)
-        override suspend fun createAccount() = error("unused")
+        override suspend fun generateKey() = error("unused")
         override suspend fun importKey(secretKey: String) = error("unused")
         override suspend fun exportSecretKey() = error("unused")
         override suspend fun signOut() = Unit

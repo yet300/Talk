@@ -82,6 +82,7 @@ internal class DefaultTabsComponent(
             is HomeComponent.Output.OpenProfile -> TabsComponent.Output.OpenProfile(event.id)
             is HomeComponent.Output.Reply -> TabsComponent.Output.Reply(event.parent)
             is HomeComponent.Output.Quote -> TabsComponent.Output.Quote(event.quoted)
+                is HomeComponent.Output.OpenRevisions -> TabsComponent.Output.OpenRevisions(event.id)
             HomeComponent.Output.NewPost -> TabsComponent.Output.NewPost
         },
     )
@@ -92,6 +93,7 @@ internal class DefaultTabsComponent(
             is SearchComponent.Output.OpenProfile -> TabsComponent.Output.OpenProfile(event.id)
             is SearchComponent.Output.Reply -> TabsComponent.Output.Reply(event.parent)
             is SearchComponent.Output.Quote -> TabsComponent.Output.Quote(event.quoted)
+                is SearchComponent.Output.OpenRevisions -> TabsComponent.Output.OpenRevisions(event.id)
         },
     )
 
@@ -109,6 +111,7 @@ internal class DefaultTabsComponent(
                 is BookmarksComponent.Output.OpenProfile -> TabsComponent.Output.OpenProfile(event.id)
                 is BookmarksComponent.Output.Reply -> TabsComponent.Output.Reply(event.parent)
                 is BookmarksComponent.Output.Quote -> TabsComponent.Output.Quote(event.quoted)
+                is BookmarksComponent.Output.OpenRevisions -> TabsComponent.Output.OpenRevisions(event.id)
                 BookmarksComponent.Output.BrowseHome -> return onTabClicked(TabsComponent.Tab.Home)
             },
         )
@@ -123,6 +126,7 @@ internal class DefaultTabsComponent(
                 is ProfileComponent.Output.OpenProfile -> TabsComponent.Output.OpenProfile(event.id)
                 is ProfileComponent.Output.Reply -> TabsComponent.Output.Reply(event.parent)
                 is ProfileComponent.Output.Quote -> TabsComponent.Output.Quote(event.quoted)
+                is ProfileComponent.Output.OpenRevisions -> TabsComponent.Output.OpenRevisions(event.id)
                 ProfileComponent.Output.OpenSettings -> TabsComponent.Output.OpenSettings
             },
         )

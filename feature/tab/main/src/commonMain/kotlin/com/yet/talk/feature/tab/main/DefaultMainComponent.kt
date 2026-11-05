@@ -87,6 +87,7 @@ internal class DefaultMainComponent(
         is TabsComponent.Output.Quote -> output(MainComponent.Output.Quote(event.quoted))
         TabsComponent.Output.NewPost -> output(MainComponent.Output.NewPost)
         TabsComponent.Output.OpenSettings -> output(MainComponent.Output.OpenSettings)
+        is TabsComponent.Output.OpenRevisions -> output(MainComponent.Output.OpenRevisions(event.id))
     }
 
     private fun onDetailsOutput(event: DetailsComponent.Output) = when (event) {

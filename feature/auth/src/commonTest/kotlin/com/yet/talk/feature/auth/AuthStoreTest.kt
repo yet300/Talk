@@ -9,12 +9,14 @@ import com.yet.talk.domain.repository.AccountRepository
 import com.yet.talk.feature.auth.mapper.stateToModel
 import com.yet.talk.feature.auth.store.AuthStore
 import com.yet.talk.feature.auth.store.AuthStoreFactory
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import kotlin.test.AfterTest
@@ -22,22 +24,17 @@ import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class AuthStoreTest {
 
     private class FakeAccounts : AccountRepository {
         val imported = mutableListOf<String>()
-        var created = 0
-        var gate: CompletableDeferred<Unit>? = null
         private val me = Account(UserId("me"), "npub1me")
         override val account: Flow<Account?> = MutableStateFlow(null)
 
-        override suspend fun createAccount(): Result<Account> {
-            created++
-            gate?.await()
-            return Result.success(me)
-        }
+        override suspend fun generateKey() = Result.success("nsec1new")
 
         override suspend fun importKey(secretKey: String): Result<Account> {
             imported += secretKey
@@ -49,12 +46,15 @@ class AuthStoreTest {
     }
 
     private val accounts = FakeAccounts()
-    private val store by lazy { AuthStoreFactory(DefaultStoreFactory(), accounts).create() }
+
+    private fun TestScope.store(): AuthStore {
+        Dispatchers.setMain(StandardTestDispatcher(testScheduler))
+        return AuthStoreFactory(DefaultStoreFactory(), accounts).create()
+    }
 
     @BeforeTest
     fun setUp() {
         isAssertOnMainThreadEnabled = false
-        Dispatchers.setMain(UnconfinedTestDispatcher())
     }
 
     @AfterTest
@@ -62,10 +62,12 @@ class AuthStoreTest {
 
     @Test
     fun importsThePastedKeyAndForgetsIt() = runTest {
+        val store = store()
         store.accept(AuthStore.Intent.ChangeKey("nsec1abc"))
         assertTrue(stateToModel(store.state).canImport)
 
         store.accept(AuthStore.Intent.ImportKey)
+        runCurrent()
 
         assertEquals(listOf("nsec1abc"), accounts.imported)
         assertEquals("", store.state.key, "the key does not stay in memory")
@@ -74,25 +76,48 @@ class AuthStoreTest {
 
     @Test
     fun aBadKeyStaysForCorrectionWithAnError() = runTest {
+        val store = store()
         store.accept(AuthStore.Intent.ChangeKey("npub1nope"))
         store.accept(AuthStore.Intent.ImportKey)
+        runCurrent()
 
         assertEquals(DomainError.InvalidKey, store.state.error)
         assertEquals("npub1nope", store.state.key)
 
         store.accept(AuthStore.Intent.ChangeKey("nsec1"))
-        assertEquals(null, store.state.error, "editing the key clears the error")
+        assertNull(store.state.error, "editing the key clears the error")
     }
 
     @Test
-    fun ignoresRepeatedTapsWhileWorking() = runTest {
-        accounts.gate = CompletableDeferred()
+    fun aNewKeyIsShownOnceAndSignsInOnlyAfterItIsSaved() = runTest {
+        val store = store()
         store.accept(AuthStore.Intent.CreateKey)
-        store.accept(AuthStore.Intent.CreateKey)
-        assertTrue(store.state.isWorking)
+        runCurrent()
 
-        accounts.gate!!.complete(Unit)
-        assertEquals(1, accounts.created)
-        assertFalse(store.state.isWorking)
+        val shown = stateToModel(store.state)
+        assertEquals("nsec1new", shown.newKey)
+        assertFalse(shown.canConfirmSaved, "I saved it waits for Copy or 3 seconds")
+        store.accept(AuthStore.Intent.NewKeySaved)
+        runCurrent()
+        assertEquals(emptyList<String>(), accounts.imported, "not signed in before the key is saved")
+
+        advanceTimeBy(3_001)
+        assertTrue(stateToModel(store.state).canConfirmSaved)
+        store.accept(AuthStore.Intent.NewKeySaved)
+        runCurrent()
+
+        assertEquals(listOf("nsec1new"), accounts.imported)
+        assertNull(store.state.newKey, "the key leaves memory once used")
+    }
+
+    @Test
+    fun copyingTheNewKeyUnlocksSavingAtOnce() = runTest {
+        val store = store()
+        store.accept(AuthStore.Intent.CreateKey)
+        runCurrent()
+        store.accept(AuthStore.Intent.NewKeyCopied)
+
+        assertTrue(stateToModel(store.state).canConfirmSaved)
+        assertTrue(store.state.newKeyCopied)
     }
 }

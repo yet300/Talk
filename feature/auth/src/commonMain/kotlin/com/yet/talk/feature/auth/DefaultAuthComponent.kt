@@ -25,6 +25,10 @@ internal class DefaultAuthComponent(
 
     override fun onCreateKey() = store.accept(AuthStore.Intent.CreateKey)
 
+    override fun onNewKeyCopied() = store.accept(AuthStore.Intent.NewKeyCopied)
+
+    override fun onNewKeySaved() = store.accept(AuthStore.Intent.NewKeySaved)
+
     override fun onErrorShown() = store.accept(AuthStore.Intent.DismissError)
 }
 

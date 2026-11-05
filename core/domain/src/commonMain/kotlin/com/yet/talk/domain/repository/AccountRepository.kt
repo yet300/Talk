@@ -8,8 +8,11 @@ interface AccountRepository {
     /** Null when signed out. */
     val account: Flow<Account?>
 
-    /** Generates a new key and signs in with it. */
-    suspend fun createAccount(): Result<Account>
+    /**
+     * A new secret key as an `nsec`, not saved and not signed in: the user stores it first ("Save your key"),
+     * then signs in with [importKey].
+     */
+    suspend fun generateKey(): Result<String>
 
     /** Signs in with an `nsec` or a hex secret key. Fails with [com.yet.talk.domain.model.error.DomainError.InvalidKey]. */
     suspend fun importKey(secretKey: String): Result<Account>

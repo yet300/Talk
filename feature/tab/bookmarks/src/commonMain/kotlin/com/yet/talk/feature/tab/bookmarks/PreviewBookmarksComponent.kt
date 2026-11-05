@@ -25,6 +25,8 @@ class PreviewBookmarksComponent(posts: List<Post> = emptyList()) : BookmarksComp
 
     override fun onQuote(post: Post) = Unit
 
+    override fun onOpenRevisions(post: Post) = Unit
+
     override fun onOpenPost(id: PostId) = Unit
 
     override fun onOpenAuthor(id: UserId) = Unit

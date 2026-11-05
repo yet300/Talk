@@ -42,7 +42,7 @@ class SettingsStoreTest {
     private class FakeAccounts : AccountRepository {
         var signedOut = false
         override val account = MutableStateFlow<Account?>(Account(UserId("me"), "npub1me"))
-        override suspend fun createAccount() = error("unused")
+        override suspend fun generateKey() = error("unused")
         override suspend fun importKey(secretKey: String) = error("unused")
         override suspend fun exportSecretKey() = Result.success("nsec1secret")
         override suspend fun signOut() {

@@ -24,6 +24,9 @@ interface SearchComponent {
 
     fun onQuote(post: Post)
 
+    /** "Edited" on a card. */
+    fun onOpenRevisions(post: Post)
+
     fun onOpenPost(id: PostId)
 
     fun onOpenProfile(id: UserId)
@@ -48,6 +51,8 @@ interface SearchComponent {
         data class Reply(val parent: PostId) : Output
 
         data class Quote(val quoted: PostId) : Output
+
+        data class OpenRevisions(val id: PostId) : Output
     }
 
     fun interface Factory {

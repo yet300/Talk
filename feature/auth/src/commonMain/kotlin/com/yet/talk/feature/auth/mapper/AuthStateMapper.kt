@@ -8,6 +8,9 @@ internal val stateToModel: (AuthStore.State) -> AuthComponent.Model = { state ->
         key = state.key,
         isWorking = state.isWorking,
         canImport = state.key.isNotBlank() && !state.isWorking,
+        newKey = state.newKey,
+        newKeyCopied = state.newKeyCopied,
+        canConfirmSaved = state.newKey != null && state.newKeySaveReady && !state.isWorking,
         error = state.error,
     )
 }

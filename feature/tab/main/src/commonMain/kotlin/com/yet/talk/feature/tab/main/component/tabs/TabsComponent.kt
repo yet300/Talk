@@ -56,6 +56,8 @@ interface TabsComponent : WebNavigationOwner {
         data object NewPost : Output
 
         data object OpenSettings : Output
+
+        data class OpenRevisions(val id: PostId) : Output
     }
 
     fun interface Factory {

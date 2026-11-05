@@ -34,6 +34,9 @@ interface ProfileComponent {
 
     fun onQuote(post: Post)
 
+    /** "Edited" on a card. */
+    fun onOpenRevisions(post: Post)
+
     fun onOpenPost(id: PostId)
 
     fun onOpenAuthor(id: UserId)
@@ -67,6 +70,8 @@ interface ProfileComponent {
         data class Reply(val parent: PostId) : Output
 
         data class Quote(val quoted: PostId) : Output
+
+        data class OpenRevisions(val id: PostId) : Output
 
         data object OpenSettings : Output
     }

@@ -19,6 +19,7 @@
     <string name="action_cancel">Cancel</string>
     <string name="action_copy">Copy</string>
     <string name="action_copied">Copied</string>
+    <string name="toast_link_copied">Link copied</string>
     <string name="action_compose">Compose</string>
     <string name="action_post">Post</string>
     <string name="action_reply">Reply</string>
@@ -100,6 +101,7 @@
     <string name="compose_view_preview">Preview</string>
     <string name="compose_publish">Publish</string>
     <string name="compose_save">Save</string>
+    <string name="compose_edit_note">Edits show in Talk. Other Nostr apps keep showing the original.</string>
     <string name="compose_body">Post body, markdown</string>
     <string name="compose_placeholder"># Title\n\nWrite in markdown.</string>
     <string name="compose_add_image">Add image</string>
@@ -151,6 +153,9 @@
     <string name="auth_key_placeholder">nsec1…</string>
     <string name="auth_key_caption">This key controls your identity everywhere. Talk keeps it on this device only.</string>
     <string name="auth_use_key">Use this key</string>
+    <string name="auth_save_title">Save your key</string>
+    <string name="auth_save_warning">This key can’t be recovered. If you lose it, you lose this account.</string>
+    <string name="auth_saved_it">I saved it</string>
 
     <!-- Settings -->
     <string name="settings_title">Settings</string>
@@ -159,6 +164,9 @@
     <string name="settings_hide_key">Hide private key</string>
     <string name="settings_key_warning">Anyone with this key can post as you. Keep it secret.</string>
     <string name="settings_sign_out">Sign out</string>
+    <string name="settings_sign_out_title">Sign out?</string>
+    <string name="settings_sign_out_body">Without your private key you can’t sign back in to this account.</string>
+    <string name="settings_private_key">Private key</string>
     <string name="settings_relays">Relays</string>
     <string name="settings_relay_address">Relay address</string>
     <string name="settings_relay_placeholder">wss://</string>

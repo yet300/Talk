@@ -59,7 +59,7 @@ class PostStoreTest {
 
     private object Accounts : AccountRepository {
         override val account = MutableStateFlow<Account?>(Account(UserId("me"), "npub1me"))
-        override suspend fun createAccount() = error("unused")
+        override suspend fun generateKey() = error("unused")
         override suspend fun importKey(secretKey: String) = error("unused")
         override suspend fun exportSecretKey() = error("unused")
         override suspend fun signOut() = Unit

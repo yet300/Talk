@@ -27,7 +27,7 @@ internal class AccountRepositoryImpl(
     override val account: Flow<Account?> =
         session.viewer.map { pubkey -> pubkey.takeIf { it.isNotEmpty() }?.let { Account(UserId(it), Nip19.npub(it)) } }
 
-    override suspend fun createAccount(): Result<Account> = Result.success(switchTo(SecretKey.generate()))
+    override suspend fun generateKey(): Result<String> = Result.success(Nip19.nsec(SecretKey.generate()))
 
     override suspend fun importKey(secretKey: String): Result<Account> {
         val input = secretKey.trim()
