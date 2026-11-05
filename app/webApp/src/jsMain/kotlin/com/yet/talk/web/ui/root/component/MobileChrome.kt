@@ -18,14 +18,15 @@ import org.jetbrains.compose.web.dom.Text
 
 /**
  * The phone's bottom navigation (`MobileNav`): a glass capsule pinned above the bottom edge, icons only,
- * the active tab on a raised pill. Activity is the fifth item (decided); Settings is in the home header.
+ * the active tab on a raised pill: Home, Search, Activity, Bookmarks (decided). Your profile and Settings
+ * open from the home header.
  */
 @Composable
 fun MobileNav(selection: RailSelection, actions: RailActions) {
     val label = stringResource(MR.strings.nav_primary)
     Div({ classes("x-bottom-nav-dock", "t-mobile-dock") }) {
         Nav({ classes("x-bottom-nav"); attr("aria-label", label) }) {
-            TabsComponent.Tab.entries.forEach { tab ->
+            PhoneTabs.forEach { tab ->
                 val active = selection == RailSelection.Tab(tab)
                 val name = tab.label()
                 A(href = "#", attrs = {
@@ -38,6 +39,9 @@ fun MobileNav(selection: RailSelection, actions: RailActions) {
         }
     }
 }
+
+/** The tabs in the phone's navigation; Profile opens from the home header's avatar instead. */
+private val PhoneTabs = TabsComponent.Tab.entries - TabsComponent.Tab.Profile
 
 /** The home header on phones (`x-mobile-header`): your avatar (Profile), the wordmark, Settings. */
 @Composable

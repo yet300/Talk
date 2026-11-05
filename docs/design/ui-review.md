@@ -228,7 +228,7 @@ Web keeps SINGLE and uses its right column for replies (reader) and the revision
 
 ## 8. Decisions (2026-11-05)
 
-1. **Activity**: a fifth navigation item (bell icon `ic_activity`) on the phone nav, web rail and Duo
+1. **Activity**: a navigation item (bell icon `ic_activity`) on the phone nav, web rail and Duo
    side column. Rows reuse the Search "People" row: avatar, "<name> liked your post" (strings
    `activity_*`), time; a tap opens the post or the profile.
 2. **Search**: a rail item and a side-column item on web and Duo; results open in the main column,
@@ -244,3 +244,6 @@ Web keeps SINGLE and uses its right column for replies (reader) and the revision
 7. **Settings**: the three designed sections, plus **Show private key** under Identity (warning +
    copy), and a stored Dark/Light/System theme setting applied on every platform.
 8. **Web timeline right column**: the search field only; no "Keep reading" widget.
+9. **Phone navigation** (web below 688 px, and the phone apps): Home, Search, Activity, Bookmarks. No
+   Profile item: your profile opens from the avatar in the home header, Settings from its gear. The web
+   rail and the Duo side column keep Profile.
