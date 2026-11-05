@@ -8,6 +8,8 @@ backend of our own: public relays store the data and the apps are the only code 
   (`internal/app/app.go` lists every route; `docs.md` documents the data model).
 - Protocol contract: [docs/nostr-protocol.md](docs/nostr-protocol.md). Read it before touching
   anything that creates or reads events.
+- UI contract: [docs/design/ui-review.md](docs/design/ui-review.md): every screen, control, size class and state
+  of the Claude Design file "Talk", plus the decisions on what it leaves open. Build only what it lists.
 - Library research: [docs/research/nostr-crypto-web.md](docs/research/nostr-crypto-web.md).
 
 ## Principles
@@ -36,13 +38,13 @@ Clean Architecture, SOLID, KISS, YAGNI. In practice:
 | `:core:database` | `core/database` | SQLDelight cache (`TalkDatabase`), DAO interfaces + implementations, `SqlDriverFactory` per platform |
 | `:core:data` | `core/data` | Repository implementations, `Session` + KSafe key vault, `EventIngestor`, `FeedPaging` (Paging 3 + `RemoteMediator`), optimistic `Publisher` |
 | `:core:resources` | `core/resources` | moko-resources (`MR`, package `com.yet.talk.resources`): strings, plurals, light/dark colours, icons; `TalkTokens` (spacing, radii, sizes, type scale) |
-| `:feature:root` | `feature/root` | Root `ChildStack`: Splash, Auth, Main and the full-screen destinations above the tabs; `RootStore` swaps Auth/Main on sign-in |
+| `:feature:root` | `feature/root` | Root `ChildStack`: Splash, Auth, Main, and Compose, Settings, Revisions above it; `RootStore` swaps Auth/Main on sign-in and exposes the theme |
 | `:feature:auth` | `feature/auth` | Sign in with a local key (create or import an `nsec`) |
 | `:feature:post` | `feature/post` | Two components: `component/post` (post, reply thread, actions) and `component/revisions` |
 | `:feature:compose` | `feature/compose` | Editor for `ComposeMode` New / Reply / Quote / Edit, image upload, draft kept by StateKeeper |
 | `:feature:profile` | `feature/profile` | A profile (or your own, with `userId = null`): Posts / Replies, follow |
 | `:feature:settings` | `feature/settings` | Account, key export, relays (`RelayRules`), sign out |
-| `:feature:tab:main` | `feature/tab/main` | Tab container (`ChildStack` + `bringToFront`): Home, Search, Activity, Bookmarks, Profile |
+| `:feature:tab:main` | `feature/tab/main` | `MainComponent`: list-detail `childPanels` — `component/tabs` (Home, Search, Activity, Bookmarks, Profile) in the main panel, `component/details` (a stack of posts and profiles) in the details panel; `isReading` for the Duo replies pose |
 | `:feature:tab:home` | `feature/tab/home` | Home timeline: Following / Popular (trending) / Latest |
 | `:feature:tab:search` | `feature/tab/search` | Local search on every keystroke, NIP-50 relays after a 350 ms pause |
 | `:feature:tab:activity` | `feature/tab/activity` | Replies, quotes, reposts, likes and follows aimed at you (no store) |
@@ -68,9 +70,10 @@ excerpts are derived from the markdown (`PostSummaries`), as in KarpathyTalk.
   parse (`TalkEvent.parse`), store (`EventIngestor`), and expose `Flow`s read from the DAOs.
 - `EventIngestor` enforces authorship: revisions and NIP-09 deletions only count for the author's own events.
 - Paging: AndroidX Paging 3 (`paging-common`, KMP). Repositories return `Flow<PagingData<T>>`; the database pages
-  through SQLDelight's `QueryPagingSource` (20 rows, `FeedRules.PAGE_SIZE`), and `FeedRemoteMediator` fetches older
+  through `OffsetPagingSource` (20 rows, `FeedRules.PAGE_SIZE`; SQLDelight's own `QueryPagingSource` reads
+  synchronously, which the web worker driver rejects), and `FeedRemoteMediator` fetches older
   pages from relays. Its cursor (the oldest event relays returned) and end flag live in `sync_state`.
-  Plan for the UI phase: on iOS and the web, collect `PagingData` through a `PagingDataPresenter` in the feature layer.
+  The web collects `PagingData` with a `PagingDataPresenter` (`app/webApp/.../paging`); iOS will do the same in Swift-facing Kotlin.
 - Writes are optimistic (`Publisher.storeAndPublish`): stored as pending, then published or failed. Deletions
   and unlikes are published first, because tombstones cannot be undone.
 - Replaceable lists (contacts, bookmarks, relays) are synced from relays before they are changed
@@ -98,6 +101,20 @@ excerpts are derived from the markdown (`PostSummaries`), as in KarpathyTalk.
   The dev server falls back to `index.html` (`webpack.config.d/devServer.js`).
 - **Keys:** `KSafeKeyVault` is the only place the secret key is persisted. `SecretKey.toString()` is redacted.
   Android backups are off (`allowBackup="false"`).
+
+## Web UI (`app/webApp`, Compose HTML)
+
+- Layout: `web/ui/` with `theme/` (tokens as CSS variables, strings, icons), `components/` (shared: buttons,
+  tabs, top bar, post card, paged list, markdown, menus and dialogs), `root/` (the root stack, the rail and the
+  page shell) and `screens/<screen>/` with `XContent.kt` plus `component/`, `dialog/`, `sheet/` for parts only
+  that screen uses (`screens/tab/<tab>/` for the tabs). Every platform's UI follows this layout.
+- Styles are the design's own CSS in `resources/styles/` (`x-components.css` from the X design system,
+  `talk.css` for layout and parts, `app.css` for what the design does not spell out); composables set its
+  class names. `TalkCss` writes the tokens under the design's variable names (`--x-blue`, `--space-lg`…).
+- Paging: `paging/PagingItems` (a `PagingDataPresenter`); `PagedList` loads the next page when its end
+  scrolls into view. Markdown: `marked` + `DOMPurify` (sanitized before `innerHTML`).
+- The web is always one pane: an open post covers the tabs, its replies sit in the right column (under the
+  article below 1018 px).
 
 ## Resources and theme
 
@@ -135,6 +152,8 @@ excerpts are derived from the markdown (`PostSummaries`), as in KarpathyTalk.
   `store/XStore` + `store/XStoreFactory` (MVIKotlin, created with `instanceKeeper.getStore`), `mapper/XStateMapper`
   (`State → Model`), `di/XBindings`. A module with several components puts each in `component/<name>/` with its
   own `store/` and `mapper/`.
+- Large screens: `MainComponent` uses Decompose `childPanels`; the UI sets the mode (`onModeChanged`) from the
+  window: SINGLE on phones, the Duo outer screen and the web, DUAL on the Duo inner screen sideways.
 - Navigation leaves a component through a single `Output` callback in its factory (or `onBack` when that is all);
   the parent maps child outputs to its own. Paged lists are `Flow<PagingData<T>>` on the component (`cachedIn` its
   scope), not in the store. A component with no state of its own has no store (Activity).
