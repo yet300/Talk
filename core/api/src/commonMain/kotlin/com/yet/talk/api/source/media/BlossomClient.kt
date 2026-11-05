@@ -4,8 +4,6 @@ import com.yet.talk.nostr.event.Event
 import com.yet.talk.nostr.event.EventTemplate
 import com.yet.talk.nostr.nip.Kinds
 import com.yet.talk.nostr.signer.Signer
-import dev.zacsweers.metro.AppScope
-import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
 import io.ktor.client.HttpClient
 import io.ktor.client.request.header
@@ -20,9 +18,8 @@ import kotlin.io.encoding.Base64
 import kotlinx.serialization.json.Json
 import org.kotlincrypto.hash.sha2.SHA256
 
-@ContributesBinding(AppScope::class)
 @Inject
-class BlossomClient(private val http: HttpClient) : MediaRemoteSource {
+internal class BlossomClient(private val http: HttpClient) : MediaRemoteSource {
 
     override suspend fun upload(bytes: ByteArray, mimeType: String, signer: Signer, createdAt: Long): BlobDescriptor {
         val hash = SHA256().digest(bytes).toHexString()

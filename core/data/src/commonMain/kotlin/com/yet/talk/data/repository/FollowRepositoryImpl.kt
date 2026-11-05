@@ -10,8 +10,6 @@ import com.yet.talk.database.dao.FollowDao
 import com.yet.talk.domain.model.user.UserId
 import com.yet.talk.domain.repository.FollowRepository
 import com.yet.talk.nostr.nip.contactList
-import dev.zacsweers.metro.AppScope
-import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -20,9 +18,8 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 
 @OptIn(ExperimentalCoroutinesApi::class)
-@ContributesBinding(AppScope::class)
 @Inject
-class FollowRepositoryImpl(
+internal class FollowRepositoryImpl(
     private val follows: FollowDao,
     private val sync: RemoteSync,
     private val ingestor: EventIngestor,

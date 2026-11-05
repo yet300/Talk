@@ -11,8 +11,6 @@ import com.yet.talk.domain.model.relay.Relay
 import com.yet.talk.domain.repository.RelayRepository
 import com.yet.talk.nostr.nip.RelayListEntry
 import com.yet.talk.nostr.nip.relayList
-import dev.zacsweers.metro.AppScope
-import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -21,9 +19,8 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 
 @OptIn(ExperimentalCoroutinesApi::class)
-@ContributesBinding(AppScope::class)
 @Inject
-class RelayRepositoryImpl(
+internal class RelayRepositoryImpl(
     private val relayLists: RelayListDao,
     private val ingestor: EventIngestor,
     private val session: Session,

@@ -19,8 +19,6 @@ import com.yet.talk.database.model.ActivityRecord
 import com.yet.talk.domain.model.activity.ActivityItem
 import com.yet.talk.domain.repository.ActivityRepository
 import com.yet.talk.domain.rule.FeedRules
-import dev.zacsweers.metro.AppScope
-import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -31,9 +29,8 @@ import kotlinx.coroutines.flow.map
 import kotlin.time.Instant
 
 @OptIn(ExperimentalCoroutinesApi::class)
-@ContributesBinding(AppScope::class)
 @Inject
-class ActivityRepositoryImpl(
+internal class ActivityRepositoryImpl(
     private val posts: PostDao,
     private val profiles: ProfileDao,
     private val activity: ActivityDao,

@@ -5,14 +5,11 @@ import com.app.common.AppDispatchers
 import com.yet.talk.database.DatabaseHolder
 import com.yet.talk.database.dao.SyncDao
 import com.yet.talk.database.model.SyncStateRecord
-import dev.zacsweers.metro.AppScope
-import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.withContext
 
-@ContributesBinding(AppScope::class)
 @Inject
-class SqlSyncDao(private val holder: DatabaseHolder, private val dispatchers: AppDispatchers) : SyncDao {
+internal class SqlSyncDao(private val holder: DatabaseHolder, private val dispatchers: AppDispatchers) : SyncDao {
 
     override suspend fun state(feedKey: String): SyncStateRecord? = withContext(dispatchers.io) {
         holder.get().syncStateQueries.selectSyncState(feedKey) { endReached, cursor, syncedAt ->

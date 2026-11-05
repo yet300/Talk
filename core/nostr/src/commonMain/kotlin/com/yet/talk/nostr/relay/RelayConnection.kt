@@ -28,7 +28,7 @@ import kotlinx.coroutines.withContext
  * reconnect re-sends the subscriptions that are still open. Messages queued while offline are sent
  * once connected.
  */
-class RelayConnection internal constructor(
+internal class RelayConnection(
     val url: String,
     private val transport: RelayTransport,
     scope: CoroutineScope,

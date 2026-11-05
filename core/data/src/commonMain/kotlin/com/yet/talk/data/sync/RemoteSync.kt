@@ -10,7 +10,7 @@ import dev.zacsweers.metro.SingleIn
 /** Fetches what a page of posts needs to render and stores it. */
 @SingleIn(AppScope::class)
 @Inject
-class RemoteSync(
+internal class RemoteSync(
     private val postsRemote: PostRemoteSource,
     private val socialRemote: SocialRemoteSource,
     private val ingestor: EventIngestor,

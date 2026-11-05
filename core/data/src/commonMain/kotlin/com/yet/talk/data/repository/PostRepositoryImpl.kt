@@ -29,8 +29,6 @@ import com.yet.talk.domain.repository.Feed
 import com.yet.talk.domain.repository.PostRepository
 import com.yet.talk.domain.rule.FeedRules
 import com.yet.talk.nostr.nip.Kinds
-import dev.zacsweers.metro.AppScope
-import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -39,9 +37,8 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 
 @OptIn(ExperimentalCoroutinesApi::class)
-@ContributesBinding(AppScope::class)
 @Inject
-class PostRepositoryImpl(
+internal class PostRepositoryImpl(
     private val posts: PostDao,
     private val follows: FollowDao,
     private val postsRemote: PostRemoteSource,

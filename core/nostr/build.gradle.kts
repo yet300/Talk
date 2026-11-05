@@ -1,6 +1,7 @@
 // Nostr protocol: NIP-01 events, signing, bech32, relay pool. See docs/research/nostr-crypto-web.md.
 plugins {
     alias(libs.plugins.local.kotlin.multiplatform)
+    alias(libs.plugins.metro)
 }
 
 kotlin {

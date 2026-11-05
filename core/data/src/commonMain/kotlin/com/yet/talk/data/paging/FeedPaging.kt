@@ -15,7 +15,7 @@ import kotlin.time.Clock
 
 /** Builds KarpathyTalk-style paged feeds: 20 rows a page from the database, older pages from relays. */
 @Inject
-class FeedPaging(private val syncDao: SyncDao, private val clock: Clock) {
+internal class FeedPaging(private val syncDao: SyncDao, private val clock: Clock) {
 
     /**
      * [feedKey] identifies the feed's remote cursor (include the viewer for per-user feeds). [pages]

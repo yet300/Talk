@@ -13,7 +13,7 @@ import kotlin.time.Clock
 
 /** Signs with the signed-in key, stores the event locally first, then publishes it. */
 @Inject
-class Publisher(
+internal class Publisher(
     private val session: Session,
     private val publishRemote: PublishRemoteSource,
     private val ingestor: EventIngestor,

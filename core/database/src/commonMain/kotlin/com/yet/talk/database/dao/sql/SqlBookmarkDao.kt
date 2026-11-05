@@ -4,14 +4,11 @@ import app.cash.sqldelight.async.coroutines.awaitAsList
 import com.app.common.AppDispatchers
 import com.yet.talk.database.DatabaseHolder
 import com.yet.talk.database.dao.BookmarkDao
-import dev.zacsweers.metro.AppScope
-import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.withContext
 
-@ContributesBinding(AppScope::class)
 @Inject
-class SqlBookmarkDao(private val holder: DatabaseHolder, private val dispatchers: AppDispatchers) : BookmarkDao {
+internal class SqlBookmarkDao(private val holder: DatabaseHolder, private val dispatchers: AppDispatchers) : BookmarkDao {
 
     override suspend fun replace(owner: String, postIds: List<String>, createdAt: Long): Boolean = withContext(dispatchers.io) {
         holder.get().replaceList(owner, KIND_BOOKMARKS, createdAt) {

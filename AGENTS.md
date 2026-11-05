@@ -81,9 +81,19 @@ their UI, following the design file.
 
 ## Components and DI
 
+- **Implementations stay `internal` to their module.** Each module contributes them to the app graph from one
+  `di/<Module>Bindings` container (`@ContributesTo(AppScope::class) @BindingContainer abstract class`) with
+  `@Binds internal abstract val Impl.bindX: Interface` and, for third-party types, `@Provides` in its companion.
+  Containers: `NostrBindings`, `ApiBindings`, `DatabaseBindings`, `DataBindings` + `KeyVaultBindings`,
+  `CommonBindings`, and one per feature (`RootBindings`, `MainBindings`, `HomeBindings`). Bindings only the
+  data layer may reach (the session, the key vault) are `@GraphPrivate`.
+- Platform-only inputs (HTTP engine via `relayHttpClient(engine)`, `SqlDriverFactory`, KSafe, Android `Context`)
+  are provided by the platform graphs in `sharedLogic` (`AndroidAppGraph`, `IosAppGraph`, `JsAppGraph`).
+- Tests that need wiring use a test `@DependencyGraph(AppScope::class, excludes = [...])` with fakes as factory
+  inputs (see `core/data/src/commonTest/.../fake/DataTestGraph.kt`).
 - Each component is `interface XxxComponent` (with a nested `fun interface Factory`) +
   `internal class DefaultXxxComponent` (`ComponentContext by componentContext`) +
-  a public `DefaultXxxComponentFactory` annotated `@ContributesBinding(AppScope::class) @Inject`.
+  `internal class DefaultXxxComponentFactory` (`@Inject`), bound in the feature's bindings container.
 - A parent receives its children's `Factory` types through its own factory's constructor; Metro
   wires the chain. Nothing calls a `Default…` constructor outside its own module.
 - State is exposed as Decompose `Value`; navigation configs are private `@Serializable` types.

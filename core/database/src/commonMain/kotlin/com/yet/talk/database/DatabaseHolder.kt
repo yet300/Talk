@@ -19,7 +19,7 @@ import kotlinx.coroutines.sync.withLock
 /** Opens the database on first use: on the web, creating the schema is asynchronous. */
 @SingleIn(AppScope::class)
 @Inject
-class DatabaseHolder(private val driverFactory: SqlDriverFactory) {
+internal class DatabaseHolder(private val driverFactory: SqlDriverFactory) {
     private val mutex = Mutex()
     private var database: TalkDatabase? = null
 

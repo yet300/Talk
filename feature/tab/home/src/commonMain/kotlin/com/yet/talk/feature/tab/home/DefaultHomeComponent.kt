@@ -4,8 +4,6 @@ import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.decompose.value.update
-import dev.zacsweers.metro.AppScope
-import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
 
 internal class DefaultHomeComponent(
@@ -20,9 +18,8 @@ internal class DefaultHomeComponent(
     }
 }
 
-@ContributesBinding(AppScope::class)
 @Inject
-class DefaultHomeComponentFactory : HomeComponent.Factory {
+internal class DefaultHomeComponentFactory : HomeComponent.Factory {
     override fun invoke(componentContext: ComponentContext): HomeComponent =
         DefaultHomeComponent(componentContext)
 }

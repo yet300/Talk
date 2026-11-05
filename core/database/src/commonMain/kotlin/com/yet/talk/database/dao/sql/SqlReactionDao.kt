@@ -6,14 +6,11 @@ import com.app.common.AppDispatchers
 import com.yet.talk.database.DatabaseHolder
 import com.yet.talk.database.dao.ReactionDao
 import com.yet.talk.database.model.ReactionRecord
-import dev.zacsweers.metro.AppScope
-import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.withContext
 
-@ContributesBinding(AppScope::class)
 @Inject
-class SqlReactionDao(private val holder: DatabaseHolder, private val dispatchers: AppDispatchers) : ReactionDao {
+internal class SqlReactionDao(private val holder: DatabaseHolder, private val dispatchers: AppDispatchers) : ReactionDao {
 
     override suspend fun insert(reaction: ReactionRecord): Boolean = withContext(dispatchers.io) {
         val database = holder.get()

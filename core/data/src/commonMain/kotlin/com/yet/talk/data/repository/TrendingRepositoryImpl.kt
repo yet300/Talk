@@ -19,8 +19,6 @@ import com.yet.talk.domain.model.post.PostId
 import com.yet.talk.domain.model.user.UserId
 import com.yet.talk.domain.repository.TrendingRepository
 import com.yet.talk.domain.rule.TrendingRanker
-import dev.zacsweers.metro.AppScope
-import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -29,9 +27,8 @@ import kotlinx.coroutines.flow.map
 import kotlin.time.Instant
 
 @OptIn(ExperimentalCoroutinesApi::class)
-@ContributesBinding(AppScope::class)
 @Inject
-class TrendingRepositoryImpl(
+internal class TrendingRepositoryImpl(
     private val posts: PostDao,
     private val trending: TrendingDao,
     private val postsRemote: PostRemoteSource,

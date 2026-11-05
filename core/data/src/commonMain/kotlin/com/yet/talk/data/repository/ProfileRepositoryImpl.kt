@@ -16,7 +16,6 @@ import com.yet.talk.domain.model.user.UserStats
 import com.yet.talk.domain.repository.ProfileRepository
 import com.yet.talk.nostr.nip.Metadata
 import dev.zacsweers.metro.AppScope
-import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
 import kotlinx.coroutines.flow.Flow
@@ -26,9 +25,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 
 @SingleIn(AppScope::class)
-@ContributesBinding(AppScope::class)
 @Inject
-class ProfileRepositoryImpl(
+internal class ProfileRepositoryImpl(
     private val profiles: ProfileDao,
     private val follows: FollowDao,
     private val socialRemote: SocialRemoteSource,

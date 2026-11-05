@@ -14,13 +14,10 @@ import com.yet.talk.domain.repository.ReactionRepository
 import com.yet.talk.nostr.event.Event
 import com.yet.talk.nostr.event.EventTemplate
 import com.yet.talk.nostr.nip.Kinds
-import dev.zacsweers.metro.AppScope
-import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
 
-@ContributesBinding(AppScope::class)
 @Inject
-class ReactionRepositoryImpl(
+internal class ReactionRepositoryImpl(
     private val posts: PostDao,
     private val reactions: ReactionDao,
     private val postsRemote: PostRemoteSource,

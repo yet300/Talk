@@ -7,13 +7,10 @@ import com.yet.talk.data.sync.remote
 import com.yet.talk.domain.model.media.ImageFile
 import com.yet.talk.domain.model.media.MediaUpload
 import com.yet.talk.domain.repository.MediaRepository
-import dev.zacsweers.metro.AppScope
-import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
 
-@ContributesBinding(AppScope::class)
 @Inject
-class MediaRepositoryImpl(
+internal class MediaRepositoryImpl(
     private val media: MediaRemoteSource,
     private val session: Session,
     private val publisher: Publisher,

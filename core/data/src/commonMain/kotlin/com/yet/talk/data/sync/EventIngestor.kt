@@ -22,7 +22,7 @@ import dev.zacsweers.metro.Inject
  * deletions only count for the author's own events.
  */
 @Inject
-class EventIngestor(
+internal class EventIngestor(
     private val posts: PostDao,
     private val profiles: ProfileDao,
     private val reactions: ReactionDao,

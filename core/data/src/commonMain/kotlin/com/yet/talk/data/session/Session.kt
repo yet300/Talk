@@ -6,7 +6,7 @@ import com.yet.talk.nostr.signer.Signer
 import kotlinx.coroutines.flow.Flow
 
 /** The signed-in key, loaded from the vault on first use. Internal to the data layer. */
-interface Session {
+internal interface Session {
     /** The signed-in pubkey, or "" when signed out; the DAOs use "" for "no viewer". */
     val viewer: Flow<String>
 

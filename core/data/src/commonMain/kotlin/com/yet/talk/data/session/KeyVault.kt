@@ -1,7 +1,7 @@
 package com.yet.talk.data.session
 
 /** Encrypted storage for the one secret the app holds. */
-interface KeyVault {
+internal interface KeyVault {
     suspend fun read(): String?
 
     suspend fun write(secretKeyHex: String)

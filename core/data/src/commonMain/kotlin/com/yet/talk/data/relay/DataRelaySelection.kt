@@ -5,15 +5,12 @@ import com.yet.talk.api.source.relay.RelaySelection
 import com.yet.talk.data.session.Session
 import com.yet.talk.database.dao.RelayListDao
 import com.yet.talk.database.model.RelayRecord
-import dev.zacsweers.metro.AppScope
-import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.flow.first
 
 /** The signed-in user's NIP-65 relays, or [DefaultRelays] when they have none (or are signed out). */
-@ContributesBinding(AppScope::class)
 @Inject
-class DataRelaySelection(private val session: Session, private val relayLists: RelayListDao) : RelaySelection {
+internal class DataRelaySelection(private val session: Session, private val relayLists: RelayListDao) : RelaySelection {
 
     override suspend fun readRelays(): List<String> = relays { it.read }
 

@@ -4,7 +4,6 @@ import com.yet.talk.nostr.key.SecretKey
 import com.yet.talk.nostr.signer.LocalKeySigner
 import com.yet.talk.nostr.signer.Signer
 import dev.zacsweers.metro.AppScope
-import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
 import kotlinx.coroutines.flow.Flow
@@ -16,9 +15,8 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
 @SingleIn(AppScope::class)
-@ContributesBinding(AppScope::class)
 @Inject
-class VaultSession(private val vault: KeyVault) : Session {
+internal class VaultSession(private val vault: KeyVault) : Session {
     private val mutex = Mutex()
     private var loaded = false
     private val key = MutableStateFlow<SecretKey?>(null)

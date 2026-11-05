@@ -1,21 +1,41 @@
 package com.yet.talk.api.di
 
-import com.yet.talk.nostr.relay.KtorRelayTransport
-import com.yet.talk.nostr.relay.RelayClient
-import com.yet.talk.nostr.relay.RelayPool
+import com.yet.talk.api.source.media.BlossomClient
+import com.yet.talk.api.source.media.MediaRemoteSource
+import com.yet.talk.api.source.nip05.Nip05Client
+import com.yet.talk.api.source.nip05.Nip05Verifier
+import com.yet.talk.api.source.post.PostRemoteSource
+import com.yet.talk.api.source.post.RelayPostRemoteSource
+import com.yet.talk.api.source.publish.PublishRemoteSource
+import com.yet.talk.api.source.publish.RelayPublishRemoteSource
+import com.yet.talk.api.source.social.RelaySocialRemoteSource
+import com.yet.talk.api.source.social.SocialRemoteSource
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.BindingContainer
+import dev.zacsweers.metro.Binds
 import dev.zacsweers.metro.ContributesTo
-import dev.zacsweers.metro.Provides
-import dev.zacsweers.metro.SingleIn
-import io.ktor.client.HttpClient
-import kotlinx.coroutines.CoroutineScope
 
-/** One relay pool for the app. The platform graph provides the [HttpClient] (with WebSockets) and the app scope. */
+/**
+ * Remote-source bindings contributed to the app-wide [AppScope] graph. The implementations are
+ * `internal`; only the source interfaces leave this module. They read and write through the
+ * [com.yet.talk.nostr.relay.RelayClient] bound by `NostrBindings`.
+ */
 @ContributesTo(AppScope::class)
 @BindingContainer
-object ApiBindings {
-    @SingleIn(AppScope::class)
-    @Provides
-    fun relayClient(http: HttpClient, scope: CoroutineScope): RelayClient = RelayPool(KtorRelayTransport(http), scope)
+abstract class ApiBindings {
+
+    @Binds
+    internal abstract val RelayPostRemoteSource.bindPostRemoteSource: PostRemoteSource
+
+    @Binds
+    internal abstract val RelaySocialRemoteSource.bindSocialRemoteSource: SocialRemoteSource
+
+    @Binds
+    internal abstract val RelayPublishRemoteSource.bindPublishRemoteSource: PublishRemoteSource
+
+    @Binds
+    internal abstract val BlossomClient.bindMediaRemoteSource: MediaRemoteSource
+
+    @Binds
+    internal abstract val Nip05Client.bindNip05Verifier: Nip05Verifier
 }

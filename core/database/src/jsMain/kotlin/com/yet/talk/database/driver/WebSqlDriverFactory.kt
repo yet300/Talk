@@ -20,7 +20,7 @@ import org.w3c.dom.url.URL
  * The database survives reloads, so the schema is created once and migrated by `PRAGMA user_version`,
  * the way the Android and native drivers do it.
  */
-class WebSqlDriverFactory(private val workerPath: String = "sqlite/talk-sqlite.worker.mjs") : SqlDriverFactory {
+internal class WebSqlDriverFactory(private val workerPath: String = "sqlite/talk-sqlite.worker.mjs") : SqlDriverFactory {
 
     override suspend fun create(): SqlDriver {
         val url = URL(workerPath, document.baseURI).href
@@ -43,3 +43,6 @@ class WebSqlDriverFactory(private val workerPath: String = "sqlite/talk-sqlite.w
             parameters = 0,
         ).await()
 }
+
+/** The platform graph's [SqlDriverFactory]. */
+fun webSqlDriverFactory(): SqlDriverFactory = WebSqlDriverFactory()

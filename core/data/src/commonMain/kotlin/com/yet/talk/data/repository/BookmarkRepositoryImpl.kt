@@ -19,8 +19,6 @@ import com.yet.talk.domain.model.post.Post
 import com.yet.talk.domain.model.post.PostId
 import com.yet.talk.domain.repository.BookmarkRepository
 import com.yet.talk.nostr.nip.bookmarkList
-import dev.zacsweers.metro.AppScope
-import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -28,9 +26,8 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 
 @OptIn(ExperimentalCoroutinesApi::class)
-@ContributesBinding(AppScope::class)
 @Inject
-class BookmarkRepositoryImpl(
+internal class BookmarkRepositoryImpl(
     private val posts: PostDao,
     private val bookmarks: BookmarkDao,
     private val postsRemote: PostRemoteSource,

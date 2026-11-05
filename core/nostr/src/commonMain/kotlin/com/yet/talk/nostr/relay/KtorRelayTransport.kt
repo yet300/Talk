@@ -11,7 +11,7 @@ import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.map
 
 /** WebSocket transport over Ktor. The [client] must have the `WebSockets` plugin installed. */
-class KtorRelayTransport(private val client: HttpClient) : RelayTransport {
+internal class KtorRelayTransport(private val client: HttpClient) : RelayTransport {
 
     override suspend fun connect(url: String): RelaySocket {
         val session = client.webSocketSession(url)

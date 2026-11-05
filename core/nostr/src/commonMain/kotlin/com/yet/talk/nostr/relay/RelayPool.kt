@@ -26,7 +26,7 @@ import kotlinx.coroutines.withTimeoutOrNull
  * Talks to many relays at once. Every incoming event is verified (id and signature) before it is
  * emitted, and events are de-duplicated by id across relays.
  */
-class RelayPool(
+internal class RelayPool(
     private val transport: RelayTransport,
     private val scope: CoroutineScope,
     private val verify: (Event) -> Boolean = EventVerifier::verify,

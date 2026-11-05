@@ -7,13 +7,10 @@ import com.yet.talk.api.source.relay.RelaySelection
 import com.yet.talk.nostr.message.Filter
 import com.yet.talk.nostr.nip.Kinds
 import com.yet.talk.nostr.relay.RelayClient
-import dev.zacsweers.metro.AppScope
-import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
 
-@ContributesBinding(AppScope::class)
 @Inject
-class RelaySocialRemoteSource(
+internal class RelaySocialRemoteSource(
     private val relays: RelayClient,
     private val selection: RelaySelection,
 ) : SocialRemoteSource {

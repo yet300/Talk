@@ -4,15 +4,12 @@ import com.app.common.AppDispatchers
 import com.yet.talk.database.DatabaseHolder
 import com.yet.talk.database.dao.ProfileDao
 import com.yet.talk.database.model.ProfileRecord
-import dev.zacsweers.metro.AppScope
-import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
 
-@ContributesBinding(AppScope::class)
 @Inject
-class SqlProfileDao(private val holder: DatabaseHolder, private val dispatchers: AppDispatchers) : ProfileDao {
+internal class SqlProfileDao(private val holder: DatabaseHolder, private val dispatchers: AppDispatchers) : ProfileDao {
 
     override suspend fun upsert(profile: ProfileRecord) = withContext(dispatchers.io) {
         val queries = holder.get().profileQueries

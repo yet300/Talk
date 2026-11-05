@@ -6,8 +6,6 @@ import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.childStack
 import com.arkivanov.decompose.value.Value
 import com.yet.talk.feature.tab.main.MainComponent
-import dev.zacsweers.metro.AppScope
-import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
 import kotlinx.serialization.Serializable
 
@@ -39,9 +37,8 @@ internal class DefaultRootComponent(
     }
 }
 
-@ContributesBinding(AppScope::class)
 @Inject
-class DefaultRootComponentFactory(
+internal class DefaultRootComponentFactory(
     private val mainFactory: MainComponent.Factory,
 ) : RootComponent.Factory {
     override fun invoke(componentContext: ComponentContext): RootComponent =

@@ -12,15 +12,12 @@ import com.yet.talk.database.model.NewPostRecord
 import com.yet.talk.database.model.PostFeed
 import com.yet.talk.database.model.PostRecord
 import com.yet.talk.database.model.RevisionRecord
-import dev.zacsweers.metro.AppScope
-import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
 
-@ContributesBinding(AppScope::class)
 @Inject
-class SqlPostDao(
+internal class SqlPostDao(
     private val holder: DatabaseHolder,
     private val dispatchers: AppDispatchers,
 ) : PostDao {

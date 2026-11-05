@@ -1,7 +1,8 @@
 package com.yet.talk.di
 
-import com.yet.talk.database.driver.IosSqlDriverFactory
+import com.yet.talk.api.di.relayHttpClient
 import com.yet.talk.database.driver.SqlDriverFactory
+import com.yet.talk.database.driver.iosSqlDriverFactory
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.DependencyGraph
 import dev.zacsweers.metro.Provides
@@ -10,17 +11,16 @@ import dev.zacsweers.metro.createGraph
 import eu.anifantakis.lib.ksafe.KSafe
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.darwin.Darwin
-import io.ktor.client.plugins.websocket.WebSockets
 
 @DependencyGraph(AppScope::class)
 internal interface IosAppGraph : AppGraph, RepositoriesGraph {
 
     @SingleIn(AppScope::class)
     @Provides
-    fun httpClient(): HttpClient = HttpClient(Darwin) { install(WebSockets) }
+    fun httpClient(): HttpClient = relayHttpClient(Darwin)
 
     @Provides
-    fun sqlDriverFactory(): SqlDriverFactory = IosSqlDriverFactory()
+    fun sqlDriverFactory(): SqlDriverFactory = iosSqlDriverFactory()
 
     @SingleIn(AppScope::class)
     @Provides

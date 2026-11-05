@@ -10,17 +10,14 @@ import com.yet.talk.domain.model.user.UserId
 import com.yet.talk.domain.repository.AccountRepository
 import com.yet.talk.nostr.encoding.Nip19
 import com.yet.talk.nostr.key.SecretKey
-import dev.zacsweers.metro.AppScope
-import dev.zacsweers.metro.ContributesBinding
 import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
-@ContributesBinding(AppScope::class)
 @Inject
-class AccountRepositoryImpl(
+internal class AccountRepositoryImpl(
     private val session: Session,
     private val maintenance: MaintenanceDao,
     private val sync: RemoteSync,
