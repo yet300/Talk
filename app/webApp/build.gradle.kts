@@ -26,6 +26,10 @@ kotlin {
             implementation(libs.kotlinx.coroutines.core)
             // Served next to the app as static files (see copySqliteWasm).
             implementation(npm("@sqlite.org/sqlite-wasm", libs.versions.sqlite.wasm.get()))
+            // Markdown: marked renders GFM, DOMPurify sanitizes the HTML before it reaches the DOM.
+            implementation(npm("marked", libs.versions.marked.get()))
+            implementation(npm("dompurify", libs.versions.dompurify.get()))
+            implementation(libs.androidx.paging.common)
         }
         all {
             languageSettings.optIn("com.arkivanov.decompose.ExperimentalDecomposeApi")

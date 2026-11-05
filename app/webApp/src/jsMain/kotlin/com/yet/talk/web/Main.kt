@@ -7,8 +7,10 @@ import com.arkivanov.essenty.lifecycle.resume
 import com.arkivanov.essenty.lifecycle.stop
 import com.yet.talk.di.createJsAppGraph
 import com.yet.talk.resources.MR
-import com.yet.talk.web.root.RootContent
-import com.yet.talk.web.theme.TalkTheme
+import androidx.compose.runtime.getValue
+import com.yet.talk.web.decompose.subscribeAsState
+import com.yet.talk.web.ui.root.RootContent
+import com.yet.talk.web.ui.theme.TalkTheme
 import kotlinx.browser.document
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
@@ -27,7 +29,8 @@ fun main() {
         // moko loads the strings file before the first frame.
         val strings = MR.stringsLoader.getOrLoad()
         renderComposable(rootElementId = "root") {
-            TalkTheme(strings) {
+            val theme by root.theme.subscribeAsState()
+            TalkTheme(strings, theme) {
                 RootContent(root)
             }
         }

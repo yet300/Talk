@@ -1,0 +1,97 @@
+/* Web-only additions the design file does not spell out: menus, dialogs, skeleton sizes, helpers, and
+   the narrow-width fallbacks for content the design puts in the right column. Tokens come from TalkCss. */
+
+.t-flush{margin:0}
+.t-block{display:block}
+.t-grow{flex:1;min-width:0}
+.t-spacer{flex:1}
+.t-empty{display:flex;flex-direction:column;align-items:center;gap:var(--space-md)}
+.t-avatar-sm{width:32px;height:32px;font-size:12px}
+.x-avatar{overflow:hidden}
+.t-avatar-img{width:100%;height:100%;object-fit:cover;display:block}
+.t-input-compact{font-size:15px;padding:var(--space-sm) var(--space-md)}
+.t-search-icon{position:absolute;left:var(--space-lg);top:50%;transform:translateY(-50%)}
+.t-end-sentinel{height:1px}
+
+/* Skeleton card (Feed, loading) */
+.t-skel-avatar{width:40px;height:40px;flex-shrink:0}
+.t-skel-lines{flex:1;display:flex;flex-direction:column;gap:10px}
+.t-skel-40{width:40%;height:12px}
+.t-skel-title{width:85%;height:20px}
+.t-skel-100{width:100%;height:12px}
+.t-skel-92{width:92%;height:12px}
+
+/* More actions: dropdown under its button */
+.t-menu-anchor{position:relative}
+.t-menu-backdrop{position:fixed;inset:0;z-index:299}
+.t-menu{position:absolute;right:0;top:100%;z-index:300}
+.t-menu-item{all:unset;display:block;box-sizing:border-box;width:100%;padding:var(--space-md) var(--space-lg);font-weight:700;cursor:pointer}
+.t-menu-item:hover,.t-menu-item:focus-visible{background:var(--elevated)}
+.t-danger{color:var(--error-red)}
+
+/* Confirm dialog */
+.t-dialog-scrim{position:fixed;inset:0;z-index:500;padding:var(--space-lg)}
+.t-dialog{width:320px;max-width:100%;display:flex;flex-direction:column;gap:var(--space-md);padding:var(--space-2xl)}
+.t-dialog-actions{display:flex;flex-direction:column;gap:var(--space-md);margin-top:var(--space-sm)}
+.t-btn-danger{background:var(--error-red);color:#FFFFFF}
+
+/* Reader: author row, quoted post, reply composer */
+.t-author{display:flex;align-items:center;gap:var(--space-md);padding:0 var(--space-lg) var(--space-lg)}
+.t-reply-to{padding:0 var(--space-lg) var(--space-sm);font-size:13px;color:var(--text-secondary)}
+.t-reply-to a{color:var(--x-blue)}
+.t-quote{margin:0 var(--space-lg) var(--space-lg);cursor:pointer}
+.t-reply-box{display:flex;align-items:center;gap:var(--space-md);padding:var(--space-md) var(--space-lg);border-bottom:1px solid var(--border)}
+.t-reply-input{border:0;padding:var(--space-sm) 0;font-size:15px}
+.t-reply-body{font-size:15px;line-height:20px}
+.t-reply-body p{margin:0 0 var(--space-sm)}
+.t-reply-actions{max-width:200px}
+.t-article-footer{padding:0 var(--space-lg) var(--space-lg);display:flex;flex-direction:column;gap:var(--space-md)}
+
+/* Editor extras: target above the editor, images, counter */
+.t-target{padding:var(--space-sm) var(--space-lg);border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:var(--space-sm)}
+.t-images{display:flex;gap:var(--space-sm);padding:var(--space-sm) var(--space-lg);flex-wrap:wrap}
+.t-image{position:relative;width:96px;height:96px;border-radius:var(--radius-card);overflow:hidden;background:var(--surface)}
+.t-image img{width:100%;height:100%;object-fit:cover}
+.t-image .t-icon-btn{position:absolute;top:2px;right:2px;width:32px;height:32px;min-width:32px;background:var(--media-scrim);color:#FFFFFF}
+.t-file{display:none}
+.t-counter{font-size:13px;color:var(--text-secondary)}
+
+/* Settings extras */
+.t-key{display:flex;flex-direction:column;gap:var(--space-sm);padding:var(--space-md) var(--space-lg);border-bottom:1px solid var(--border)}
+.t-key code{font-family:var(--mono);font-size:13px;word-break:break-all;background:var(--surface);padding:var(--space-sm);border-radius:var(--radius-control)}
+.t-row-actions{display:flex;gap:var(--space-sm)}
+
+/* Sign in page */
+.t-auth-page{min-height:100vh;display:flex;align-items:center;justify-content:center}
+
+/* Right-column content (replies, revision list) moves under the main column when the right column hides. */
+.t-narrow-only{display:none}
+@media (max-width:1017px){.t-narrow-only{display:block}.t-right .t-wide-only{display:none}}
+
+/* Phone width: the main column is the page; leave room above the bottom bar. */
+@media (max-width:687px){.t-main,.t-wide{padding-bottom:var(--space-lg)}}
+
+/* Screen details */
+.t-popular-caption{margin:0;padding:var(--space-md) var(--space-lg);border-bottom:1px solid var(--border)}
+.t-search-bar{padding:0 var(--space-lg)}
+.t-search-bar .x-search-wrap{flex:1}
+.t-search-hint{margin:0;padding:var(--space-lg)}
+.t-profile-name{margin:0;font-size:23px;line-height:28px;font-weight:700}
+.t-profile-info{display:flex;flex-direction:column;gap:var(--space-sm)}
+.t-stats{display:flex;gap:var(--space-lg);flex-wrap:wrap}
+.t-follow{margin-top:var(--space-md)}
+.t-about{white-space:pre-wrap}
+.t-article-title{padding:var(--space-lg) var(--space-lg) var(--space-md)}
+.t-article-body{padding:var(--space-xl) var(--space-lg) var(--space-sm)}
+.t-copy-id{align-self:flex-start}
+.t-revision-group{margin:0;padding:var(--space-lg) var(--space-lg) var(--space-sm);font-weight:700}
+.t-revisions-caption{margin:0;padding:var(--space-md) var(--space-lg)}
+.t-composer-page{min-height:100vh}
+.t-split{display:grid;grid-template-columns:minmax(0,1fr);flex:1;min-height:0}
+.t-split-two{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+.t-split .t-body-input{min-height:calc(100vh - var(--bar-height));resize:none}
+@media (max-width:687px){.t-split-two{grid-template-columns:minmax(0,1fr)}.t-split-two>.t-split-col+.t-split-col{border-left:0;border-top:1px solid var(--border)}}
+.t-auth-head{display:flex;flex-direction:column;gap:var(--space-xs)}
+.t-auth-title{margin:0;font-size:23px;line-height:28px;font-weight:700}
+.t-add-relay .x-input{flex:1}
+.t-strong{font-weight:700}

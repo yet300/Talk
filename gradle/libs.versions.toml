@@ -32,7 +32,10 @@ skie = "0.10.16"
 kotlinx-coroutines = "1.11.0"
 kotlinxDatetime = "0.8.0"
 kotlinxSerializationJson = "1.12.0"
+
 kotlin-wrappers = "2026.10.4"
+marked = "18.1.1"
+dompurify = "3.4.17"
 
 decompose = "3.5.0"
 essenty = "2.7.1"

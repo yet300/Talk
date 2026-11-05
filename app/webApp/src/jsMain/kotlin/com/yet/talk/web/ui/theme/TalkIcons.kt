@@ -1,4 +1,4 @@
-package com.yet.talk.web.theme
+package com.yet.talk.web.ui.theme
 
 import androidx.compose.runtime.Composable
 import com.yet.talk.resources.*
