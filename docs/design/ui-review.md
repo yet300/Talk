@@ -249,3 +249,49 @@ Web keeps SINGLE and uses its right column for replies (reader) and the revision
    **Bookmarks is a tab of your own profile** (Posts · Replies · Bookmarks). The web rail and the Duo side
    column keep Bookmarks and Profile. (2026-11-05; the canvas gets it in design pass 2,
    `claude-design-prompt-2.md`, and the code follows the canvas.)
+
+## 9. Design passes 2 and 3 (2026-11-05)
+
+The canvas now has 108 artboards. New and changed screens, each with an "Actions:" note on the canvas (the
+notes are the contract; read the artboard when building its screen):
+
+| Area | Boards | What to build |
+|---|---|---|
+| Section A fixes | all screens | posts wording, key-only sign-in, editor without title/summary, relay revisions, navigation, Settings, More actions |
+| Save your key | `Auth-SaveKey-*`, `SaveKey` | after Create a new key, the `nsec` once: Copy, "I saved it" (enabled after Copy or 3 s), then Home |
+| Sign out | `Settings-*` dialog | "Sign out?" with Show private key + Copy inside, red Sign out, Cancel |
+| Edits | cards, reader, `Compose-Contexts` | "Edited" opens Revisions; edit mode line "Edits show in Talk. Other Nostr apps keep showing the original." |
+| More actions | `More-Actions`, `MoreFlow`, `Menu`, `BottomSheet`, `ConfirmDialog` | Quote, Copy link (+ toast), Edit, Delete; Report with the public warning |
+| States | `States-Sheet`, `StateSet`, `Toast` | Sending…, Not sent + Retry, search idle / no results, feed error + Retry, "Link copied" toast |
+| Search | `Search-Web`, `Search-Outer`, `Search-Inner` | a page of its own on web and Duo |
+| Activity | `Activity-*`, `ActivityList` | as built, plus Duo inner list \| post |
+| Your profile | `Profile-Own-*`, `Bookmarks-Mobile(-Empty)` | Edit profile instead of Follow; Phone: Posts · Replies · Bookmarks |
+| Edit profile | `EditProfile-*`, `ProfileEditor`, `EditProfile-Upload` | banner, avatar (GIF ≤ 1 MB), fields, NIP-05 Verified; upload states incl. rejected by the on-device check |
+| GitHub | `GitHub-States`, `GitHubLink`, `RepoCard` | NIP-39 linking via gist (not linked, waiting, verified, failed); repo and user cards |
+| Moderation | `Moderation` | blurred avatars/banners outside your network (Show), GIFs animate only for follows, hidden rows for content your follows reported |
+| Cards | `PostCard-Variants`, `MediaGrid`, `ImageViewer`, `LinkRow`, `VideoCard` | article card for `# heading` posts, text card (6 lines, Show more) otherwise; repost header, reply context, media grid 1–4, quote, one link card (YouTube, GitHub, else a plain row), Share |
+| Videos | `Videos-*`, `VideoPage-*`, `VideoHome`, `VideoPlayer`, `VideoInfo` | HackerTube catalog: chips Videos/Liked/Watch later/History, categories, Level and Type menus; video page with player, Like, Watch later, Share, Copy link, why HN, comments (NIP-22), related; credit line |
+
+Decisions in these passes:
+
+10. **Phone capsule**: Home, Search, Activity, Videos (see 9 above). **Duo inner upright** uses the same
+    capsule as Phone and no Videos header button (the canvas still shows the old one there).
+11. Things the canvas leaves to code: the **GitHub mark** comes from Octicons (`mark-github`); **thumbnails**
+    are `i.ytimg.com/vi/<vid>/hqdefault.jpg` (`mqdefault.jpg` on small cards); the five video summaries the
+    designer wrote are placeholders, the catalog's own summaries are used; like and comment counts come from
+    Nostr.
+12. **Security** (designer's notes, agreed): a strict Content-Security-Policy on the web, markdown stays
+    sanitized, signers stay on the roadmap.
+
+### Build order
+
+1. Accounts and polish: Save your key, the Sign out dialog, "Edited" → Revisions, the edit-mode line, the
+   Link copied toast, the web CSP.
+2. Profiles: Edit profile (banner, fields, uploads with the on-device check, NIP-05), your profile header,
+   the Bookmarks tab on Phone.
+3. GitHub: NIP-39 linking and verification; repo and user cards in posts.
+4. Cards: text and article variants, media grid and viewer, quote, repost header, reply context, link rows,
+   YouTube cards.
+5. Videos: the catalog in the database, Videos and the video page, comments and likes on Nostr, the lists,
+   For you; the Phone capsule switches to Videos.
+6. Moderation: network-based blurring, reports (NIP-56) and hidden content.
