@@ -29,5 +29,7 @@ class PreviewBookmarksComponent(posts: List<Post> = emptyList()) : BookmarksComp
 
     override fun onOpenAuthor(id: UserId) = Unit
 
+    override fun onBrowseHome() = Unit
+
     override fun onErrorShown() = Unit
 }

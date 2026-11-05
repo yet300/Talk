@@ -14,6 +14,8 @@ import com.yet.talk.domain.model.account.Account
 import com.yet.talk.domain.model.post.PostId
 import com.yet.talk.domain.model.user.UserId
 import com.yet.talk.domain.repository.AccountRepository
+import com.yet.talk.domain.repository.PreferencesRepository
+import com.yet.talk.domain.model.settings.ThemeMode
 import com.yet.talk.feature.auth.PreviewAuthComponent
 import com.yet.talk.feature.compose.PreviewComposeComponent
 import com.yet.talk.feature.post.component.revisions.PreviewRevisionsComponent
@@ -41,6 +43,13 @@ class RootComponentTest {
         override suspend fun importKey(secretKey: String) = error("unused")
         override suspend fun exportSecretKey() = error("unused")
         override suspend fun signOut() = Unit
+    }
+
+    private object Preferences : PreferencesRepository {
+        override val theme = MutableStateFlow(ThemeMode.System)
+        override suspend fun setTheme(mode: ThemeMode) {
+            theme.value = mode
+        }
     }
 
     /** Records what the root asks of Main; its panels are never rendered here. */
@@ -71,7 +80,7 @@ class RootComponentTest {
             settings = { _, _ -> PreviewSettingsComponent() },
         )
         val lifecycle = LifecycleRegistry().apply { resume() }
-        DefaultRootComponent(DefaultComponentContext(lifecycle), RootStoreFactory(DefaultStoreFactory(), accounts), factories, deepLink)
+        DefaultRootComponent(DefaultComponentContext(lifecycle), RootStoreFactory(DefaultStoreFactory(), accounts, Preferences), factories, deepLink)
     }
 
     private val active get() = root.stack.value.active.instance
@@ -101,6 +110,14 @@ class RootComponentTest {
         accounts.account.value = null
         assertIs<RootComponent.Child.Auth>(active)
         assertEquals(1, root.stack.value.items.size, "nothing from the signed-in session stays behind")
+    }
+
+    @Test
+    fun theThemeFollowsThePreference() {
+        assertEquals(ThemeMode.System, root.theme.value)
+        Preferences.theme.value = ThemeMode.Dark
+        assertEquals(ThemeMode.Dark, root.theme.value)
+        Preferences.theme.value = ThemeMode.System
     }
 
     @Test

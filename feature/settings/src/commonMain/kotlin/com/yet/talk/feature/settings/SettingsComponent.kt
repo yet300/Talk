@@ -5,6 +5,8 @@ import com.arkivanov.decompose.value.Value
 import com.yet.talk.domain.model.account.Account
 import com.yet.talk.domain.model.error.DomainError
 import com.yet.talk.domain.model.relay.Relay
+import com.yet.talk.domain.model.settings.ThemeMode
+import com.yet.talk.domain.model.user.User
 
 /** Identity, relays and sign-out. */
 interface SettingsComponent {
@@ -21,6 +23,8 @@ interface SettingsComponent {
     /** Reveals the `nsec` for the user's own backup, until [onHideKey]. */
     fun onExportKey()
 
+    fun onThemeSelected(theme: ThemeMode)
+
     fun onHideKey()
 
     fun onSignOut()
@@ -29,6 +33,9 @@ interface SettingsComponent {
 
     data class Model(
         val account: Account?,
+        /** The signed-in user's profile (name, picture); null until it is known. */
+        val me: User?,
+        val theme: ThemeMode,
         val relays: List<Relay>,
         val relayInput: String,
         val exportedKey: String?,

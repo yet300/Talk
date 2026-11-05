@@ -12,6 +12,8 @@ import com.yet.talk.domain.model.user.UserId
 import com.yet.talk.domain.repository.AccountRepository
 import com.yet.talk.domain.repository.BookmarkRepository
 import com.yet.talk.domain.repository.Feed
+import com.yet.talk.domain.repository.FollowRepository
+import com.yet.talk.domain.usecase.social.ToggleFollow
 import com.yet.talk.domain.repository.PostRepository
 import com.yet.talk.domain.repository.ReactionRepository
 import com.yet.talk.domain.usecase.post.ReplyToPost
@@ -73,11 +75,16 @@ class PostStoreTest {
         override fun bookmarks() = error("unused")
     }
 
+    private object NoFollows : FollowRepository {
+        override fun observeIsFollowing(id: UserId) = flowOf(false)
+        override suspend fun setFollowing(id: UserId, following: Boolean) = Result.success(Unit)
+    }
+
     private val posts = FakePosts()
     private val store by lazy {
         PostStoreFactory(
             DefaultStoreFactory(), posts, Accounts, ReplyToPost(posts),
-            ToggleLike(NoReactions), ToggleRepost(NoReactions), ToggleBookmark(NoBookmarks),
+            ToggleLike(NoReactions), ToggleRepost(NoReactions), ToggleBookmark(NoBookmarks), NoFollows, ToggleFollow(NoFollows),
         ).create(PostId("p"))
     }
 

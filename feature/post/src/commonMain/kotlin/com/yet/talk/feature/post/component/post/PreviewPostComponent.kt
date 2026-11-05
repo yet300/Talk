@@ -9,7 +9,8 @@ import com.yet.talk.domain.model.user.UserId
 /** For UI previews: a fixed model, actions do nothing. */
 class PreviewPostComponent(
     model: PostComponent.Model = PostComponent.Model(
-        post = null, quoted = null, replies = emptyList(), isMine = false, replyText = "",
+        post = null, quoted = null, replies = emptyList(), isMine = false, isFollowingAuthor = false,
+        shareLink = "note1preview", replyText = "",
         canSendReply = false, isReplying = false, isLoading = true, error = null,
     ),
 ) : PostComponent {
@@ -28,6 +29,8 @@ class PreviewPostComponent(
     override fun onSendReply() = Unit
 
     override fun onDelete() = Unit
+
+    override fun onFollowAuthor() = Unit
 
     override fun onEdit() = Unit
 

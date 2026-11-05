@@ -4,6 +4,7 @@ import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.webhistory.WebNavigationOwner
 import com.arkivanov.decompose.value.Value
+import com.yet.talk.domain.model.user.User
 import com.yet.talk.domain.model.post.PostId
 import com.yet.talk.domain.model.user.UserId
 import com.yet.talk.feature.profile.ProfileComponent
@@ -20,7 +21,12 @@ import com.yet.talk.feature.tab.search.SearchComponent
 interface TabsComponent : WebNavigationOwner {
     val stack: Value<ChildStack<*, Child>>
 
+    /** The signed-in user, for the rail's identity row and the phone header avatar. */
+    val me: Value<Me>
+
     fun onTabClicked(tab: Tab)
+
+    data class Me(val user: User? = null, val npub: String? = null, val relayCount: Int = 0)
 
     enum class Tab { Home, Search, Activity, Bookmarks, Profile }
 

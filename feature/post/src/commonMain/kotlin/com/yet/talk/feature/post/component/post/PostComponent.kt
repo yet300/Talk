@@ -27,6 +27,9 @@ interface PostComponent {
     /** Only for the viewer's own post; goes back once deleted. */
     fun onDelete()
 
+    /** Follow or unfollow the post's author (the article's author row). */
+    fun onFollowAuthor()
+
     fun onEdit()
 
     fun onQuote(post: Post)
@@ -49,6 +52,9 @@ interface PostComponent {
         val quoted: Post?,
         val replies: List<ThreadReply>,
         val isMine: Boolean,
+        val isFollowingAuthor: Boolean,
+        /** `note1…`: what Copy link and Share hand out. */
+        val shareLink: String,
         val replyText: String,
         val canSendReply: Boolean,
         val isReplying: Boolean,

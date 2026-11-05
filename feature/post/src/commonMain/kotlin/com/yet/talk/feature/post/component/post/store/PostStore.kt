@@ -15,6 +15,7 @@ internal interface PostStore : Store<PostStore.Intent, PostStore.State, PostStor
         val quoted: Post? = null,
         val replies: List<ThreadReply> = emptyList(),
         val viewer: UserId? = null,
+        val isFollowingAuthor: Boolean = false,
         val replyText: String = "",
         val isReplying: Boolean = false,
         val isLoading: Boolean = false,
@@ -36,6 +37,8 @@ internal interface PostStore : Store<PostStore.Intent, PostStore.State, PostStor
 
         data object Delete : Intent
 
+        data object FollowAuthor : Intent
+
         data object DismissError : Intent
     }
 
@@ -51,6 +54,8 @@ internal interface PostStore : Store<PostStore.Intent, PostStore.State, PostStor
         data class RepliesChanged(val replies: List<ThreadReply>) : Msg
 
         data class ViewerChanged(val viewer: UserId?) : Msg
+
+        data class FollowingAuthorChanged(val following: Boolean) : Msg
 
         data class ReplyChanged(val text: String) : Msg
 

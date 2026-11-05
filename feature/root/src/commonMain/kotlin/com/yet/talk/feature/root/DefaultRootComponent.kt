@@ -11,6 +11,9 @@ import com.arkivanov.decompose.router.stack.pushNew
 import com.arkivanov.decompose.router.stack.replaceAll
 import com.arkivanov.decompose.router.webhistory.WebNavigation
 import com.arkivanov.decompose.value.Value
+import com.arkivanov.decompose.value.operator.map
+import com.app.common.decompose.asValue
+import com.yet.talk.domain.model.settings.ThemeMode
 import com.arkivanov.mvikotlin.core.instancekeeper.getStore
 import com.arkivanov.mvikotlin.extensions.coroutines.states
 import com.yet.talk.domain.model.post.PostId
@@ -52,6 +55,8 @@ internal class DefaultRootComponent(
         )
 
     override val stack: Value<ChildStack<*, RootComponent.Child>> = configStack
+
+    override val theme: Value<ThemeMode> = store.asValue().map { it.theme }
 
     override val webNavigation: WebNavigation<*> =
         childStackWebNavigation(

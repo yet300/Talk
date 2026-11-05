@@ -31,6 +31,9 @@ interface BookmarksComponent {
 
     fun onOpenAuthor(id: UserId)
 
+    /** "Back to Home" in the empty state. */
+    fun onBrowseHome()
+
     fun onErrorShown()
 
     data class Model(val error: DomainError?)
@@ -43,6 +46,8 @@ interface BookmarksComponent {
         data class Reply(val parent: PostId) : Output
 
         data class Quote(val quoted: PostId) : Output
+
+        data object BrowseHome : Output
     }
 
     fun interface Factory {

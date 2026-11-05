@@ -12,6 +12,7 @@ import com.yet.talk.data.repository.ProfileRepositoryImpl
 import com.yet.talk.data.repository.ReactionRepositoryImpl
 import com.yet.talk.data.repository.RelayRepositoryImpl
 import com.yet.talk.data.repository.SearchRepositoryImpl
+import com.yet.talk.data.repository.ShareLinksImpl
 import com.yet.talk.data.repository.TrendingRepositoryImpl
 import com.yet.talk.data.session.Session
 import com.yet.talk.data.session.VaultSession
@@ -25,6 +26,7 @@ import com.yet.talk.domain.repository.ProfileRepository
 import com.yet.talk.domain.repository.ReactionRepository
 import com.yet.talk.domain.repository.RelayRepository
 import com.yet.talk.domain.repository.SearchRepository
+import com.yet.talk.domain.repository.ShareLinks
 import com.yet.talk.domain.repository.TrendingRepository
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.BindingContainer
@@ -74,6 +76,9 @@ abstract class DataBindings {
 
     @Binds
     internal abstract val SearchRepositoryImpl.bindSearchRepository: SearchRepository
+
+    @Binds
+    internal abstract val ShareLinksImpl.bindShareLinks: ShareLinks
 
     /** The signed-in key: only the data layer may reach it. */
     @GraphPrivate

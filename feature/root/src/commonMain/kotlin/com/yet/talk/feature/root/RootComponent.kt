@@ -5,6 +5,7 @@ import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.webhistory.WebNavigationOwner
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandlerOwner
+import com.yet.talk.domain.model.settings.ThemeMode
 import com.yet.talk.feature.auth.AuthComponent
 import com.yet.talk.feature.compose.ComposeComponent
 import com.yet.talk.feature.post.component.revisions.RevisionsComponent
@@ -20,6 +21,9 @@ import com.yet.talk.feature.tab.main.MainComponent
  */
 interface RootComponent : BackHandlerOwner, WebNavigationOwner {
     val stack: Value<ChildStack<*, Child>>
+
+    /** The theme chosen in Settings; the platform UI applies it ([ThemeMode.System] follows the device). */
+    val theme: Value<ThemeMode>
 
     /** Pops the top destination (the platform's back gesture is handled by the stack itself). */
     fun onBack()

@@ -9,6 +9,7 @@ import com.arkivanov.mvikotlin.core.instancekeeper.getStore
 import com.arkivanov.mvikotlin.extensions.coroutines.labels
 import com.yet.talk.domain.model.post.Post
 import com.yet.talk.domain.model.post.PostId
+import com.yet.talk.domain.repository.ShareLinks
 import com.yet.talk.domain.model.user.UserId
 import com.yet.talk.feature.post.component.post.mapper.stateToModel
 import com.yet.talk.feature.post.component.post.store.PostStore
@@ -21,6 +22,7 @@ internal class DefaultPostComponent(
     private val id: PostId,
     private val output: (PostComponent.Output) -> Unit,
     storeFactory: PostStoreFactory,
+    shareLinks: ShareLinks,
 ) : PostComponent, ComponentContext by componentContext {
 
     private val store = instanceKeeper.getStore { storeFactory.create(id) }
@@ -35,7 +37,7 @@ internal class DefaultPostComponent(
         }
     }
 
-    override val model: Value<PostComponent.Model> = store.asValue().map(stateToModel)
+    override val model: Value<PostComponent.Model> = shareLinks.post(id).let { link -> store.asValue().map { stateToModel(it, link) } }
 
     override fun onRefresh() = store.accept(PostStore.Intent.Refresh)
 
@@ -50,6 +52,8 @@ internal class DefaultPostComponent(
     override fun onSendReply() = store.accept(PostStore.Intent.SendReply)
 
     override fun onDelete() = store.accept(PostStore.Intent.Delete)
+
+    override fun onFollowAuthor() = store.accept(PostStore.Intent.FollowAuthor)
 
     override fun onEdit() = output(PostComponent.Output.Edit(id))
 
@@ -69,7 +73,10 @@ internal class DefaultPostComponent(
 }
 
 @Inject
-internal class DefaultPostComponentFactory(private val storeFactory: PostStoreFactory) : PostComponent.Factory {
+internal class DefaultPostComponentFactory(
+    private val storeFactory: PostStoreFactory,
+    private val shareLinks: ShareLinks,
+) : PostComponent.Factory {
     override fun invoke(componentContext: ComponentContext, id: PostId, output: (PostComponent.Output) -> Unit): PostComponent =
-        DefaultPostComponent(componentContext, id, output, storeFactory)
+        DefaultPostComponent(componentContext, id, output, storeFactory, shareLinks)
 }

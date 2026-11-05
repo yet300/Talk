@@ -8,6 +8,9 @@ import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
 import com.yet.talk.domain.model.error.DomainError
 import com.yet.talk.domain.model.relay.Relay
 import com.yet.talk.domain.repository.AccountRepository
+import com.yet.talk.domain.repository.PreferencesRepository
+import com.yet.talk.domain.repository.ProfileRepository
+import kotlinx.coroutines.flow.collectLatest
 import com.yet.talk.domain.repository.RelayRepository
 import com.yet.talk.domain.rule.RelayRules
 import dev.zacsweers.metro.Inject
@@ -18,6 +21,8 @@ internal class SettingsStoreFactory(
     private val storeFactory: StoreFactory,
     private val accounts: AccountRepository,
     private val relays: RelayRepository,
+    private val profiles: ProfileRepository,
+    private val preferences: PreferencesRepository,
 ) {
     fun create(): SettingsStore =
         object : SettingsStore, Store<SettingsStore.Intent, SettingsStore.State, Nothing> by storeFactory.create(
@@ -34,6 +39,13 @@ internal class SettingsStoreFactory(
         override fun executeAction(action: SettingsStore.Action) {
             scope.launch { accounts.account.collect { dispatch(SettingsStore.Msg.AccountChanged(it)) } }
             scope.launch { relays.relays.collect { dispatch(SettingsStore.Msg.RelaysChanged(it)) } }
+            scope.launch { preferences.theme.collect { dispatch(SettingsStore.Msg.ThemeChanged(it)) } }
+            scope.launch {
+                accounts.account.collectLatest { account ->
+                    dispatch(SettingsStore.Msg.MeChanged(null))
+                    if (account != null) profiles.observeUser(account.userId).collect { dispatch(SettingsStore.Msg.MeChanged(it)) }
+                }
+            }
         }
 
         override fun executeIntent(intent: SettingsStore.Intent) {
@@ -47,6 +59,7 @@ internal class SettingsStoreFactory(
                         .onFailure { dispatch(SettingsStore.Msg.Failed(it as? DomainError)) }
                 }
                 SettingsStore.Intent.HideKey -> dispatch(SettingsStore.Msg.KeyExported(null))
+                is SettingsStore.Intent.SelectTheme -> scope.launch { preferences.setTheme(intent.theme) }
                 SettingsStore.Intent.SignOut -> scope.launch { accounts.signOut() }
                 SettingsStore.Intent.DismissError -> dispatch(SettingsStore.Msg.Failed(null))
             }
@@ -76,6 +89,8 @@ internal class SettingsStoreFactory(
             when (msg) {
                 is SettingsStore.Msg.AccountChanged -> copy(account = msg.account, exportedKey = null)
                 is SettingsStore.Msg.RelaysChanged -> copy(relays = msg.relays)
+                is SettingsStore.Msg.MeChanged -> copy(me = msg.me)
+                is SettingsStore.Msg.ThemeChanged -> copy(theme = msg.theme)
                 is SettingsStore.Msg.RelayInputChanged -> copy(relayInput = msg.url)
                 is SettingsStore.Msg.KeyExported -> copy(exportedKey = msg.key)
                 is SettingsStore.Msg.Working -> copy(isWorking = msg.working)

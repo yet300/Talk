@@ -8,6 +8,14 @@ import com.yet.talk.domain.model.relay.Relay
 import com.yet.talk.domain.model.user.UserId
 import com.yet.talk.domain.repository.AccountRepository
 import com.yet.talk.domain.repository.RelayRepository
+import com.yet.talk.domain.repository.PreferencesRepository
+import com.yet.talk.domain.repository.ProfileRepository
+import com.yet.talk.domain.model.settings.ThemeMode
+import com.yet.talk.domain.model.user.User
+import com.yet.talk.domain.model.user.UserStats
+import com.yet.talk.domain.model.user.ProfileEdit
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 import com.yet.talk.feature.settings.store.SettingsStore
 import com.yet.talk.feature.settings.store.SettingsStoreFactory
 import kotlinx.coroutines.Dispatchers
@@ -43,9 +51,24 @@ class SettingsStoreTest {
         }
     }
 
+    private class FakeProfiles : ProfileRepository {
+        override fun observeUser(id: UserId): Flow<User> = flowOf(User(id, "npub1me", name = "Me"))
+        override fun observeStats(id: UserId): Flow<UserStats> = flowOf(UserStats())
+        override suspend fun refresh(id: UserId) = Result.success(Unit)
+        override suspend fun updateMyProfile(edit: ProfileEdit) = Result.success(Unit)
+    }
+
+    private class FakePreferences : PreferencesRepository {
+        override val theme = MutableStateFlow(ThemeMode.System)
+        override suspend fun setTheme(mode: ThemeMode) {
+            theme.value = mode
+        }
+    }
+
+    private val preferences = FakePreferences()
     private val relays = FakeRelays()
     private val accounts = FakeAccounts()
-    private val store by lazy { SettingsStoreFactory(DefaultStoreFactory(), accounts, relays).create() }
+    private val store by lazy { SettingsStoreFactory(DefaultStoreFactory(), accounts, relays, FakeProfiles(), preferences).create() }
 
     @BeforeTest
     fun setUp() {
@@ -68,6 +91,14 @@ class SettingsStoreTest {
 
         store.accept(SettingsStore.Intent.RemoveRelay("wss://a.example"))
         assertEquals(listOf("wss://b.example"), store.state.relays.map { it.url })
+    }
+
+    @Test
+    fun showsWhoIsSignedInAndStoresTheTheme() = runTest {
+        assertEquals("Me", store.state.me?.name)
+        store.accept(SettingsStore.Intent.SelectTheme(ThemeMode.Light))
+        assertEquals(ThemeMode.Light, preferences.theme.value)
+        assertEquals(ThemeMode.Light, store.state.theme)
     }
 
     @Test

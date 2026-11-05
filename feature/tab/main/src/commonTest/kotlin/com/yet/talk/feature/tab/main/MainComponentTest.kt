@@ -25,6 +25,7 @@ class MainComponentTest {
         override val stack: Value<ChildStack<*, TabsComponent.Child>> = MutableValue(
             ChildStack(configuration = "home", instance = TabsComponent.Child.Home(PreviewHomeComponent()) as TabsComponent.Child),
         )
+        override val me: Value<TabsComponent.Me> = MutableValue(TabsComponent.Me())
         override fun onTabClicked(tab: TabsComponent.Tab) = Unit
     }
 

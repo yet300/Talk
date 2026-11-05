@@ -8,6 +8,8 @@ import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
 import com.yet.talk.domain.model.error.DomainError
 import com.yet.talk.domain.model.post.PostId
 import com.yet.talk.domain.repository.AccountRepository
+import com.yet.talk.domain.repository.FollowRepository
+import com.yet.talk.domain.usecase.social.ToggleFollow
 import com.yet.talk.domain.repository.PostRepository
 import com.yet.talk.domain.usecase.post.ReplyToPost
 import com.yet.talk.domain.usecase.social.ToggleBookmark
@@ -31,6 +33,8 @@ internal class PostStoreFactory(
     private val toggleLike: ToggleLike,
     private val toggleRepost: ToggleRepost,
     private val toggleBookmark: ToggleBookmark,
+    private val follows: FollowRepository,
+    private val toggleFollow: ToggleFollow,
 ) {
     fun create(id: PostId): PostStore =
         object : PostStore, Store<PostStore.Intent, PostStore.State, PostStore.Label> by storeFactory.create(
@@ -50,6 +54,11 @@ internal class PostStoreFactory(
             scope.launch { posts.observeThread(id).collect { dispatch(PostStore.Msg.RepliesChanged(it)) } }
             scope.launch { accounts.account.collect { dispatch(PostStore.Msg.ViewerChanged(it?.userId)) } }
             scope.launch {
+                posts.observePost(id).map { it?.author?.id }.distinctUntilChanged()
+                    .flatMapLatest { author -> author?.let(follows::observeIsFollowing) ?: flowOf(false) }
+                    .collect { dispatch(PostStore.Msg.FollowingAuthorChanged(it)) }
+            }
+            scope.launch {
                 posts.observePost(id).map { it?.quoteOf }.distinctUntilChanged()
                     .flatMapLatest { quoted -> quoted?.let(posts::observePost) ?: flowOf(null) }
                     .collect { dispatch(PostStore.Msg.QuotedChanged(it)) }
@@ -61,6 +70,10 @@ internal class PostStoreFactory(
             when (intent) {
                 PostStore.Intent.Refresh -> refresh()
                 is PostStore.Intent.Like -> run { toggleLike(intent.post) }
+                PostStore.Intent.FollowAuthor -> state().post?.author?.id?.let { author ->
+                    val following = state().isFollowingAuthor
+                    run { toggleFollow(author, following) }
+                }
                 is PostStore.Intent.Repost -> run { toggleRepost(intent.post) }
                 is PostStore.Intent.Bookmark -> run { toggleBookmark(intent.post) }
                 is PostStore.Intent.ChangeReply -> dispatch(PostStore.Msg.ReplyChanged(intent.text))
@@ -112,6 +125,7 @@ internal class PostStoreFactory(
                 is PostStore.Msg.QuotedChanged -> copy(quoted = msg.post)
                 is PostStore.Msg.RepliesChanged -> copy(replies = msg.replies)
                 is PostStore.Msg.ViewerChanged -> copy(viewer = msg.viewer)
+                is PostStore.Msg.FollowingAuthorChanged -> copy(isFollowingAuthor = msg.following)
                 is PostStore.Msg.ReplyChanged -> copy(replyText = msg.text)
                 is PostStore.Msg.Replying -> copy(isReplying = msg.replying)
                 PostStore.Msg.ReplySent -> copy(replyText = "")

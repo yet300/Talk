@@ -2,6 +2,7 @@ package com.yet.talk.feature.settings
 
 import com.app.common.decompose.asValue
 import com.arkivanov.decompose.ComponentContext
+import com.yet.talk.domain.model.settings.ThemeMode
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.decompose.value.operator.map
 import com.arkivanov.mvikotlin.core.instancekeeper.getStore
@@ -29,6 +30,8 @@ internal class DefaultSettingsComponent(
     override fun onRemoveRelay(url: String) = store.accept(SettingsStore.Intent.RemoveRelay(url))
 
     override fun onExportKey() = store.accept(SettingsStore.Intent.ExportKey)
+
+    override fun onThemeSelected(theme: ThemeMode) = store.accept(SettingsStore.Intent.SelectTheme(theme))
 
     override fun onHideKey() = store.accept(SettingsStore.Intent.HideKey)
 

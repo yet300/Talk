@@ -7,7 +7,10 @@ import com.arkivanov.decompose.router.stack.bringToFront
 import com.arkivanov.decompose.router.stack.childStack
 import com.arkivanov.decompose.router.stack.childStackWebNavigation
 import com.arkivanov.decompose.router.webhistory.WebNavigation
+import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
+import com.app.common.decompose.coroutineScope
+import kotlinx.coroutines.launch
 import com.yet.talk.feature.profile.ProfileComponent
 import com.yet.talk.feature.tab.activity.ActivityComponent
 import com.yet.talk.feature.tab.bookmarks.BookmarksComponent
@@ -20,9 +23,17 @@ internal class DefaultTabsComponent(
     componentContext: ComponentContext,
     private val output: (TabsComponent.Output) -> Unit,
     private val factories: TabFactories,
+    meSource: MeSource,
 ) : TabsComponent, ComponentContext by componentContext {
 
     private val navigation = StackNavigation<Config>()
+
+    private val meValue = MutableValue(TabsComponent.Me())
+    override val me: Value<TabsComponent.Me> = meValue
+
+    init {
+        coroutineScope().launch { meSource.observe().collect { meValue.value = it } }
+    }
 
     private val configStack: Value<ChildStack<Config, TabsComponent.Child>> =
         childStack(
@@ -91,14 +102,17 @@ internal class DefaultTabsComponent(
         },
     )
 
-    private fun onBookmarksOutput(event: BookmarksComponent.Output) = output(
-        when (event) {
-            is BookmarksComponent.Output.OpenPost -> TabsComponent.Output.OpenPost(event.id)
-            is BookmarksComponent.Output.OpenProfile -> TabsComponent.Output.OpenProfile(event.id)
-            is BookmarksComponent.Output.Reply -> TabsComponent.Output.Reply(event.parent)
-            is BookmarksComponent.Output.Quote -> TabsComponent.Output.Quote(event.quoted)
-        },
-    )
+    private fun onBookmarksOutput(event: BookmarksComponent.Output) {
+        output(
+            when (event) {
+                is BookmarksComponent.Output.OpenPost -> TabsComponent.Output.OpenPost(event.id)
+                is BookmarksComponent.Output.OpenProfile -> TabsComponent.Output.OpenProfile(event.id)
+                is BookmarksComponent.Output.Reply -> TabsComponent.Output.Reply(event.parent)
+                is BookmarksComponent.Output.Quote -> TabsComponent.Output.Quote(event.quoted)
+                BookmarksComponent.Output.BrowseHome -> return onTabClicked(TabsComponent.Tab.Home)
+            },
+        )
+    }
 
     private fun onProfileOutput(event: ProfileComponent.Output) {
         output(
@@ -144,7 +158,10 @@ internal class TabFactories(
 )
 
 @Inject
-internal class DefaultTabsComponentFactory(private val factories: TabFactories) : TabsComponent.Factory {
+internal class DefaultTabsComponentFactory(
+    private val factories: TabFactories,
+    private val meSource: MeSource,
+) : TabsComponent.Factory {
     override fun invoke(componentContext: ComponentContext, output: (TabsComponent.Output) -> Unit): TabsComponent =
-        DefaultTabsComponent(componentContext, output, factories)
+        DefaultTabsComponent(componentContext, output, factories, meSource)
 }

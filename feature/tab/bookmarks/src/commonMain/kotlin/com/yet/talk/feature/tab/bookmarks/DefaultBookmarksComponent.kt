@@ -45,6 +45,8 @@ internal class DefaultBookmarksComponent(
 
     override fun onOpenAuthor(id: UserId) = output(BookmarksComponent.Output.OpenProfile(id))
 
+    override fun onBrowseHome() = output(BookmarksComponent.Output.BrowseHome)
+
     override fun onErrorShown() = store.accept(BookmarksStore.Intent.DismissError)
 }
 
