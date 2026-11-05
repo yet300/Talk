@@ -7,15 +7,13 @@ import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandlerOwner
 import com.yet.talk.feature.auth.AuthComponent
 import com.yet.talk.feature.compose.ComposeComponent
-import com.yet.talk.feature.post.component.post.PostComponent
 import com.yet.talk.feature.post.component.revisions.RevisionsComponent
-import com.yet.talk.feature.profile.ProfileComponent
 import com.yet.talk.feature.settings.SettingsComponent
 import com.yet.talk.feature.tab.main.MainComponent
 
 /**
- * The app's root: sign-in when there is no account, otherwise the tabs with full-screen destinations
- * (post, revisions, editor, someone's profile, settings) stacked above them.
+ * The app's root: sign-in when there is no account, otherwise [MainComponent] (tabs with posts and profiles
+ * in list-detail panels) with full-screen destinations (editor, revisions, settings) stacked above it.
  *
  * [backHandler] drives predictive back on Android and the swipe back on iOS; [webNavigation] binds the
  * stack to the browser history (`/post/<id>`, `/user/<id>`, `/settings`, tabs below `Main`).
@@ -34,13 +32,9 @@ interface RootComponent : BackHandlerOwner, WebNavigationOwner {
 
         class Main(val component: MainComponent) : Child()
 
-        class Post(val component: PostComponent) : Child()
-
         class Revisions(val component: RevisionsComponent) : Child()
 
         class Compose(val component: ComposeComponent) : Child()
-
-        class Profile(val component: ProfileComponent) : Child()
 
         class Settings(val component: SettingsComponent) : Child()
     }

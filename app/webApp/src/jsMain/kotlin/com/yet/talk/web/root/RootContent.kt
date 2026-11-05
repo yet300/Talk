@@ -30,10 +30,8 @@ fun RootContent(component: RootComponent) {
         RootComponent.Child.Splash -> stringResource(MR.strings.app_name)
         is RootComponent.Child.Auth -> stringResource(MR.strings.auth_title)
         is RootComponent.Child.Main -> stringResource(MR.strings.tab_home)
-        is RootComponent.Child.Post -> stringResource(MR.strings.action_post)
         is RootComponent.Child.Revisions -> stringResource(MR.strings.revisions_title)
         is RootComponent.Child.Compose -> stringResource(MR.strings.compose_new)
-        is RootComponent.Child.Profile -> stringResource(MR.strings.tab_profile)
         is RootComponent.Child.Settings -> stringResource(MR.strings.settings_title)
     }
     Main({

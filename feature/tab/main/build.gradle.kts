@@ -10,6 +10,7 @@ kotlin {
             api(projects.feature.tab.activity)
             api(projects.feature.tab.bookmarks)
             api(projects.feature.profile)
+            api(projects.feature.post)
         }
     }
 }

@@ -25,10 +25,8 @@ struct RootView: View {
         switch child {
         case is RootComponentChild.Auth: return strings.auth_title.text
         case is RootComponentChild.Main: return strings.tab_home.text
-        case is RootComponentChild.Post: return strings.action_post.text
         case is RootComponentChild.Revisions: return strings.revisions_title.text
         case is RootComponentChild.Compose: return strings.compose_new.text
-        case is RootComponentChild.Profile: return strings.tab_profile.text
         case is RootComponentChild.Settings: return strings.settings_title.text
         default: return strings.app_name.text
         }

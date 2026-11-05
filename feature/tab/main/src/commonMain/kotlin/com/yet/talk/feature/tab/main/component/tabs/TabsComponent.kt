@@ -1,4 +1,4 @@
-package com.yet.talk.feature.tab.main
+package com.yet.talk.feature.tab.main.component.tabs
 
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.ChildStack
@@ -13,10 +13,11 @@ import com.yet.talk.feature.tab.home.HomeComponent
 import com.yet.talk.feature.tab.search.SearchComponent
 
 /**
- * The bottom-bar tabs. Each tab keeps its state while another one is shown. On the web the active tab is
- * the URL (`/`, `/search`, `/activity`, `/bookmarks`, `/me`) without adding history entries.
+ * The tabs (bottom bar, web rail, Duo side column): the main panel of [com.yet.talk.feature.tab.main.MainComponent].
+ * Each tab keeps its state while another one is shown. On the web the active tab is the URL
+ * (`/`, `/search`, `/activity`, `/bookmarks`, `/me`) without adding history entries.
  */
-interface MainComponent : WebNavigationOwner {
+interface TabsComponent : WebNavigationOwner {
     val stack: Value<ChildStack<*, Child>>
 
     fun onTabClicked(tab: Tab)
@@ -35,7 +36,7 @@ interface MainComponent : WebNavigationOwner {
         class Profile(val component: ProfileComponent) : Child(Tab.Profile)
     }
 
-    /** Where the tabs lead: full-screen destinations that the root opens above the tabs. */
+    /** Where the tabs lead: a post or profile in the details panel, or a root destination. */
     sealed interface Output {
         data class OpenPost(val id: PostId) : Output
 
@@ -51,6 +52,6 @@ interface MainComponent : WebNavigationOwner {
     }
 
     fun interface Factory {
-        operator fun invoke(componentContext: ComponentContext, output: (Output) -> Unit): MainComponent
+        operator fun invoke(componentContext: ComponentContext, output: (Output) -> Unit): TabsComponent
     }
 }
