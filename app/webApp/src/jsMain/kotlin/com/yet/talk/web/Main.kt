@@ -1,0 +1,46 @@
+package com.yet.talk.web
+
+import com.arkivanov.decompose.DefaultComponentContext
+import com.arkivanov.decompose.router.webhistory.withWebHistory
+import com.arkivanov.essenty.lifecycle.LifecycleRegistry
+import com.arkivanov.essenty.lifecycle.resume
+import com.arkivanov.essenty.lifecycle.stop
+import com.yet.talk.di.createJsAppGraph
+import com.yet.talk.resources.MR
+import com.yet.talk.web.root.RootContent
+import com.yet.talk.web.theme.TalkTheme
+import kotlinx.browser.document
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.launch
+import org.jetbrains.compose.web.renderComposable
+
+fun main() {
+    val lifecycle = LifecycleRegistry()
+    val graph = createJsAppGraph()
+    // Binds the root's navigation to the browser history and restores it after a reload.
+    val root = withWebHistory { stateKeeper, deepLink ->
+        graph.rootComponentFactory(DefaultComponentContext(lifecycle = lifecycle, stateKeeper = stateKeeper), deepLink)
+    }
+    lifecycle.attachToDocument()
+
+    MainScope().launch {
+        // moko loads the strings file before the first frame.
+        val strings = MR.stringsLoader.getOrLoad()
+        renderComposable(rootElementId = "root") {
+            TalkTheme(strings) {
+                RootContent(root)
+            }
+        }
+    }
+}
+
+/** Resumed while the tab is visible, stopped while it is hidden. */
+private fun LifecycleRegistry.attachToDocument() {
+    fun onVisibilityChanged() {
+        // `Document.hidden` is missing from the Kotlin/JS DOM declarations.
+        val hidden = document.asDynamic().hidden as Boolean
+        if (hidden) stop() else resume()
+    }
+    onVisibilityChanged()
+    document.addEventListener("visibilitychange", { onVisibilityChanged() })
+}

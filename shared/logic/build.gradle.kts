@@ -34,15 +34,6 @@ kotlin {
             export(libs.moko.resources)
         }
     }
-    js {
-        outputModuleName = "sharedLogic"
-        binaries.library()
-        generateTypeScriptDefinitions()
-        compilerOptions {
-            target = "es2015"
-            optIn.add("kotlin.js.ExperimentalJsExport")
-        }
-    }
     android {
         // The convention derives "com.yet.talk" for root-level modules; the app already owns it.
         namespace = "com.yet.talk.sharedLogic"

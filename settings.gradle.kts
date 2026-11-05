@@ -31,6 +31,8 @@ dependencyResolutionManagement {
 
 include(":androidApp")
 project(":androidApp").projectDir = file("app/androidApp")
+include(":webApp")
+project(":webApp").projectDir = file("app/webApp")
 
 include(":sharedLogic")
 project(":sharedLogic").projectDir = file("shared/logic")

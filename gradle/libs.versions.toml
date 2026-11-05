@@ -40,6 +40,7 @@ mvi = "4.4.0"
 
 androidx-paging = "3.5.3"
 sqldelight = "2.4.1"
+sqlite-wasm = "3.54.1-build1"
 ksafe = "3.3.0"
 ktor = "3.6.1"
 secp256k1 = "0.24.0"
@@ -64,6 +65,8 @@ compose-material3 = { module = "org.jetbrains.compose.material3:material3", vers
 compose-material3-adaptive = { module = "org.jetbrains.compose.material3.adaptive:adaptive", version.ref = "material3Adaptive" }
 compose-ui = { module = "org.jetbrains.compose.ui:ui", version.ref = "composeMultiplatform" }
 compose-uiToolingPreview = { module = "org.jetbrains.compose.ui:ui-tooling-preview", version.ref = "composeMultiplatform" }
+# Web UI: Compose runtime over the DOM (no canvas)
+compose-html-core = { module = "org.jetbrains.compose.html:html-core", version.ref = "composeMultiplatform" }
 
 #moko-resources
 moko-resources = { module = "dev.icerock.moko:resources", version.ref = "mokoResources" }
