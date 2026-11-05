@@ -29,6 +29,9 @@ interface MainComponent : WebNavigationOwner {
     /** Reply or the reply count in the article, in two panes. */
     fun onShowReplies()
 
+    /** A navigation item (rail, bottom bar, side column): closes the details panel and shows the tab. */
+    fun onTabSelected(tab: TabsComponent.Tab)
+
     /** Opens a post in the details panel, replacing what it showed (used after publishing). */
     fun openPost(id: PostId)
 

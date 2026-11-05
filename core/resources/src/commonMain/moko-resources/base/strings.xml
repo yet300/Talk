@@ -68,12 +68,20 @@
     <string name="post_reposted_by">%s reposted</string>
     <string name="post_write_reply">Write a reply</string>
     <string name="post_delete_title">Delete this post?</string>
+    <string name="post_title">Post</string>
+    <string name="post_show_parent">Show the post this replies to</string>
+    <string name="post_copy_link">Copy link</string>
+    <string name="post_copy_address">Copy event address</string>
     <string name="post_delete_body">Relays are asked to delete it. Some may keep a copy.</string>
 
     <!-- Revisions -->
     <string name="revisions_title">Revisions</string>
     <string name="revisions_latest">Latest</string>
     <string name="revisions_number">Revision %d</string>
+    <string name="revisions_published">Published</string>
+    <string name="revisions_earlier">Earlier versions</string>
+    <string name="revisions_latest_hint">%s · Latest on your relays</string>
+    <string name="revisions_snapshot">%s · Read-only</string>
     <string name="revisions_published_version">Published version</string>
     <string name="revisions_read_only">Read-only</string>
     <string name="revisions_limited">This may not be the full history. Relays usually keep only the latest version.</string>
@@ -99,6 +107,7 @@
     <string name="compose_uploading">Uploading image…</string>
     <string name="compose_publishing">Publishing…</string>
     <string name="compose_length">%1$d / %2$d</string>
+    <string name="compose_images">Images</string>
 
     <!-- Profile -->
     <string name="profile_posts">Posts</string>
@@ -115,6 +124,7 @@
     <string name="search_people">People</string>
     <string name="search_posts">Posts</string>
     <string name="search_searching">Searching relays…</string>
+    <string name="search_idle">Search people and posts by name, words or tags.</string>
     <string name="search_empty">No results for “%s”</string>
 
     <!-- Activity -->
@@ -154,6 +164,10 @@
     <string name="settings_relay_placeholder">wss://</string>
     <string name="settings_add_relay">Add</string>
     <string name="settings_remove_relay">Remove %s</string>
+    <string name="settings_signer_local">Private key on this device</string>
+    <string name="relay_read_write">Read and write</string>
+    <string name="relay_read_only">Read only</string>
+    <string name="relay_write_only">Write only</string>
     <string name="settings_theme">Theme</string>
     <string name="theme_dark">Dark</string>
     <string name="theme_light">Light</string>

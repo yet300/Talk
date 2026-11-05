@@ -7,7 +7,9 @@ import com.arkivanov.decompose.router.stack.childStackWebNavigation
 import com.arkivanov.decompose.router.stack.StackNavigation
 import com.arkivanov.decompose.router.stack.childStack
 import com.arkivanov.decompose.router.stack.pop
+import com.arkivanov.decompose.router.stack.popWhile
 import com.arkivanov.decompose.router.stack.pushNew
+import com.arkivanov.decompose.router.stack.pushToFront
 import com.arkivanov.decompose.router.stack.replaceAll
 import com.arkivanov.decompose.router.webhistory.WebNavigation
 import com.arkivanov.decompose.value.Value
@@ -25,6 +27,7 @@ import com.yet.talk.feature.post.component.revisions.RevisionsComponent
 import com.yet.talk.feature.root.store.RootStoreFactory
 import com.yet.talk.feature.settings.SettingsComponent
 import com.yet.talk.feature.tab.main.MainComponent
+import com.yet.talk.feature.tab.main.component.tabs.TabsComponent
 import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
@@ -80,6 +83,15 @@ internal class DefaultRootComponent(
     }
 
     override fun onBack() = navigation.pop()
+
+    override fun onTabSelected(tab: TabsComponent.Tab) {
+        navigation.popWhile { it != Config.Main }
+        main?.onTabSelected(tab)
+    }
+
+    override fun onNewPost() = navigation.pushNew(Config.Compose.new())
+
+    override fun onOpenSettings() = navigation.pushToFront(Config.Settings)
 
     private fun child(config: Config, context: ComponentContext): RootComponent.Child =
         when (config) {

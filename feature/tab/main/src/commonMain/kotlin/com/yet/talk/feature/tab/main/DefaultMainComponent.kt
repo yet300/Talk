@@ -69,6 +69,11 @@ internal class DefaultMainComponent(
         if (state.mode.isTwoPane && state.details != null) reading.value = true
     }
 
+    override fun onTabSelected(tab: TabsComponent.Tab) {
+        navigation.dismissDetails()
+        configPanels.value.main.instance.onTabClicked(tab)
+    }
+
     override fun openPost(id: PostId) = showDetails(MainComponent.Link.Post(id))
 
     override fun openProfile(id: UserId) = showDetails(MainComponent.Link.Profile(id))

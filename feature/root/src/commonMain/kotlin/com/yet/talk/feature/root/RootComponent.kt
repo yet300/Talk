@@ -11,6 +11,7 @@ import com.yet.talk.feature.compose.ComposeComponent
 import com.yet.talk.feature.post.component.revisions.RevisionsComponent
 import com.yet.talk.feature.settings.SettingsComponent
 import com.yet.talk.feature.tab.main.MainComponent
+import com.yet.talk.feature.tab.main.component.tabs.TabsComponent
 
 /**
  * The app's root: sign-in when there is no account, otherwise [MainComponent] (tabs with posts and profiles
@@ -27,6 +28,15 @@ interface RootComponent : BackHandlerOwner, WebNavigationOwner {
 
     /** Pops the top destination (the platform's back gesture is handled by the stack itself). */
     fun onBack()
+
+    /** Navigation chrome shown above Main too (the web rail): back to Main on that tab. */
+    fun onTabSelected(tab: TabsComponent.Tab)
+
+    /** The rail's Compose button. */
+    fun onNewPost()
+
+    /** The rail's Settings item and identity row. */
+    fun onOpenSettings()
 
     sealed class Child {
         /** Until the saved key has been read. */

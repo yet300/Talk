@@ -65,6 +65,10 @@ class RootComponentTest {
             opened += id
         }
         override fun openProfile(id: UserId) = Unit
+        val tabs = mutableListOf<TabsComponent.Tab>()
+        override fun onTabSelected(tab: TabsComponent.Tab) {
+            tabs += tab
+        }
     }
 
     private val accounts = Accounts()
@@ -105,6 +109,12 @@ class RootComponentTest {
         assertIs<RootComponent.Child.Settings>(active)
         root.onBack()
         assertIs<RootComponent.Child.Main>(active)
+
+        root.onOpenSettings()
+        root.onNewPost()
+        root.onTabSelected(TabsComponent.Tab.Bookmarks)
+        assertIs<RootComponent.Child.Main>(active)
+        assertEquals(listOf(TabsComponent.Tab.Bookmarks), main!!.tabs)
 
         main!!.output(MainComponent.Output.NewPost)
         accounts.account.value = null
