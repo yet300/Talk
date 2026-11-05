@@ -16,26 +16,26 @@ Clean Architecture, SOLID, KISS, YAGNI. In practice:
 
 - Build only what a KarpathyTalk feature needs today. No speculative abstractions, NIPs or targets.
 - Dependencies point inward: `feature → core:domain ← data`. Features never see data or Nostr types.
-- Native UI per platform: Compose on Android, SwiftUI on iOS, React on web. All logic below the UI
-  (components, stores, use cases, repositories) is shared Kotlin.
+- Native UI per platform: Compose on Android, SwiftUI on iOS, Compose HTML (DOM, not canvas) on the web. All
+  logic below the UI (components, stores, use cases, repositories) is shared Kotlin.
 - One responsibility per module; a module exposes interfaces, not its implementation details.
 
 ## Platforms and modules
 
 | Gradle path | Directory | Role |
 |---|---|---|
-| `:androidApp` | `app/androidApp` | Android entry point (Compose) |
-| — | `app/iosApp` | iOS app (SwiftUI); links the `SharedLogic` framework |
-| — | `app/webApp` | Web app (React + Vite); consumes the `sharedLogic` JS library |
-| `:sharedLogic` | `shared/logic` | Composition root: the Metro graph (`AndroidAppGraph`, `IosAppGraph`) and the umbrella exported to iOS (`SharedLogic.framework`) and JS |
-| `:sharedUI` | `shared/ui` | Android Compose UI (Android-only on purpose) |
+| `:androidApp` | `app/androidApp` | Android entry point: `TalkApplication` owns the graph, `MainActivity` the retained root |
+| — | `app/iosApp` | iOS app (SwiftUI); links the `SharedLogic` framework. `AppDelegate` owns the graph and root; `Theme/`, `Decompose/` |
+| `:webApp` | `app/webApp` | Web app (Compose HTML, webpack): `Main.kt` wires the graph, `withWebHistory` and the theme |
+| `:sharedLogic` | `shared/logic` | Composition root: the Metro graph (`AndroidAppGraph`, `IosAppGraph`, `JsAppGraph`), `DomainError.toStringDesc()`, the umbrella exported to iOS (`SharedLogic.framework`) |
+| `:sharedUI` | `shared/ui` | Android Compose UI (Android-only on purpose, code in `androidMain`): `TalkTheme`, root content |
 | `:core:common` | `core/common` | Dispatchers, `Log` (Kermit), Decompose/MVIKotlin helpers, `StoreFactory` binding. Package `com.app.common` |
 | `:core:domain` | `core/domain` | Models, repository interfaces, `Pager`, `ContentRules`, `TrendingRanker`, use cases; pure Kotlin |
 | `:core:nostr` | `core/nostr` | Protocol only: NIP-01 events and ids, BIP-340 signing (libsecp256k1 on Android/iOS, `@noble/curves` on JS), NIP-19, `RelayClient`/`RelayPool`, NIP helpers |
 | `:core:api` | `core/api` | Talk schema (`TalkSchema`, `TalkEvents`, `TalkEvent`) and remote sources over `RelayClient`; Blossom, NIP-05 |
 | `:core:database` | `core/database` | SQLDelight cache (`TalkDatabase`), DAO interfaces + implementations, `SqlDriverFactory` per platform |
 | `:core:data` | `core/data` | Repository implementations, `Session` + KSafe key vault, `EventIngestor`, `FeedPaging` (Paging 3 + `RemoteMediator`), optimistic `Publisher` |
-| `:core:resources` | `core/resources` | moko-resources (`MR`, package `com.yet.talk.resources`) and platform helpers |
+| `:core:resources` | `core/resources` | moko-resources (`MR`, package `com.yet.talk.resources`): strings, plurals, light/dark colours, icons; `TalkTokens` (spacing, radii, sizes, type scale) |
 | `:feature:root` | `feature/root` | Root `ChildStack`: Splash, Auth, Main and the full-screen destinations above the tabs; `RootStore` swaps Auth/Main on sign-in |
 | `:feature:auth` | `feature/auth` | Sign in with a local key (create or import an `nsec`) |
 | `:feature:post` | `feature/post` | Two components: `component/post` (post, reply thread, actions) and `component/revisions` |
@@ -56,6 +56,7 @@ feature:root → feature:{auth,post,compose,profile,settings}
 every feature → core:domain, core:common
 core:data → core:domain, core:database, core:api → core:nostr
 sharedLogic → features (api, exported) + core:data (implementation, not exported)
+androidApp → sharedUI → sharedLogic;  webApp → sharedLogic;  iosApp → SharedLogic.framework
 ```
 
 Screens follow KarpathyTalk and the Claude Design file "Talk" (X design system). Post titles and
@@ -81,13 +82,36 @@ excerpts are derived from the markdown (`PostSummaries`), as in KarpathyTalk.
 - **iOS:** the SQLDelight native driver needs the system SQLite: `OTHER_LDFLAGS = -lsqlite3` in
   `app/iosApp/Configuration/Config.xcconfig`, and `linkerOpts("-lsqlite3")` in Kotlin modules that link native
   test binaries without the SQLDelight plugin (see `core/data/build.gradle.kts`).
-- **Web:** SQLite WASM (`@sqlite.org/sqlite-wasm`) in a module worker, persisted in OPFS (SAH pool, no COOP/COEP
-  needed; falls back to the plain OPFS VFS, then memory). The worker lives in
-  `core/database/src/jsMain/resources/sqlite/talk-sqlite.worker.mjs`; `app/webApp/scripts/copy-sqlite.mjs` copies it
-  and the WASM build into `public/sqlite/` before `npm start`/`npm run build`. It answers statements without result
+- **iOS resources:** `SharedLogic` is a static framework, so the Xcode build phase also runs
+  `:sharedLogic:copyFrameworkResourcesToApp` (moko copies `Talk.core:resources.bundle` into the app). In Swift,
+  qualify `SharedLogic.ColorResource` / `SharedLogic.ImageResource`: Xcode's asset symbols use the same names.
+- **Web:** SQLite WASM (`@sqlite.org/sqlite-wasm`, an npm dependency of `:webApp`) in a module worker, persisted in
+  OPFS (SAH pool, no COOP/COEP needed; falls back to the plain OPFS VFS, then memory). The worker lives in
+  `core/database/src/jsMain/resources/sqlite/talk-sqlite.worker.mjs`; the `copySqliteWasm` task of `:webApp` serves
+  it and the WASM build at `/sqlite/` (`<base href="/">` keeps that path absolute under routes like `/post/<id>`).
+  It answers statements without result
   columns with `db.changes()`, because `WebWorkerDriver` reads the changed-row count from `values[0][0]`. The schema is
   created and migrated by `PRAGMA user_version`. DAO and repository tests skip on JS (Node has no Web Worker/OPFS).
+- **Web routing:** Decompose `withWebHistory`; the root and `MainComponent` are `WebNavigationOwner`s (paths:
+  `/signin`, `/post/<id>`, `/post/<id>/revisions`, `/user/<id>`, `/settings`, `/compose`, tabs `/search`,
+  `/activity`, `/bookmarks`, `/me`). A shared link is the root factory's `deepLink`, opened above Main after sign-in.
+  The dev server falls back to `index.html` (`webpack.config.d/devServer.js`).
 - **Keys:** `KSafeKeyVault` is the only place the secret key is persisted. `SecretKey.toString()` is redacted.
+  Android backups are off (`allowBackup="false"`).
+
+## Resources and theme
+
+- One source for every platform: `core:resources` holds strings (`base/strings.xml`, `plurals.xml`), colours
+  (`colors/colors.xml`, `<light>`/`<dark>`, RRGGBBAA) and icons (`images/ic_*.svg`, the design's 24×24 stroke set,
+  tinted at use); `TalkTokens` holds the non-colour tokens. Values come from the Claude Design file "Talk"
+  (X design system `tokens.json`).
+- moko generates each resource as an extension property: import `com.yet.talk.resources.*` next to `MR`.
+- **Android:** `TalkTheme` maps the tokens onto Material 3 and adds `MaterialTheme.talkColors`, `.talkTypography`,
+  `.spacing`, `.sizes`, `.talkShapes`; `TalkIcon`, `TalkIcons`, `stringResource(MR.strings.x)`, `DomainError.message()`.
+- **iOS:** `TalkColor`, `TalkSpacing`, `TalkRadius`, `TalkSize`, `.talkTextStyle(_:)`, `TalkIcon`/`TalkIcons`,
+  `MR.strings.shared.x.text`, `DomainError.text`.
+- **Web:** `TalkCss` writes the tokens as CSS variables (`prefers-color-scheme`, or `data-theme` on `<html>`);
+  `TalkColor`, `TalkSpacing`, `TalkRadius`, `StyleScope.textStyle(...)`, `TalkIcon` (CSS mask), `stringResource`.
 
 ## Components and DI
 
@@ -116,10 +140,13 @@ excerpts are derived from the markdown (`PostSummaries`), as in KarpathyTalk.
   scope), not in the store. A component with no state of its own has no store (Activity).
 - Store tests use `DefaultStoreFactory`, `isAssertOnMainThreadEnabled = false` and `Dispatchers.setMain(...)`
   with hand-written fakes of the domain interfaces.
-- The platform apps get the graph from `createAndroidAppGraph()` / `IosAppGraphKt.createIosAppGraph()`
-  and create the root with `graph.rootComponentFactory(componentContext)` on the main thread.
+- The platform apps get the graph from `createAndroidAppGraph()` / `IosAppGraphKt.createIosAppGraph()` /
+  `createJsAppGraph()` and create the root with `graph.rootComponentFactory(componentContext, deepLink)` on the main
+  thread (Android: `retainedComponent`; iOS: `ApplicationLifecycle` + a `BackDispatcher`; web: `withWebHistory`).
+- `RootComponent` is a `BackHandlerOwner` (predictive back on Android via `predictiveBackAnimation`, swipe back on
+  iOS) and, with `MainComponent`, a `WebNavigationOwner`.
 
-KMP targets: Android, `iosArm64`, `iosSimulatorArm64`, `js` (browser library; tests run on Node).
+KMP targets: Android, `iosArm64`, `iosSimulatorArm64`, `js` (browser; tests run on Node).
 
 ## Build conventions (`build-logic/convention`)
 
@@ -146,13 +173,14 @@ Turbine, Mokkery.
 ```bash
 ./gradlew :androidApp:assembleDebug                         # Android app
 ./gradlew :sharedLogic:compileKotlinIosSimulatorArm64       # iOS compile check
-./gradlew :sharedLogic:jsBrowserDevelopmentLibraryDistribution  # JS library for the web app
+./gradlew :webApp:jsBrowserDevelopmentRun --continuous     # web app at http://localhost:8080
+./gradlew :webApp:jsBrowserDistribution                     # production web bundle (build/dist/js)
 ./gradlew :sharedLogic:testAndroidHostTest :sharedLogic:jsTest :sharedLogic:iosSimulatorArm64Test
 ./gradlew kotlinUpgradeYarnLock                             # after npm dependencies change
-npm run start                                               # web app (builds sharedLogic first)
 ```
 
-iOS: open `app/iosApp/iosApp.xcodeproj`; the build phase runs `:sharedLogic:embedAndSignAppleFrameworkForXcode`.
+iOS: open `app/iosApp/iosApp.xcodeproj`; the build phase runs `:sharedLogic:embedAndSignAppleFrameworkForXcode`
+and `:sharedLogic:copyFrameworkResourcesToApp`.
 
 ## Rules for agents
 
