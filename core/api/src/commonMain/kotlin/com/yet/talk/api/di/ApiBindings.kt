@@ -8,6 +8,8 @@ import com.yet.talk.api.source.post.PostRemoteSource
 import com.yet.talk.api.source.post.RelayPostRemoteSource
 import com.yet.talk.api.source.publish.PublishRemoteSource
 import com.yet.talk.api.source.publish.RelayPublishRemoteSource
+import com.yet.talk.api.source.search.RelaySearchRemoteSource
+import com.yet.talk.api.source.search.SearchRemoteSource
 import com.yet.talk.api.source.social.RelaySocialRemoteSource
 import com.yet.talk.api.source.social.SocialRemoteSource
 import dev.zacsweers.metro.AppScope
@@ -38,4 +40,7 @@ abstract class ApiBindings {
 
     @Binds
     internal abstract val Nip05Client.bindNip05Verifier: Nip05Verifier
+
+    @Binds
+    internal abstract val RelaySearchRemoteSource.bindSearchRemoteSource: SearchRemoteSource
 }

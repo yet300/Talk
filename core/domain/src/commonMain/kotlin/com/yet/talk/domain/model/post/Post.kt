@@ -1,6 +1,7 @@
 package com.yet.talk.domain.model.post
 
 import com.yet.talk.domain.model.user.User
+import com.yet.talk.domain.rule.PostSummaries
 import kotlin.time.Instant
 
 data class Post(
@@ -20,4 +21,7 @@ data class Post(
     val stats: PostStats,
     val viewer: ViewerState,
     val publishState: PublishState,
-)
+) {
+    /** Title, excerpt, tags and reading time for cards; computed once per instance. */
+    val summary: PostSummary by lazy { PostSummaries.of(content) }
+}

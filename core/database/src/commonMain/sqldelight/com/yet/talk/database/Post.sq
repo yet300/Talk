@@ -184,3 +184,14 @@ SELECT v.*,
 FROM tree
 JOIN post_with_stats v ON v.id = tree.id
 ORDER BY v.created_at, v.id;
+
+-- Local full-text match for search (works offline); :pattern is a LIKE pattern with '\' as escape.
+searchPosts:
+SELECT v.*,
+    EXISTS (SELECT 1 FROM reaction r WHERE r.post_id = v.id AND r.user = :viewer AND r.type = 'like') AS viewer_liked,
+    EXISTS (SELECT 1 FROM reaction r WHERE r.post_id = v.id AND r.user = :viewer AND r.type = 'repost') AS viewer_reposted,
+    EXISTS (SELECT 1 FROM bookmark own WHERE own.post_id = v.id AND own.owner = :viewer) AS viewer_bookmarked
+FROM post_with_stats v
+WHERE v.deleted = 0 AND v.content LIKE :pattern ESCAPE '\'
+ORDER BY v.created_at DESC, v.id DESC
+LIMIT :limit;

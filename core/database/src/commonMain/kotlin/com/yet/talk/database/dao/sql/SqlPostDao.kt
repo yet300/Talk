@@ -107,4 +107,7 @@ internal class SqlPostDao(
                 RevisionRecord(id, post, number.toInt(), content, images, createdAt)
             }
         }
+
+    override fun observeSearch(text: String, viewer: String, limit: Int): Flow<List<PostRecord>> =
+        holder.observeList(dispatchers.io) { postQueries.searchPosts(viewer, likePattern(text), limit.toLong(), ::postRecord) }
 }

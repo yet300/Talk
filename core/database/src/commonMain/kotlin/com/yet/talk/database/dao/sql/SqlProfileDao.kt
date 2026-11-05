@@ -27,4 +27,11 @@ internal class SqlProfileDao(private val holder: DatabaseHolder, private val dis
                 ProfileRecord(key, name, displayName, about, picture, website, nip05, updatedAt)
             }
         }
+
+    override fun observeSearch(text: String, limit: Int): Flow<List<ProfileRecord>> =
+        holder.observeList(dispatchers.io) {
+            profileQueries.searchProfiles(likePattern(text), limit.toLong()) { key, name, displayName, about, picture, website, nip05, updatedAt ->
+                ProfileRecord(key, name, displayName, about, picture, website, nip05, updatedAt)
+            }
+        }
 }

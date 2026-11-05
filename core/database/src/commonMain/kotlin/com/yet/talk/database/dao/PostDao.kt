@@ -36,4 +36,7 @@ interface PostDao {
     fun observeThread(rootId: String, viewer: String): Flow<List<PostRecord>>
 
     fun observeRevisions(postId: String): Flow<List<RevisionRecord>>
+
+    /** Posts and replies whose markdown contains [text], newest first. */
+    fun observeSearch(text: String, viewer: String, limit: Int): Flow<List<PostRecord>>
 }

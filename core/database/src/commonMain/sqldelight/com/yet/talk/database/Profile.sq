@@ -21,3 +21,9 @@ WHERE pubkey = :pubkey AND updated_at < :updatedAt;
 
 selectByPubkey:
 SELECT * FROM profile WHERE pubkey = ?;
+
+searchProfiles:
+SELECT * FROM profile
+WHERE name LIKE :pattern ESCAPE '\' OR display_name LIKE :pattern ESCAPE '\' OR nip05 LIKE :pattern ESCAPE '\'
+ORDER BY updated_at DESC
+LIMIT :limit;

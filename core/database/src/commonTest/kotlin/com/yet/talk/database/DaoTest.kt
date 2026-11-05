@@ -202,6 +202,18 @@ class DaoTest {
     }
 
     @Test
+    fun searchMatchesContentAndProfilesLiterally() = dbTest { dao ->
+        dao.profiles.upsert(ProfileRecord(ALICE, "alice", "Alice Relay", null, null, null, "alice@relay.dev", 1))
+        dao.posts.insert(post("a").copy(content = "Notes on relay pools"))
+        dao.posts.insert(post("b").copy(content = "100% sure about this"))
+        dao.posts.insert(post("c").copy(content = "1000 reasons"))
+
+        assertEquals(listOf("a"), dao.posts.observeSearch("RELAY", "", 10).first().map { it.id })
+        assertEquals(listOf("b"), dao.posts.observeSearch("0%", "", 10).first().map { it.id }, "% is literal")
+        assertEquals(listOf(ALICE), dao.profiles.observeSearch("relay", 10).first().map { it.pubkey })
+    }
+
+    @Test
     fun profilesKeepTheNewestVersion() = dbTest { dao ->
         dao.profiles.upsert(ProfileRecord(ALICE, "new", null, null, null, null, null, updatedAt = 10))
         dao.profiles.upsert(ProfileRecord(ALICE, "old", null, null, null, null, null, updatedAt = 5))
