@@ -17,6 +17,7 @@ kotlin {
         minSdk = libs.versions.android.minSdk.get().toInt()
         compilerOptions {
             jvmTarget = JvmTarget.JVM_17
+            optIn.add("com.arkivanov.decompose.ExperimentalDecomposeApi")
         }
         androidResources {
             enable = true
@@ -31,14 +32,13 @@ kotlin {
         }
     }
     sourceSets {
+        // Android-only module: the UI lives in androidMain so it can use Android resources directly.
         androidMain.dependencies {
+            api(projects.sharedLogic)
+            implementation(libs.decompose.compose)
+            implementation(libs.androidx.lifecycle.runtimeCompose)
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.compose.uiTooling)
-        }
-        commonMain.dependencies {
-            api(projects.sharedLogic)
-            implementation(libs.compose.uiToolingPreview)
-            implementation(libs.androidx.lifecycle.runtimeCompose)
         }
         commonTest.dependencies {
             implementation(libs.bundles.testing)
