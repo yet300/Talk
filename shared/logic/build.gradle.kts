@@ -1,6 +1,8 @@
 plugins {
     alias(libs.plugins.local.kotlin.multiplatform)
     alias(libs.plugins.metro)
+    // Packs the resources of every module into the iOS framework (copyFrameworkResourcesToApp in Xcode).
+    alias(libs.plugins.mokoResources)
 }
 
 kotlin {
@@ -70,6 +72,7 @@ kotlin {
             api(libs.essenty.lifecycle)
             api(libs.essenty.stateKeeper)
             api(libs.essenty.backHandler)
+            api(libs.moko.resources)
             // Not exported: contribute bindings to the app graph, which provides their platform parts.
             implementation(projects.core.data)
             implementation(projects.core.database)
@@ -93,4 +96,8 @@ kotlin {
             implementation(libs.kotlin.testJunit)
         }
     }
+}
+
+multiplatformResources {
+    resourcesPackage.set("com.yet.talk.shared")
 }
