@@ -11,6 +11,7 @@ import com.yet.talk.resources.*
 import com.yet.talk.web.browser.copyToClipboard
 import com.yet.talk.web.ui.components.DropdownMenu
 import com.yet.talk.web.ui.components.IconButton
+import com.yet.talk.web.ui.components.LocalToaster
 import com.yet.talk.web.ui.components.MenuItem
 import com.yet.talk.web.ui.theme.TalkIcons
 import com.yet.talk.web.ui.theme.stringResource
@@ -24,7 +25,9 @@ fun MoreActions(post: Post, model: PostComponent.Model, component: PostComponent
     val copy = stringResource(MR.strings.post_copy_link)
     val edit = stringResource(MR.strings.action_edit)
     val delete = stringResource(MR.strings.action_delete)
-    Div({ classes("t-menu-anchor") }) {
+    val toaster = LocalToaster.current
+    val linkCopied = stringResource(MR.strings.toast_link_copied)
+    Div({ classes("t-menu-host") }) {
         IconButton(TalkIcons.More, stringResource(MR.strings.action_more), onClick = { open = !open }, attrs = {
             attr("aria-haspopup", "menu")
             attr("aria-expanded", open.toString())
@@ -33,7 +36,7 @@ fun MoreActions(post: Post, model: PostComponent.Model, component: PostComponent
             DropdownMenu(
                 items = buildList {
                     add(MenuItem(quote) { component.onQuote(post) })
-                    add(MenuItem(copy) { copyToClipboard(model.shareLink) })
+                    add(MenuItem(copy) { copyToClipboard(model.shareLink); toaster.show(linkCopied) })
                     if (model.isMine) {
                         add(MenuItem(edit) { component.onEdit() })
                         add(MenuItem(delete, destructive = true, onClick = onDelete))

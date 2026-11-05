@@ -21,7 +21,7 @@ import com.yet.talk.web.ui.theme.stringResource
 fun BookmarksContent(component: BookmarksComponent) {
     val model by component.model.subscribeAsState()
     val posts = component.posts.collectAsPagingItems()
-    val actions = PostActionHandlers(component::onReply, component::onRepost, component::onLike, component::onBookmark)
+    val actions = PostActionHandlers(component::onReply, component::onRepost, component::onLike, component::onBookmark, component::onOpenRevisions)
 
     TopBar(stringResource(MR.strings.bookmarks_title))
     model.error?.let { ErrorRow(it, onDismiss = component::onErrorShown) }

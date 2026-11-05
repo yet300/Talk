@@ -24,7 +24,7 @@ import org.w3c.dom.HTMLElement
 @Composable
 fun SearchContent(component: SearchComponent) {
     val model by component.model.subscribeAsState()
-    val actions = PostActionHandlers(component::onReply, component::onRepost, component::onLike, component::onBookmark)
+    val actions = PostActionHandlers(component::onReply, component::onRepost, component::onLike, component::onBookmark, component::onOpenRevisions)
 
     Header({ classes("t-bar", "t-bar-sticky", "t-search-bar") }) {
         SearchField(model.query, component::onQueryChanged, stringResource(MR.strings.search_placeholder), id = "search")

@@ -21,7 +21,7 @@ import com.yet.talk.web.ui.theme.stringResource
 fun ProfileContent(component: ProfileComponent) {
     val model by component.model.subscribeAsState()
     val posts = component.posts.collectAsPagingItems()
-    val actions = PostActionHandlers(component::onReply, component::onRepost, component::onLike, component::onBookmark)
+    val actions = PostActionHandlers(component::onReply, component::onRepost, component::onLike, component::onBookmark, component::onOpenRevisions)
 
     TopBar(
         title = model.user?.displayLabel ?: stringResource(MR.strings.tab_profile),

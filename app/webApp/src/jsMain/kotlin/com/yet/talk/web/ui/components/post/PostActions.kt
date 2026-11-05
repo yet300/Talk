@@ -20,6 +20,8 @@ class PostActionHandlers(
     val onRepost: (Post) -> Unit,
     val onLike: (Post) -> Unit,
     val onBookmark: (Post) -> Unit,
+    /** "Edited" next to the time. */
+    val onOpenRevisions: (Post) -> Unit,
 )
 
 /** The card's action row (`x-actions`): Reply, Repost (green when reposted), Like (pink, filled), Bookmark (blue, filled). */

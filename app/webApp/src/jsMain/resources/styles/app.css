@@ -21,19 +21,18 @@
 .t-skel-100{width:100%;height:12px}
 .t-skel-92{width:92%;height:12px}
 
-/* More actions: dropdown under its button */
-.t-menu-anchor{position:relative}
-.t-menu-backdrop{position:fixed;inset:0;z-index:299}
-.t-menu{position:absolute;right:0;top:100%;z-index:300}
+/* More actions: the design's .t-menu-host / .t-menu-anchor / .x-menu; a click outside closes it. */
+.t-menu-backdrop{position:fixed;inset:0;z-index:5}
 .t-menu-item{all:unset;display:block;box-sizing:border-box;width:100%;padding:var(--space-md) var(--space-lg);font-weight:700;cursor:pointer}
 .t-menu-item:hover,.t-menu-item:focus-visible{background:var(--elevated)}
-.t-danger{color:var(--error-red)}
 
-/* Confirm dialog */
-.t-dialog-scrim{position:fixed;inset:0;z-index:500;padding:var(--space-lg)}
-.t-dialog{width:320px;max-width:100%;display:flex;flex-direction:column;gap:var(--space-md);padding:var(--space-2xl)}
-.t-dialog-actions{display:flex;flex-direction:column;gap:var(--space-md);margin-top:var(--space-sm)}
-.t-btn-danger{background:var(--error-red);color:#FFFFFF}
+/* The canvas positions dialogs and toasts inside an artboard (absolute); a page needs them fixed. */
+.t-layer{position:fixed;z-index:500;padding:var(--space-lg)}
+.t-toast-wrap{position:fixed;bottom:var(--space-3xl);z-index:600}
+.t-phone-page .t-toast-wrap{bottom:calc(var(--capsule-height) + var(--capsule-offset) + var(--space-lg))}
+.t-btn-44{height:44px}
+.t-edit-note{margin:0;padding:var(--space-sm) var(--space-lg);border-bottom:1px solid var(--border)}
+.t-edited{min-height:0;color:var(--text-secondary);font-size:inherit}
 
 /* Reader: author row, quoted post, reply composer */
 .t-author{display:flex;align-items:center;gap:var(--space-md);padding:0 var(--space-lg) var(--space-lg)}
@@ -58,7 +57,7 @@
 
 /* Settings extras */
 .t-key{display:flex;flex-direction:column;gap:var(--space-sm);padding:var(--space-md) var(--space-lg);border-bottom:1px solid var(--border)}
-.t-key code{font-family:var(--mono);font-size:13px;word-break:break-all;background:var(--surface);padding:var(--space-sm);border-radius:var(--radius-control)}
+.t-mono-box{word-break:break-all}
 .t-row-actions{display:flex;gap:var(--space-sm)}
 
 /* Sign in page */

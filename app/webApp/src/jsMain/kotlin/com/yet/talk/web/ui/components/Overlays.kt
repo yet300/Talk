@@ -21,7 +21,8 @@ data class MenuItem(val label: String, val destructive: Boolean = false, val onC
 @Composable
 fun DropdownMenu(items: List<MenuItem>, onDismiss: () -> Unit) {
     Div({ classes("t-menu-backdrop"); onClick { it.stopPropagation(); onDismiss() } })
-    Div({ classes("x-menu", "t-menu"); attr("role", "menu") }) {
+    Div({ classes("t-menu-anchor") }) {
+    Div({ classes("x-menu"); attr("role", "menu") }) {
         items.forEach { item ->
             Button({
                 classes("x-menu-item", "t-menu-item")
@@ -32,9 +33,13 @@ fun DropdownMenu(items: List<MenuItem>, onDismiss: () -> Unit) {
             }) { Text(item.label) }
         }
     }
+    }
 }
 
-/** A confirmation (`x-scrim` + `x-modal`), e.g. before deleting a post. */
+/**
+ * A confirmation (`ConfirmDialog`: `x-scrim` + `x-modal`), e.g. before deleting a post or signing out; [extra]
+ * sits between the text and the buttons (the Sign out dialog's Show private key).
+ */
 @Composable
 fun ConfirmDialog(
     title: String,
@@ -43,8 +48,9 @@ fun ConfirmDialog(
     onConfirm: () -> Unit,
     onDismiss: () -> Unit,
     destructive: Boolean = true,
+    extra: (@Composable () -> Unit)? = null,
 ) {
-    Div({ classes("x-scrim", "t-dialog-scrim"); onClick { onDismiss() } }) {
+    Div({ classes("x-scrim", "t-layer"); onClick { onDismiss() } }) {
         Div({
             classes("x-modal", "t-dialog")
             attr("role", "alertdialog")
@@ -52,15 +58,14 @@ fun ConfirmDialog(
             onClick { it.stopPropagation() }
         }) {
             H2({ classes("t-h1", "t-flush") }) { Text(title) }
-            P({ classes("t-muted") }) { Text(body) }
-            Div({ classes("t-dialog-actions") }) {
-                Button({
-                    classes("x-btn", if (destructive) "t-btn-danger" else "x-btn-primary")
-                    type(ButtonType.Button)
-                    onClick { onConfirm() }
-                }) { Text(confirm) }
-                TalkButton(stringResource(MR.strings.action_cancel), onDismiss, ButtonStyle.Secondary)
-            }
+            P({ classes("t-muted", "t-flush") }) { Text(body) }
+            extra?.invoke()
+            Button({
+                classes("x-btn", "t-btn-44", if (destructive) "t-btn-danger" else "x-btn-primary")
+                type(ButtonType.Button)
+                onClick { onConfirm() }
+            }) { Text(confirm) }
+            TalkButton(stringResource(MR.strings.action_cancel), onDismiss, ButtonStyle.Secondary, attrs = { classes("t-btn-44") })
         }
     }
 }

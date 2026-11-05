@@ -7,7 +7,10 @@ import com.yet.talk.resources.*
 import com.yet.talk.web.ui.components.Avatar
 import com.yet.talk.web.ui.theme.stringResource
 import com.yet.talk.web.ui.theme.text
+import org.jetbrains.compose.web.attributes.ButtonType
+import org.jetbrains.compose.web.attributes.type
 import org.jetbrains.compose.web.dom.A
+import org.jetbrains.compose.web.dom.Button
 import org.jetbrains.compose.web.dom.Article
 import org.jetbrains.compose.web.dom.Div
 import org.jetbrains.compose.web.dom.H2
@@ -37,7 +40,7 @@ fun PostCard(
     }) {
         Avatar(post.author, onClick = { onOpenAuthor(post) })
         Div({ classes("x-post-body") }) {
-            PostHead(post)
+            PostHead(post, onEdited = { actions.onOpenRevisions(post) })
             H2({ classes("t-card-title") }) {
                 A(href = "/post/${post.id.value}", attrs = { onClick { it.preventDefault(); it.stopPropagation(); onOpen(post) } }) {
                     Text(summary.title)
@@ -55,16 +58,36 @@ fun PostCard(
     }
 }
 
-/** `Name handle · time`, plus Sending… / Not sent while the post is not on relays yet. */
+/**
+ * `Name handle · time`, "· Edited" for an edited post (a link to its revisions when [onEdited] is set), and
+ * Sending… / Not sent while the post is not on relays yet.
+ */
 @Composable
-fun PostHead(post: Post) {
+fun PostHead(post: Post, onEdited: (() -> Unit)? = null) {
     Div({ classes("x-post-head") }) {
         Span({ classes("x-name") }) { Text(post.author.displayLabel) }
         Span({ classes("x-handle") }) { Text("${post.author.handle} · ${post.createdAt.toRelativeDesc().text()}") }
+        if (post.editedAt != null) EditedMark(onEdited)
         when (post.publishState) {
             PublishState.Pending -> Span({ classes("t-caption") }) { Text(stringResource(MR.strings.post_pending)) }
             PublishState.Failed -> Span({ classes("x-alert", "t-caption") }) { Text(stringResource(MR.strings.post_failed)) }
             PublishState.Published -> Unit
         }
+    }
+}
+
+/** "· Edited": opens the post's revisions where it can. */
+@Composable
+fun EditedMark(onEdited: (() -> Unit)?) {
+    val label = stringResource(MR.strings.post_edited)
+    Span({ classes("x-handle") }) { Text("·") }
+    if (onEdited == null) {
+        Span({ classes("x-handle") }) { Text(label) }
+    } else {
+        Button({
+            classes("t-text-btn", "t-edited")
+            type(ButtonType.Button)
+            onClick { it.stopPropagation(); onEdited() }
+        }) { Text(label) }
     }
 }

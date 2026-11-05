@@ -11,7 +11,9 @@ import com.yet.talk.web.ui.components.Avatar
 import com.yet.talk.web.ui.components.ButtonStyle
 import com.yet.talk.web.ui.components.TalkButton
 import com.yet.talk.web.ui.components.markdown.Markdown
+import com.yet.talk.web.ui.components.LocalToaster
 import com.yet.talk.web.ui.components.post.ActionButton
+import com.yet.talk.web.ui.components.post.EditedMark
 import com.yet.talk.web.ui.components.post.PostHead
 import com.yet.talk.web.ui.theme.TalkIcon
 import com.yet.talk.web.ui.theme.TalkIcons
@@ -49,6 +51,8 @@ fun Article(post: Post, model: PostComponent.Model, component: PostComponent) {
         model.quoted?.let { QuotedPost(it, onOpen = { component.onOpenPost(it.id) }) }
         Div({ classes("t-article-body") }) { Markdown(body) }
         val copyLabel = stringResource(MR.strings.post_copy_address)
+        val toaster = LocalToaster.current
+        val linkCopied = stringResource(MR.strings.toast_link_copied)
         Div({ classes("t-article-footer") }) {
             if (post.summary.tags.isNotEmpty()) {
                 Div({ classes("t-tags", "t-flush") }) { post.summary.tags.forEach { Span { Text("#$it") } } }
@@ -57,7 +61,7 @@ fun Article(post: Post, model: PostComponent.Model, component: PostComponent) {
                 classes("x-action", "t-caption", "t-copy-id")
                 type(ButtonType.Button)
                 attr("aria-label", copyLabel)
-                onClick { copyToClipboard(model.shareLink) }
+                onClick { copyToClipboard(model.shareLink); toaster.show(linkCopied) }
             }) {
                 TalkIcon(TalkIcons.Copy, size = 18f)
                 Text(model.shareLink.shortNpub())
@@ -72,8 +76,9 @@ private fun AuthorRow(post: Post, model: PostComponent.Model, component: PostCom
         Avatar(post.author, onClick = { component.onOpenAuthor(post.author.id) })
         Div({ classes("t-grow") }) {
             Div({ classes("x-name") }) { Text(post.author.displayLabel) }
-            Div({ classes("t-caption") }) {
+            Div({ classes("t-caption", "x-post-head") }) {
                 Text(listOf(post.author.handle, post.createdAt.toDateText(), stringResource(MR.strings.post_read_time, post.summary.readMinutes)).joinToString(" · "))
+                if (post.editedAt != null) EditedMark(onEdited = component::onOpenRevisions)
             }
         }
         if (!model.isMine) {
@@ -108,7 +113,11 @@ private fun ActionRow(post: Post, model: PostComponent.Model, component: PostCom
             stringResource(if (post.viewer.bookmarked) MR.strings.action_remove_bookmark else MR.strings.action_bookmark),
             activeClass = "t-on-blue".takeIf { post.viewer.bookmarked },
         ) { component.onBookmark(post) }
-        ActionButton("x-share", TalkIcons.Share, null, stringResource(MR.strings.action_share)) { shareOrCopy(model.shareLink) }
+        val toaster = LocalToaster.current
+        val linkCopied = stringResource(MR.strings.toast_link_copied)
+        ActionButton("x-share", TalkIcons.Share, null, stringResource(MR.strings.action_share)) {
+            if (!shareOrCopy(model.shareLink)) toaster.show(linkCopied)
+        }
         ActionButton("x-share", TalkIcons.History, null, stringResource(MR.strings.action_revisions)) { component.onOpenRevisions() }
     }
 }

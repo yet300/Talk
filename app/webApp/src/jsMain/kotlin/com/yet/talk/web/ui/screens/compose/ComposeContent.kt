@@ -3,6 +3,11 @@ package com.yet.talk.web.ui.screens.compose
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import com.yet.talk.feature.compose.ComposeComponent
+import com.yet.talk.feature.compose.ComposeMode
+import com.yet.talk.resources.*
+import com.yet.talk.web.ui.theme.stringResource
+import org.jetbrains.compose.web.dom.P
+import org.jetbrains.compose.web.dom.Text
 import com.yet.talk.web.decompose.subscribeAsState
 import com.yet.talk.web.ui.components.ErrorRow
 import com.yet.talk.web.ui.screens.compose.component.EditorBar
@@ -21,6 +26,9 @@ fun ComposeContent(component: ComposeComponent) {
     val model by component.model.subscribeAsState()
     Div({ classes("t-part", "t-composer", "t-composer-page") }) {
         EditorBar(model, component)
+        if (model.mode is ComposeMode.Edit) {
+            P({ classes("t-caption", "t-edit-note") }) { Text(stringResource(MR.strings.compose_edit_note)) }
+        }
         model.error?.let { ErrorRow(it, onDismiss = component::onErrorShown, onRetry = component::onPublish.takeIf { model.canPublish }) }
         model.target?.let { TargetPreview(model.mode, it) }
         if (model.images.isNotEmpty()) ImageStrip(model.images, component::onRemoveImage)

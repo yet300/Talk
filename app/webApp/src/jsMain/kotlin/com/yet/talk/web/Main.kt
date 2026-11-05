@@ -9,6 +9,7 @@ import com.yet.talk.di.createJsAppGraph
 import com.yet.talk.resources.MR
 import androidx.compose.runtime.getValue
 import com.yet.talk.web.decompose.subscribeAsState
+import com.yet.talk.web.ui.components.ToastHost
 import com.yet.talk.web.ui.root.RootContent
 import com.yet.talk.web.ui.theme.TalkTheme
 import kotlinx.browser.document
@@ -31,7 +32,7 @@ fun main() {
         renderComposable(rootElementId = "root") {
             val theme by root.theme.subscribeAsState()
             TalkTheme(strings, theme) {
-                RootContent(root)
+                ToastHost { RootContent(root) }
             }
         }
     }
