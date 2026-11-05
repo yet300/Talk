@@ -10,6 +10,7 @@ import com.yet.talk.database.dao.ReactionDao
 import com.yet.talk.database.dao.RelayListDao
 import com.yet.talk.database.dao.SyncDao
 import com.yet.talk.database.dao.TrendingDao
+import com.yet.talk.database.dao.Transactor
 import com.yet.talk.database.dao.sql.SqlActivityDao
 import com.yet.talk.database.dao.sql.SqlBookmarkDao
 import com.yet.talk.database.dao.sql.SqlFollowDao
@@ -19,6 +20,7 @@ import com.yet.talk.database.dao.sql.SqlProfileDao
 import com.yet.talk.database.dao.sql.SqlReactionDao
 import com.yet.talk.database.dao.sql.SqlRelayListDao
 import com.yet.talk.database.dao.sql.SqlSyncDao
+import com.yet.talk.database.dao.sql.SqlTransactor
 import com.yet.talk.database.dao.sql.SqlTrendingDao
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.BindingContainer
@@ -63,4 +65,7 @@ abstract class DatabaseBindings {
 
     @Binds
     internal abstract val SqlMaintenanceDao.bindMaintenanceDao: MaintenanceDao
+
+    @Binds
+    internal abstract val SqlTransactor.bindTransactor: Transactor
 }

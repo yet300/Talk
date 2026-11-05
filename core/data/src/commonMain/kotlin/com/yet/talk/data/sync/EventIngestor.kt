@@ -1,6 +1,7 @@
 package com.yet.talk.data.sync
 
 import com.yet.talk.api.schema.TalkEvent
+import com.yet.talk.data.paging.FeedKeys
 import com.yet.talk.data.mapper.toImagesJson
 import com.yet.talk.database.dao.BookmarkDao
 import com.yet.talk.database.dao.FollowDao
@@ -8,6 +9,8 @@ import com.yet.talk.database.dao.PostDao
 import com.yet.talk.database.dao.ProfileDao
 import com.yet.talk.database.dao.ReactionDao
 import com.yet.talk.database.dao.RelayListDao
+import com.yet.talk.database.dao.SyncDao
+import com.yet.talk.database.dao.Transactor
 import com.yet.talk.database.model.NewPostRecord
 import com.yet.talk.database.model.ProfileRecord
 import com.yet.talk.database.model.PublishStates
@@ -29,9 +32,17 @@ internal class EventIngestor(
     private val follows: FollowDao,
     private val bookmarks: BookmarkDao,
     private val relayLists: RelayListDao,
+    private val syncDao: SyncDao,
+    private val transactor: Transactor,
 ) {
-    /** Returns how many posts were new. Posts go first so revisions can be checked against their author. */
-    suspend fun ingest(events: List<TalkEvent>, publishState: String = PublishStates.PUBLISHED): Int {
+    /**
+     * Returns how many posts were new. One transaction for the whole batch. Posts go first so
+     * revisions can be checked against their author.
+     */
+    suspend fun ingest(events: List<TalkEvent>, publishState: String = PublishStates.PUBLISHED): Int =
+        if (events.isEmpty()) 0 else transactor.inTransaction { store(events, publishState) }
+
+    private suspend fun store(events: List<TalkEvent>, publishState: String): Int {
         var newPosts = 0
         events.filterIsInstance<TalkEvent.Post>().forEach { if (ingestPost(it, publishState)) newPosts++ }
         events.forEach { event ->
@@ -54,7 +65,10 @@ internal class EventIngestor(
                     posts.markDeleted(event.eventIds, author = event.event.pubkey)
                     reactions.delete(event.eventIds, user = event.event.pubkey)
                 }
-                is TalkEvent.Contacts -> follows.replace(event.event.pubkey, event.pubkeys, event.event.createdAt)
+                // Someone else is followed now: the Following feed's remote cursor no longer covers them.
+                is TalkEvent.Contacts -> if (follows.replace(event.event.pubkey, event.pubkeys, event.event.createdAt)) {
+                    syncDao.reset(FeedKeys.following(event.event.pubkey))
+                }
                 is TalkEvent.Bookmarks -> bookmarks.replace(event.event.pubkey, event.eventIds, event.event.createdAt)
                 is TalkEvent.RelayList -> relayLists.replace(
                     event.event.pubkey,

@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.currentTime
 import kotlinx.coroutines.test.runCurrent
@@ -28,7 +29,7 @@ class RelayPoolTest {
         signer.sign(EventTemplate(kind = 1, content = content, createdAt = createdAt))
 
     private fun TestScope.pool(vararg relays: Pair<String, FakeRelay>) =
-        RelayPool(FakeTransport(relays.toMap()), backgroundScope)
+        RelayPool(FakeTransport(relays.toMap()), backgroundScope, verifyDispatcher = UnconfinedTestDispatcher(testScheduler))
 
     @Test
     fun queryMergesRelaysDeduplicatesAndSortsNewestFirst() = runTest {
@@ -57,6 +58,33 @@ class RelayPoolTest {
         val pool = pool("wss://a" to FakeRelay(listOf(event)))
 
         assertEquals(listOf(event), pool.query(filter, listOf("wss://a", "wss://down")))
+    }
+
+    @Test
+    fun queryDoesNotWaitForAnUnreachableRelay() = runTest {
+        val event = note("x", 1)
+        val pool = pool("wss://a" to FakeRelay(listOf(event)))
+
+        assertEquals(listOf(event), pool.query(filter, listOf("wss://a", "wss://down")))
+        assertTrue(currentTime < 1_000, "an unreachable relay ends its part of the query at once")
+        assertEquals(setOf("wss://down"), pool.publish(event, listOf("wss://down")).noAnswer)
+        assertTrue(currentTime < 1_000, "publishing does not wait for the timeout either")
+    }
+
+    @Test
+    fun aRelayThatComesBackGetsNoBacklog() = runTest {
+        val relay = FakeRelay()
+        val transport = FakeTransport(mapOf("wss://a" to relay)).apply { down = setOf("wss://a") }
+        val pool = RelayPool(transport, backgroundScope, verifyDispatcher = UnconfinedTestDispatcher(testScheduler))
+
+        repeat(3) { pool.query(filter, listOf("wss://a")) } // while the relay is down
+        transport.down = emptySet()
+        advanceTimeBy(70_000) // longest backoff: the connection is back
+        runCurrent()
+        pool.query(filter, listOf("wss://a"))
+        runCurrent() // let the connection send the CLOSE
+
+        assertEquals(listOf("REQ", "CLOSE"), relay.received.map { it.substringAfter("[\"").substringBefore('"') }, "no queries from while it was offline")
     }
 
     @Test

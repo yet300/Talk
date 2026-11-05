@@ -4,7 +4,9 @@ import androidx.paging.PagingData
 import androidx.paging.map
 import com.yet.talk.api.source.post.PostRemoteSource
 import com.yet.talk.data.mapper.toPost
+import com.yet.talk.data.paging.FeedKeys
 import com.yet.talk.data.paging.FeedPaging
+import com.yet.talk.data.paging.FetchedPage
 import com.yet.talk.data.session.Session
 import com.yet.talk.data.sync.EventIngestor
 import com.yet.talk.data.sync.Publisher
@@ -51,9 +53,9 @@ internal class BookmarkRepositoryImpl(
     override fun bookmarks(): Flow<PagingData<Post>> =
         session.viewer.flatMapLatest { viewer ->
             paging.feed(
-                feedKey = "bookmarks:$viewer",
+                feedKey = FeedKeys.bookmarks(viewer),
                 pages = { posts.feedPages(PostFeed.Bookmarks, viewer) },
-                fetcher = { until -> if (until == null && viewer.isNotEmpty()) fetchAll(viewer) else null },
+                fetcher = { until -> if (until == null && viewer.isNotEmpty()) FetchedPage(fetchAll(viewer)) else FetchedPage.NOTHING },
             )
         }.map { page -> page.map(PostRecord::toPost) }
 

@@ -1,9 +1,9 @@
--- Sign-out wipes everything except public profiles.
+-- Sign-out wipes the viewer's data. Profiles and tombstones are public facts and stay: dropping the
+-- tombstones would bring back posts that their authors deleted, from relays that ignore NIP-09.
 clearUserData {
     DELETE FROM post;
     DELETE FROM revision;
     DELETE FROM reaction;
-    DELETE FROM tombstone;
     DELETE FROM replaceable_version;
     DELETE FROM follow;
     DELETE FROM bookmark;

@@ -9,7 +9,9 @@ import com.yet.talk.api.source.post.PostRemoteSource
 import com.yet.talk.data.mapper.toImeta
 import com.yet.talk.data.mapper.toPost
 import com.yet.talk.data.mapper.toRevision
+import com.yet.talk.data.paging.FeedKeys
 import com.yet.talk.data.paging.FeedPaging
+import com.yet.talk.data.paging.FetchedPage
 import com.yet.talk.data.session.Session
 import com.yet.talk.data.sync.EventIngestor
 import com.yet.talk.data.sync.Publisher
@@ -58,11 +60,11 @@ internal class PostRepositoryImpl(
             )
         }.map { page -> page.map(PostRecord::toPost) }
 
-    private suspend fun fetchFeed(feed: Feed, viewer: String, until: Long?): Long? {
+    private suspend fun fetchFeed(feed: Feed, viewer: String, until: Long?): FetchedPage {
         val authors = when (feed) {
             Feed.Latest -> null
             Feed.Following -> {
-                if (viewer.isEmpty()) return null
+                if (viewer.isEmpty()) return FetchedPage.NOTHING
                 sync.ensureListsSynced(viewer)
                 follows.observeFollowees(viewer).first() + viewer
             }
@@ -70,8 +72,8 @@ internal class PostRepositoryImpl(
             is Feed.UserReplies -> listOf(feed.userId.value)
         }
         val page = postsRemote.timeline(authors, until, FeedRules.PAGE_SIZE)
-        sync.storeWithContext(page)
-        return page.minOfOrNull { it.event.createdAt }
+        val newItems = sync.storeWithContext(page)
+        return FetchedPage(page.minOfOrNull { it.event.createdAt }, page.size, newItems)
     }
 
     override fun observePost(id: PostId): Flow<Post?> =
@@ -149,10 +151,10 @@ internal class PostRepositoryImpl(
         posts.observeRevisions(postId).first().firstOrNull()?.takeIf { it.number > 1 }?.id
 
     private fun Feed.key(viewer: String): String = when (this) {
-        Feed.Latest -> "latest"
-        Feed.Following -> "following:$viewer"
-        is Feed.UserPosts -> "posts:${userId.value}"
-        is Feed.UserReplies -> "replies:${userId.value}"
+        Feed.Latest -> FeedKeys.LATEST
+        Feed.Following -> FeedKeys.following(viewer)
+        is Feed.UserPosts -> FeedKeys.posts(userId.value)
+        is Feed.UserReplies -> FeedKeys.replies(userId.value)
     }
 
     private fun Feed.toDao(): PostFeed = when (this) {

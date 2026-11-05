@@ -30,4 +30,5 @@ internal class TestData(factory: SqlDriverFactory, scope: CoroutineScope, io: Co
     val bookmarks = graph.bookmarks
     val follows = graph.follows
     val trending = graph.trending
+    val syncDao = graph.syncDao
 }

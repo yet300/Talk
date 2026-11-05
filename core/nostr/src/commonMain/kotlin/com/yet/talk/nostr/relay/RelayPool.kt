@@ -7,11 +7,15 @@ import com.yet.talk.nostr.message.Filter
 import com.yet.talk.nostr.message.RelayMessage
 import kotlin.random.Random
 import kotlin.time.Duration
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.merge
@@ -30,6 +34,8 @@ internal class RelayPool(
     private val transport: RelayTransport,
     private val scope: CoroutineScope,
     private val verify: (Event) -> Boolean = EventVerifier::verify,
+    /** Where events are verified (sha256 + Schnorr): never the caller's (often the main) thread. */
+    private val verifyDispatcher: CoroutineDispatcher = Dispatchers.Default,
 ) : RelayClient {
     private val connections = MutableStateFlow<Map<String, RelayConnection>>(emptyMap())
 
@@ -40,8 +46,8 @@ internal class RelayPool(
     }
 
     /**
-     * Stored events matching [filters], newest first. Finishes when every relay has sent EOSE or
-     * closed the subscription, or after [timeout] with whatever arrived until then.
+     * Stored events matching [filters], newest first. Finishes when every relay has sent EOSE, closed
+     * the subscription or turned out unreachable, or after [timeout] with whatever arrived until then.
      */
     override suspend fun query(filters: List<Filter>, relays: Collection<String>, timeout: Duration): List<Event> {
         if (relays.isEmpty()) return emptyList()
@@ -72,12 +78,12 @@ internal class RelayPool(
             merge(
                 *relays.map { url ->
                     val connection = connection(url)
-                    connection.messages
+                    val answer = connection.messages
                         .onSubscription { connection.send(ClientMessage.Publish(event)) }
                         .filterIsInstance<RelayMessage.Ok>()
                         .filter { it.eventId == event.id }
-                        .take(1)
                         .map { url to it }
+                    answer.orUnreachable(connection)
                 }.toTypedArray(),
             ).collect { (url, ok) -> if (ok.accepted) accepted += url else rejected[url] = ok.message }
         }
@@ -92,11 +98,11 @@ internal class RelayPool(
             merge(
                 *relays.map { url ->
                     val connection = connection(url)
-                    connection.messages
+                    val answer = connection.messages
                         .onSubscription { connection.send(ClientMessage.Count(subscriptionId, filters)) }
                         .filterIsInstance<RelayMessage.ForSubscription>()
                         .filter { it.subscriptionId == subscriptionId }
-                        .take(1)
+                    answer.orUnreachable(connection)
                 }.toTypedArray(),
             ).collect { message ->
                 if (message is RelayMessage.CountResult) best = maxOf(best ?: 0, message.count)
@@ -107,12 +113,16 @@ internal class RelayPool(
 
     private fun stream(url: String, subscriptionId: String, filters: List<Filter>, untilEose: Boolean): Flow<Event> {
         val connection = connection(url)
-        return connection.messages
+        val messages: Flow<RelayMessage.ForSubscription?> = connection.messages
             .onSubscription { connection.send(ClientMessage.Req(subscriptionId, filters)) }
             .filterIsInstance<RelayMessage.ForSubscription>()
             .filter { it.subscriptionId == subscriptionId }
+        // A one-shot query gives up on a relay that cannot be reached; a live subscription waits for the reconnect.
+        val untilAnswered = if (untilEose) merge(messages, connection.unreachable().map { null }) else messages
+        return untilAnswered
             .transformWhile { message ->
                 when (message) {
+                    null -> false
                     is RelayMessage.EventMessage -> {
                         if (verify(message.event)) emit(message.event)
                         true
@@ -122,7 +132,12 @@ internal class RelayPool(
                     is RelayMessage.CountResult -> true
                 }
             }
+            .flowOn(verifyDispatcher)
     }
+
+    /** The first answer, or nothing once the relay is unreachable. */
+    private fun <T : Any> Flow<T>.orUnreachable(connection: RelayConnection): Flow<T> =
+        merge(this, connection.unreachable().map { null }).take(1).filterNotNull()
 
     private fun newSubscriptionId(): String = Random.nextLong().toULong().toString(16)
 }

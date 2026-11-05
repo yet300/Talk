@@ -15,15 +15,20 @@ import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlin.concurrent.Volatile
 
 /** Opens the database on first use: on the web, creating the schema is asynchronous. */
 @SingleIn(AppScope::class)
 @Inject
 internal class DatabaseHolder(private val driverFactory: SqlDriverFactory) {
     private val mutex = Mutex()
+
+    @Volatile
     private var database: TalkDatabase? = null
 
-    suspend fun get(): TalkDatabase = mutex.withLock {
+    // Lock-free once open: every DAO call goes through here, and a suspension inside a transaction
+    // could resume on another thread, which the Android and native drivers do not allow.
+    suspend fun get(): TalkDatabase = database ?: mutex.withLock {
         database ?: TalkDatabase(driverFactory.create()).also { database = it }
     }
 

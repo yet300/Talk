@@ -4,7 +4,9 @@ import androidx.paging.PagingData
 import androidx.paging.map
 import com.yet.talk.api.source.post.PostRemoteSource
 import com.yet.talk.data.mapper.toPost
+import com.yet.talk.data.paging.FeedKeys
 import com.yet.talk.data.paging.FeedPaging
+import com.yet.talk.data.paging.FetchedPage
 import com.yet.talk.data.session.Session
 import com.yet.talk.data.sync.Publisher
 import com.yet.talk.data.sync.RemoteSync
@@ -42,9 +44,9 @@ internal class TrendingRepositoryImpl(
     override fun trending(): Flow<PagingData<Post>> =
         session.viewer.flatMapLatest { viewer ->
             paging.feed(
-                feedKey = "trending",
+                feedKey = FeedKeys.TRENDING,
                 pages = { posts.feedPages(PostFeed.Trending, viewer) },
-                fetcher = { until -> if (until == null) rebuild() else null },
+                fetcher = { until -> if (until == null) FetchedPage(rebuild()) else FetchedPage.NOTHING },
             )
         }.map { page -> page.map(PostRecord::toPost) }
 

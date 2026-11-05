@@ -66,10 +66,12 @@ class FakeRelay(
     }
 }
 
-/** Routes each URL to its [FakeRelay]; unknown URLs fail to connect. */
+/** Routes each URL to its [FakeRelay]; unknown URLs and URLs in [down] fail to connect. */
 class FakeTransport(private val relays: Map<String, FakeRelay>) : RelayTransport {
+    var down: Set<String> = emptySet()
+
     override suspend fun connect(url: String): RelaySocket {
-        val relay = relays[url] ?: throw IllegalStateException("unreachable: $url")
+        val relay = relays[url]?.takeIf { url !in down } ?: throw IllegalStateException("unreachable: $url")
         return relay.Socket().also { relay.sockets += it }
     }
 }

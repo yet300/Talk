@@ -224,10 +224,14 @@ class DaoTest {
     }
 
     @Test
-    fun signOutClearsUserDataButKeepsProfiles() = dbTest { dao ->
+    fun signOutClearsUserDataButKeepsProfilesAndTombstones() = dbTest { dao ->
         dao.profiles.upsert(ProfileRecord(ALICE, "alice", null, null, null, null, null, 1))
         dao.posts.insert(post("p"))
+        dao.posts.insert(post("deleted"))
+        dao.posts.markDeleted(listOf("deleted"), ALICE)
         dao.maintenance.clearUserData()
+
+        assertFalse(dao.posts.insert(post("deleted")), "a deleted post stays deleted after sign-out")
 
         assertTrue(dao.feed(PostFeed.Latest, "", 20).isEmpty())
         assertEquals("alice", dao.profiles.observe(ALICE).first()?.name)

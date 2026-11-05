@@ -82,6 +82,19 @@ class DataTest {
     }
 
     @Test
+    fun refreshAfterAPauseFillsTheGap() = dataTest { data ->
+        repeat(25) { data.bobPost("old $it", createdAt = 1_000L + it) }
+        val feed = data.posts.feed(Feed.Latest)
+        feed.asSnapshot { appendScrollWhile { true } }
+
+        repeat(60) { data.bobPost("new $it", createdAt = 2_000L + it) } // the app was closed meanwhile
+        // The old pages already reached the end of the feed: only the refresh can fill the gap.
+        val all = feed.asSnapshot { appendScrollWhile { true } }
+
+        assertEquals((59 downTo 0).map { "new $it" } + (24 downTo 0).map { "old $it" }, all.map { it.content })
+    }
+
+    @Test
     fun likeAndUnlikeUpdateTheViewerAndPublishADeletion() = dataTest { data ->
         data.accounts.createAccount()
         val post = data.bobPost("like me", 1_000)
@@ -167,6 +180,10 @@ class DataTest {
 
         data.bobPost("for followers", 1_000)
         assertEquals(listOf("for followers"), data.posts.feed(Feed.Following).asSnapshot().map { it.content })
+        assertTrue(data.syncDao.state("following:${me.value}") != null)
+
+        data.follows.setFollowing(UserId(carol.publicKey()), false).getOrThrow()
+        assertNull(data.syncDao.state("following:${me.value}"), "a new contact list restarts Following's remote paging")
         assertTrue(me.value.isNotEmpty())
     }
 

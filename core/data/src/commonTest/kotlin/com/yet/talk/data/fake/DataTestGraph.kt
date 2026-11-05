@@ -9,6 +9,7 @@ import com.yet.talk.api.source.publish.PublishRemoteSource
 import com.yet.talk.api.source.social.SocialRemoteSource
 import com.yet.talk.data.di.KeyVaultBindings
 import com.yet.talk.data.session.KeyVault
+import com.yet.talk.database.dao.SyncDao
 import com.yet.talk.database.driver.SqlDriverFactory
 import com.yet.talk.domain.repository.AccountRepository
 import com.yet.talk.domain.repository.BookmarkRepository
@@ -34,6 +35,7 @@ internal interface DataTestGraph {
     val bookmarks: BookmarkRepository
     val follows: FollowRepository
     val trending: TrendingRepository
+    val syncDao: SyncDao
 
     @DependencyGraph.Factory
     fun interface Factory {

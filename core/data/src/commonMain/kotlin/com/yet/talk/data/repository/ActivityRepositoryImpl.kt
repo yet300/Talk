@@ -8,7 +8,9 @@ import com.yet.talk.api.source.post.PostRemoteSource
 import com.yet.talk.api.source.social.SocialRemoteSource
 import com.yet.talk.data.mapper.toPost
 import com.yet.talk.data.mapper.userOf
+import com.yet.talk.data.paging.FeedKeys
 import com.yet.talk.data.paging.FeedPaging
+import com.yet.talk.data.paging.FetchedPage
 import com.yet.talk.data.session.Session
 import com.yet.talk.data.sync.EventIngestor
 import com.yet.talk.data.sync.RemoteSync
@@ -48,14 +50,14 @@ internal class ActivityRepositoryImpl(
                 flowOf(PagingData.empty())
             } else {
                 paging.feed(
-                    feedKey = "activity:$viewer",
+                    feedKey = FeedKeys.activity(viewer),
                     pages = { activity.pages(viewer) },
                     fetcher = { until -> fetch(viewer, until) },
                 ).map { page -> page.filter { it.type in TYPES }.map { it.toItem(viewer) } }
             }
         }
 
-    private suspend fun fetch(me: String, until: Long?): Long? {
+    private suspend fun fetch(me: String, until: Long?): FetchedPage {
         val events = socialRemote.activity(me, until, FeedRules.PAGE_SIZE)
         if (until == null) ingestor.ingest(socialRemote.followers(me, FOLLOWERS_LIMIT))
         // The viewer's own posts the activity points at, so they can be shown.
@@ -71,7 +73,8 @@ internal class ActivityRepositoryImpl(
         sync.storeWithContext(replies)
         ingestor.ingest(events - replies.toSet())
         ingestor.ingest(socialRemote.profiles(events.map { it.event.pubkey }.toSet()))
-        return events.minOfOrNull { it.event.createdAt }
+        // No gap detection here: reactions are not counted as new items.
+        return FetchedPage(events.minOfOrNull { it.event.createdAt })
     }
 
     private suspend fun ActivityRecord.toItem(viewer: String) = ActivityItem(

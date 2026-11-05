@@ -21,4 +21,9 @@ internal class SqlSyncDao(private val holder: DatabaseHolder, private val dispat
         holder.get().syncStateQueries.setSyncState(feedKey, if (state.endReached) 1 else 0, state.cursor, state.syncedAt)
         Unit
     }
+
+    override suspend fun reset(feedKey: String) = withContext(dispatchers.io) {
+        holder.get().syncStateQueries.deleteSyncState(feedKey)
+        Unit
+    }
 }

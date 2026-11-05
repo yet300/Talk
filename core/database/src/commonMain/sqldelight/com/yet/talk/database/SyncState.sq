@@ -11,3 +11,6 @@ SELECT end_reached, cursor, synced_at FROM sync_state WHERE feed_key = ?;
 
 setSyncState:
 INSERT OR REPLACE INTO sync_state(feed_key, end_reached, cursor, synced_at) VALUES (?, ?, ?, ?);
+
+deleteSyncState:
+DELETE FROM sync_state WHERE feed_key = ?;

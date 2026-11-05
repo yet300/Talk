@@ -6,6 +6,8 @@ import com.yet.talk.api.source.social.SocialRemoteSource
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.update
 
 /** Fetches what a page of posts needs to render and stores it. */
 @SingleIn(AppScope::class)
@@ -31,12 +33,13 @@ internal class RemoteSync(
         return newPosts
     }
 
-    private val listsSynced = mutableSetOf<String>()
+    // Shared by every repository on multi-threaded dispatchers.
+    private val listsSynced = MutableStateFlow<Set<String>>(emptySet())
 
     /** The user's contact, bookmark and relay lists. */
     suspend fun syncLists(pubkey: String) {
         ingestor.ingest(socialRemote.lists(pubkey))
-        listsSynced += pubkey
+        listsSynced.update { it + pubkey }
     }
 
     /**
@@ -44,6 +47,6 @@ internal class RemoteSync(
      * from a stale copy would drop entries added on another device.
      */
     suspend fun ensureListsSynced(pubkey: String) {
-        if (pubkey !in listsSynced) syncLists(pubkey)
+        if (pubkey !in listsSynced.value) syncLists(pubkey)
     }
 }
