@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resources>
+    <plural name="replies_count">
+        <item quantity="one">%d reply</item>
+        <item quantity="other">%d replies</item>
+    </plural>
+    <plural name="relays_count">
+        <item quantity="one">%d relay</item>
+        <item quantity="other">%d relays</item>
+    </plural>
+</resources>

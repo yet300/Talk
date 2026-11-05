@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- X (Twitter) design system tokens from the Claude Design file "Talk" (tokens.json). Format RRGGBBAA. -->
+<resources>
+    <!-- Layers -->
+    <color name="bg"><light>FFFFFFFF</light><dark>000000FF</dark></color>
+    <color name="surface"><light>F7F9F9FF</light><dark>16181CFF</dark></color>
+    <color name="elevated"><light>EFF3F4FF</light><dark>1D1F23FF</dark></color>
+    <color name="border"><light>EFF3F4FF</light><dark>2F3336FF</dark></color>
+
+    <!-- Text -->
+    <color name="text_primary"><light>0F1419FF</light><dark>E7E9EAFF</dark></color>
+    <color name="text_secondary"><light>536471FF</light><dark>71767BFF</dark></color>
+
+    <!-- Controls -->
+    <color name="control_border"><light>536471FF</light><dark>536471FF</dark></color>
+    <color name="input_border"><light>536471FF</light><dark>333639FF</dark></color>
+    <color name="search_bg"><light>EFF3F4FF</light><dark>202327FF</dark></color>
+    <color name="hover_overlay"><light>0F14191A</light><dark>E7E9EA1A</dark></color>
+    <color name="post_hover"><light>0F141908</light><dark>FFFFFF08</dark></color>
+    <color name="header_blur"><light>FFFFFFA6</light><dark>000000A6</dark></color>
+
+    <!-- Bottom navigation capsule -->
+    <color name="glass_bg"><light>FFFFFFD1</light><dark>111111C7</dark></color>
+    <color name="glass_solid"><light>FFFFFFFF</light><dark>111111FF</dark></color>
+    <color name="glass_pill"><light>0000000F</light><dark>FFFFFF24</dark></color>
+    <color name="glass_icon"><light>616161FF</light><dark>9E9E9EFF</dark></color>
+
+    <!-- Accents (same in both themes) -->
+    <color name="x_blue"><light>1D9BF0FF</light><dark>1D9BF0FF</dark></color>
+    <color name="x_blue_hover"><light>1A8CD8FF</light><dark>1A8CD8FF</dark></color>
+    <color name="on_accent"><light>FFFFFFFF</light><dark>FFFFFFFF</dark></color>
+    <color name="repost_green"><light>00BA7CFF</light><dark>00BA7CFF</dark></color>
+    <color name="like_pink"><light>F91880FF</light><dark>F91880FF</dark></color>
+    <color name="error_red"><light>F4212EFF</light><dark>F4212EFF</dark></color>
+    <color name="warning_yellow"><light>FFD400FF</light><dark>FFD400FF</dark></color>
+    <color name="tooltip_bg"><light>5B7083FF</light><dark>5B7083FF</dark></color>
+    <color name="nav_badge"><light>E0101AFF</light><dark>E0101AFF</dark></color>
+
+    <!-- Tints and scrims -->
+    <color name="tint_blue"><light>1D9BF01A</light><dark>1D9BF01A</dark></color>
+    <color name="tint_green"><light>00BA7C1A</light><dark>00BA7C1A</dark></color>
+    <color name="tint_pink"><light>F918801A</light><dark>F918801A</dark></color>
+    <color name="modal_scrim"><light>5B708366</light><dark>5B708366</dark></color>
+    <color name="media_scrim"><light>000000E6</light><dark>000000E6</dark></color>
+</resources>

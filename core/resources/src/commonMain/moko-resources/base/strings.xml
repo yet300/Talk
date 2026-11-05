@@ -1,4 +1,186 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- English. Copy comes from the Claude Design file "Talk"; keys are grouped by screen. -->
 <resources>
     <string name="app_name">Talk</string>
+
+    <!-- Tabs and navigation -->
+    <string name="tab_home">Home</string>
+    <string name="tab_search">Search</string>
+    <string name="tab_activity">Activity</string>
+    <string name="tab_bookmarks">Bookmarks</string>
+    <string name="tab_profile">Profile</string>
+    <string name="nav_primary">Primary</string>
+
+    <!-- Common actions -->
+    <string name="action_back">Back</string>
+    <string name="action_close">Close</string>
+    <string name="action_more">More actions</string>
+    <string name="action_retry">Retry</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_copy">Copy</string>
+    <string name="action_copied">Copied</string>
+    <string name="action_compose">Compose</string>
+    <string name="action_post">Post</string>
+    <string name="action_reply">Reply</string>
+    <string name="action_repost">Repost</string>
+    <string name="action_undo_repost">Undo repost</string>
+    <string name="action_quote">Quote</string>
+    <string name="action_like">Like</string>
+    <string name="action_unlike">Unlike</string>
+    <string name="action_bookmark">Bookmark</string>
+    <string name="action_remove_bookmark">Remove bookmark</string>
+    <string name="action_share">Share</string>
+    <string name="action_edit">Edit</string>
+    <string name="action_delete">Delete</string>
+    <string name="action_revisions">Revisions</string>
+    <string name="action_follow">Follow</string>
+    <string name="action_following">Following</string>
+    <string name="action_unfollow">Unfollow</string>
+    <string name="action_settings">Settings</string>
+    <string name="action_your_profile">Your profile</string>
+    <string name="action_back_home">Back to Home</string>
+    <string name="action_browse_latest">Browse Latest</string>
+    <string name="action_dismiss">Dismiss</string>
+
+    <!-- Post actions read by screen readers, with the count -->
+    <string name="a11y_replies">Reply, %d</string>
+    <string name="a11y_reposts">Repost, %d</string>
+    <string name="a11y_likes">Like, %d</string>
+
+    <!-- Home -->
+    <string name="feed_following">Following</string>
+    <string name="feed_popular">Popular</string>
+    <string name="feed_latest">Latest</string>
+    <string name="feed_popular_caption">Ranked from what your follows and relays show you.</string>
+    <string name="feed_following_empty_title">Nothing from people you follow yet</string>
+    <string name="feed_following_empty_body">Follow a few writers and their posts will appear here.</string>
+    <string name="feed_empty_title">No posts yet</string>
+    <string name="feed_empty_body">Posts from your relays will appear here.</string>
+    <string name="feed_end">You have reached the end.</string>
+
+    <!-- Post card and reader -->
+    <string name="post_read_time">%d min read</string>
+    <string name="post_edited">Edited</string>
+    <string name="post_pending">Sending…</string>
+    <string name="post_failed">Not sent</string>
+    <string name="post_unavailable">This post is unavailable</string>
+    <string name="post_replying_to">Replying to %s</string>
+    <string name="post_reposted_by">%s reposted</string>
+    <string name="post_write_reply">Write a reply</string>
+    <string name="post_delete_title">Delete this post?</string>
+    <string name="post_delete_body">Relays are asked to delete it. Some may keep a copy.</string>
+
+    <!-- Revisions -->
+    <string name="revisions_title">Revisions</string>
+    <string name="revisions_latest">Latest</string>
+    <string name="revisions_number">Revision %d</string>
+    <string name="revisions_published_version">Published version</string>
+    <string name="revisions_read_only">Read-only</string>
+    <string name="revisions_limited">This may not be the full history. Relays usually keep only the latest version.</string>
+    <string name="revisions_empty_title">No earlier versions found</string>
+    <string name="revisions_empty_body">Relays usually keep only the latest version of a post. Earlier ones appear here if this device saved them or a relay still has them.</string>
+
+    <!-- Compose -->
+    <string name="compose_new">New post</string>
+    <string name="compose_reply">Reply</string>
+    <string name="compose_quote">Quote post</string>
+    <string name="compose_edit">Edit post</string>
+    <string name="compose_close">Close editor</string>
+    <string name="compose_view">Editor view</string>
+    <string name="compose_view_edit">Edit</string>
+    <string name="compose_view_split">Split</string>
+    <string name="compose_view_preview">Preview</string>
+    <string name="compose_publish">Publish</string>
+    <string name="compose_save">Save</string>
+    <string name="compose_body">Post body, markdown</string>
+    <string name="compose_placeholder"># Title\n\nWrite in markdown.</string>
+    <string name="compose_add_image">Add image</string>
+    <string name="compose_remove_image">Remove image</string>
+    <string name="compose_uploading">Uploading image…</string>
+    <string name="compose_publishing">Publishing…</string>
+    <string name="compose_length">%1$d / %2$d</string>
+
+    <!-- Profile -->
+    <string name="profile_posts">Posts</string>
+    <string name="profile_replies">Replies</string>
+    <string name="profile_following">following</string>
+    <string name="profile_followers">followers</string>
+    <string name="profile_articles">posts</string>
+    <string name="profile_empty_title">No posts yet</string>
+    <string name="profile_empty_replies_title">No replies yet</string>
+
+    <!-- Search -->
+    <string name="search_placeholder">Search</string>
+    <string name="search_hint">Search people and posts</string>
+    <string name="search_people">People</string>
+    <string name="search_posts">Posts</string>
+    <string name="search_searching">Searching relays…</string>
+    <string name="search_empty">No results for “%s”</string>
+
+    <!-- Activity -->
+    <string name="activity_title">Activity</string>
+    <string name="activity_replied">%s replied</string>
+    <string name="activity_quoted">%s quoted your post</string>
+    <string name="activity_reposted">%s reposted your post</string>
+    <string name="activity_liked">%s liked your post</string>
+    <string name="activity_followed">%s followed you</string>
+    <string name="activity_empty_title">No activity yet</string>
+    <string name="activity_empty_body">Replies, quotes, reposts, likes and new followers show up here.</string>
+
+    <!-- Bookmarks -->
+    <string name="bookmarks_title">Bookmarks</string>
+    <string name="bookmarks_empty_title">Nothing saved yet</string>
+    <string name="bookmarks_empty_body">Bookmark a post and it stays here, ready to read later.</string>
+
+    <!-- Sign in -->
+    <string name="auth_title">Sign in with your Nostr key</string>
+    <string name="auth_subtitle">One key across every Nostr app. Your posts, follows and bookmarks come with you.</string>
+    <string name="auth_create_key">Create a new key</string>
+    <string name="auth_have_key">Paste a private key instead</string>
+    <string name="auth_key_label">Private key</string>
+    <string name="auth_key_placeholder">nsec1…</string>
+    <string name="auth_key_caption">This key controls your identity everywhere. Talk keeps it on this device only.</string>
+    <string name="auth_use_key">Use this key</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_identity">Identity</string>
+    <string name="settings_show_key">Show private key</string>
+    <string name="settings_hide_key">Hide private key</string>
+    <string name="settings_key_warning">Anyone with this key can post as you. Keep it secret.</string>
+    <string name="settings_sign_out">Sign out</string>
+    <string name="settings_relays">Relays</string>
+    <string name="settings_relay_address">Relay address</string>
+    <string name="settings_relay_placeholder">wss://</string>
+    <string name="settings_add_relay">Add</string>
+    <string name="settings_remove_relay">Remove %s</string>
+    <string name="settings_theme">Theme</string>
+    <string name="theme_dark">Dark</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_system">System</string>
+
+    <!-- States -->
+    <string name="state_loading">Loading</string>
+    <string name="state_offline">Offline. Showing saved posts.</string>
+
+    <!-- Relative time, as in the design: 2h, 5h, 1d, Oct 28 -->
+    <string name="time_now">now</string>
+    <string name="time_minutes">%dm</string>
+    <string name="time_hours">%dh</string>
+    <string name="time_days">%dd</string>
+
+    <!-- Errors, one per DomainError -->
+    <string name="error_empty_content">Write something first.</string>
+    <string name="error_content_too_long">A post can be at most %d characters.</string>
+    <string name="error_invisible_characters">The text has invisible or direction control characters.</string>
+    <string name="error_too_many_images">A post can have at most %d images.</string>
+    <string name="error_image_too_large">Images can be at most %d MB.</string>
+    <string name="error_unsupported_image">PNG, JPEG, GIF or WebP only.</string>
+    <string name="error_invalid_key">That is not a valid nsec or secret key.</string>
+    <string name="error_invalid_relay">A relay address starts with wss://</string>
+    <string name="error_not_signed_in">Sign in to do this.</string>
+    <string name="error_not_found">Not found.</string>
+    <string name="error_no_relay_accepted">No relay accepted it. Try again.</string>
+    <string name="error_network">Can’t reach relays. Check your connection.</string>
+    <string name="error_unknown">Something went wrong.</string>
 </resources>
