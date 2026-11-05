@@ -10,7 +10,7 @@
 .x-avatar{overflow:hidden}
 .t-avatar-img{width:100%;height:100%;object-fit:cover;display:block}
 .t-input-compact{font-size:15px;padding:var(--space-sm) var(--space-md)}
-.t-search-icon{position:absolute;left:var(--space-lg);top:50%;transform:translateY(-50%)}
+.t-search-icon{position:absolute;left:var(--space-lg);top:50%;transform:translateY(-50%);width:18px;height:18px}
 .t-end-sentinel{height:1px}
 
 /* Skeleton card (Feed, loading) */

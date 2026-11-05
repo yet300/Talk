@@ -70,6 +70,7 @@ compose-ui = { module = "org.jetbrains.compose.ui:ui", version.ref = "composeMul
 compose-uiToolingPreview = { module = "org.jetbrains.compose.ui:ui-tooling-preview", version.ref = "composeMultiplatform" }
 # Web UI: Compose runtime over the DOM (no canvas)
 compose-html-core = { module = "org.jetbrains.compose.html:html-core", version.ref = "composeMultiplatform" }
+compose-html-svg = { module = "org.jetbrains.compose.html:html-svg", version.ref = "composeMultiplatform" }
 
 #moko-resources
 moko-resources = { module = "dev.icerock.moko:resources", version.ref = "mokoResources" }

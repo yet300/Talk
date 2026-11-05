@@ -6,14 +6,12 @@ import com.yet.talk.resources.TalkTokens
 import dev.icerock.moko.resources.ImageResource
 import org.jetbrains.compose.web.attributes.AttrsScope
 import org.jetbrains.compose.web.css.CSSColorValue
-import org.jetbrains.compose.web.css.DisplayStyle
-import org.jetbrains.compose.web.css.backgroundColor
-import org.jetbrains.compose.web.css.display
-import org.jetbrains.compose.web.css.height
-import org.jetbrains.compose.web.css.px
-import org.jetbrains.compose.web.css.width
-import org.jetbrains.compose.web.dom.Span
-import org.w3c.dom.HTMLSpanElement
+import org.jetbrains.compose.web.css.color
+import org.jetbrains.compose.web.svg.Path
+import org.jetbrains.compose.web.svg.Svg
+import org.jetbrains.compose.web.svg.height
+import org.jetbrains.compose.web.svg.width
+import org.w3c.dom.svg.SVGElement
 
 /** The design's 24×24 stroke icon set (moko `images/ic_*.svg`). Filled variants mark an active state. */
 object TalkIcons {
@@ -45,8 +43,9 @@ object TalkIcons {
 }
 
 /**
- * One icon, drawn as a CSS mask so it takes [tint] (the text colour by default), like the design's
- * `stroke: currentColor` SVGs. Pass [label] unless it is decorative.
+ * One icon, drawn inline as the design does (`.t-i`: 24×24 viewBox, 1.75 stroke in currentColor), so it takes
+ * [tint] or the text colour at once; filled variants (`*_filled`) fill with the same colour. Pass [label]
+ * unless it is decorative.
  */
 @Composable
 fun TalkIcon(
@@ -54,25 +53,22 @@ fun TalkIcon(
     label: String? = null,
     size: Float = TalkTokens.Size.iconNav,
     tint: CSSColorValue? = null,
-    attrs: (AttrsScope<HTMLSpanElement>.() -> Unit)? = null,
+    attrs: (AttrsScope<SVGElement>.() -> Unit)? = null,
 ) {
-    Span({
+    val path = IconPaths[icon.fileName.substringAfterLast('/').substringBefore('.')]
+    Svg(viewBox = "0 0 24 24", attrs = {
+        classes("t-i")
+        width(size)
+        height(size)
         if (label != null) {
             attr("role", "img")
             attr("aria-label", label)
         } else {
             attr("aria-hidden", "true")
         }
-        style {
-            display(DisplayStyle.InlineBlock)
-            width(size.px)
-            height(size.px)
-            property("flex-shrink", 0)
-            if (tint != null) backgroundColor(tint) else property("background-color", "currentColor")
-            val mask = "url(\"${icon.fileUrl}\") center / contain no-repeat"
-            property("mask", mask)
-            property("-webkit-mask", mask)
-        }
+        if (tint != null) style { color(tint) }
         attrs?.invoke(this)
-    })
+    }) {
+        if (path != null) Path(path.d, attrs = { if (path.filled) attr("fill", "currentColor") })
+    }
 }
