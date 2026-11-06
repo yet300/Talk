@@ -6,6 +6,7 @@ import androidx.paging.PagingSource
 import com.app.common.AppDispatchers
 import com.yet.talk.database.DatabaseHolder
 import com.yet.talk.database.dao.PostDao
+import com.yet.talk.database.mapper.followingRecord
 import com.yet.talk.database.mapper.postRecord
 import com.yet.talk.database.model.NewPostRecord
 import com.yet.talk.database.model.PostFeed
@@ -77,7 +78,7 @@ internal class SqlPostDao(
             OffsetPagingSource(countQuery = count, context = dispatchers.io, pageQuery = { limit: Long, offset: Long ->
                 when (feed) {
                     PostFeed.Latest -> queries.selectLatest(viewer, limit, offset, ::postRecord)
-                    PostFeed.Following -> queries.selectFollowing(viewer, limit, offset, ::postRecord)
+                    PostFeed.Following -> queries.selectFollowing(viewer, limit, offset, ::followingRecord)
                     is PostFeed.ByAuthor ->
                         if (feed.replies) queries.selectUserReplies(viewer, feed.author, limit, offset, ::postRecord)
                         else queries.selectUserPosts(viewer, feed.author, limit, offset, ::postRecord)
@@ -92,10 +93,11 @@ internal class SqlPostDao(
         holder.observeList(dispatchers.io) {
             postQueries.selectThread(rootId, viewer) { id, author, root, parent, quote, createdAt, content, images, revision,
                 revisionCount, editedAt, deleted, publishState, name, displayName, picture, nip05, likes, reposts, replies,
-                liked, reposted, bookmarked, depth ->
+                parentAuthor, parentAuthorName, liked, reposted, bookmarked, depth ->
                 postRecord(
                     id, author, root, parent, quote, createdAt, content, images, revision, revisionCount, editedAt, deleted,
-                    publishState, name, displayName, picture, nip05, likes, reposts, replies, liked, reposted, bookmarked,
+                    publishState, name, displayName, picture, nip05, likes, reposts, replies, parentAuthor, parentAuthorName,
+                    liked, reposted, bookmarked,
                 ).copy(depth = depth.toInt())
             }
         }

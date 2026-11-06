@@ -33,6 +33,7 @@ CREATE TABLE revision (
 CREATE INDEX revision_post ON revision(post_id, number);
 
 -- Counters and author fields shared by every post query; viewer flags are added per query.
+-- parent_author and parent_author_name give replies their "Replying to" line (migrations/3.sqm redefines it).
 CREATE VIEW post_with_stats AS
 SELECT
     p.id, p.author, p.root_id, p.parent_id, p.quote_id, p.created_at, p.content, p.images_json,
@@ -40,9 +41,13 @@ SELECT
     a.name AS author_name, a.display_name AS author_display_name, a.picture AS author_picture, a.nip05 AS author_nip05,
     (SELECT COUNT(DISTINCT r.user) FROM reaction r WHERE r.post_id = p.id AND r.type = 'like') AS like_count,
     (SELECT COUNT(DISTINCT r.user) FROM reaction r WHERE r.post_id = p.id AND r.type = 'repost') AS repost_count,
-    (SELECT COUNT(*) FROM post c WHERE c.parent_id = p.id AND c.deleted = 0) AS reply_count
+    (SELECT COUNT(*) FROM post c WHERE c.parent_id = p.id AND c.deleted = 0) AS reply_count,
+    pp.author AS parent_author,
+    COALESCE(pa.name, pa.display_name) AS parent_author_name
 FROM post p
-LEFT JOIN profile a ON a.pubkey = p.author;
+LEFT JOIN profile a ON a.pubkey = p.author
+LEFT JOIN post pp ON pp.id = p.parent_id
+LEFT JOIN profile pa ON pa.pubkey = pp.author;
 
 insertIfAbsent:
 INSERT OR IGNORE INTO post(id, author, root_id, parent_id, quote_id, created_at, content, images_json, publish_state, event_json)
@@ -99,21 +104,44 @@ LIMIT :limit OFFSET :offset;
 countLatest:
 SELECT COUNT(*) FROM post WHERE parent_id IS NULL AND deleted = 0;
 
+-- Posts by people you follow (and you), and posts they reposted: one row per post, at its latest entry. A row
+-- whose latest entry is a repost carries the reposter (reposted_by), for the "… reposted" header.
 selectFollowing:
+WITH followed(pubkey) AS (
+    SELECT :viewer UNION SELECT f.followee FROM follow f WHERE f.follower = :viewer
+),
+entry(post_id, at, reposted_by) AS (
+    SELECT p.id, p.created_at, CAST(NULL AS TEXT) FROM post p WHERE p.author IN (SELECT pubkey FROM followed)
+    UNION ALL
+    SELECT r.post_id, r.created_at, r.user FROM reaction r WHERE r.type = 'repost' AND r.user IN (SELECT pubkey FROM followed)
+),
+latest(post_id, at, reposted_by) AS (
+    -- SQLite takes reposted_by from the row with the MAX.
+    SELECT post_id, MAX(at), reposted_by FROM entry GROUP BY post_id
+)
 SELECT v.*,
     EXISTS (SELECT 1 FROM reaction r WHERE r.post_id = v.id AND r.user = :viewer AND r.type = 'like') AS viewer_liked,
     EXISTS (SELECT 1 FROM reaction r WHERE r.post_id = v.id AND r.user = :viewer AND r.type = 'repost') AS viewer_reposted,
-    EXISTS (SELECT 1 FROM bookmark own WHERE own.post_id = v.id AND own.owner = :viewer) AS viewer_bookmarked
-FROM post_with_stats v
+    EXISTS (SELECT 1 FROM bookmark own WHERE own.post_id = v.id AND own.owner = :viewer) AS viewer_bookmarked,
+    l.reposted_by,
+    COALESCE(rp.display_name, rp.name) AS reposted_by_name
+FROM latest l
+JOIN post_with_stats v ON v.id = l.post_id
+LEFT JOIN profile rp ON rp.pubkey = l.reposted_by
 WHERE v.parent_id IS NULL AND v.deleted = 0
-  AND (v.author = :viewer OR v.author IN (SELECT f.followee FROM follow f WHERE f.follower = :viewer))
-ORDER BY v.created_at DESC, v.id DESC
+ORDER BY l.at DESC, v.id DESC
 LIMIT :limit OFFSET :offset;
 
 countFollowing:
-SELECT COUNT(*) FROM post p
-WHERE p.parent_id IS NULL AND p.deleted = 0
-  AND (p.author = :viewer OR p.author IN (SELECT f.followee FROM follow f WHERE f.follower = :viewer));
+SELECT COUNT(DISTINCT x.post_id) FROM (
+    SELECT p.id AS post_id FROM post p
+    WHERE p.parent_id IS NULL AND p.deleted = 0
+      AND (p.author = :viewer OR p.author IN (SELECT f.followee FROM follow f WHERE f.follower = :viewer))
+    UNION ALL
+    SELECT r.post_id FROM reaction r JOIN post p ON p.id = r.post_id
+    WHERE r.type = 'repost' AND p.parent_id IS NULL AND p.deleted = 0
+      AND (r.user = :viewer OR r.user IN (SELECT f.followee FROM follow f WHERE f.follower = :viewer))
+) x;
 
 selectUserPosts:
 SELECT v.*,

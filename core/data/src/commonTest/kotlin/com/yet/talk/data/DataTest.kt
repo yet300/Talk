@@ -1,6 +1,7 @@
 package com.yet.talk.data
 
 import androidx.paging.testing.asSnapshot
+import com.yet.talk.api.schema.PostRef
 import com.yet.talk.api.schema.TalkEvents
 import com.yet.talk.data.fake.TestData
 import com.yet.talk.domain.model.error.DomainError
@@ -255,6 +256,26 @@ class DataTest {
         data.network.events += bob.sign(TalkEvents.like(quiet, now - 60)) // self-like, not counted
 
         assertEquals(listOf("popular"), data.trending.trending().asSnapshot().map { it.content })
+    }
+
+    @Test
+    fun followingShowsRepostsWithWhoRepostedAndRepliesSayWhoTheyAnswer() = dataTest { data ->
+        data.accounts.importKey(data.accounts.generateKey().getOrThrow()).getOrThrow()
+        data.follows.setFollowing(UserId(bob.publicKey()), true).getOrThrow()
+        val carol = LocalKeySigner(SecretKey.generate())
+        data.network.events += carol.sign(EventTemplate(Kinds.METADATA, """{"name":"carol"}""", createdAt = 1))
+        val carolPost = carol.sign(TalkEvents.post("carol's post", emptyList(), null, 900)).also { data.network.events += it }
+        data.network.events += bob.sign(TalkEvents.repost(carolPost, 1_100))
+        data.bobPost("bob's own", 1_000)
+        data.network.events += bob.sign(TalkEvents.reply("answer", emptyList(), PostRef(carolPost.id, carol.publicKey()), null, 1_050))
+
+        val feed = data.posts.feed(Feed.Following).asSnapshot()
+        assertEquals(listOf("carol's post", "bob's own"), feed.map { it.content }, "the repost (1100) comes first, once")
+        assertEquals(bob.publicKey(), feed.first().repostedBy?.id?.value)
+        assertNull(feed.last().repostedBy)
+
+        val reply = data.posts.feed(Feed.UserReplies(UserId(bob.publicKey()))).asSnapshot().single()
+        assertEquals("carol", reply.replyTo?.name)
     }
 
     @Test

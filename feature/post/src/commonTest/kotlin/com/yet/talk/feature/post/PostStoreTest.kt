@@ -55,6 +55,7 @@ class PostStoreTest {
         }
         override suspend fun edit(id: PostId, content: String, images: List<Image>) = error("unused")
         override suspend fun delete(id: PostId) = deleteResult
+        override suspend fun retryPublish(id: PostId): Result<Unit> = error("unused")
     }
 
     private object Accounts : AccountRepository {

@@ -7,7 +7,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.staticCompositionLocalOf
 import com.yet.talk.domain.model.github.GitHubCard
 import com.yet.talk.domain.model.github.GitHubRef
-import com.yet.talk.feature.post.component.cards.GitHubCardsComponent
+import com.yet.talk.feature.post.component.cards.PostCardsComponent
 import com.yet.talk.resources.*
 import com.yet.talk.web.ui.theme.TalkIcon
 import com.yet.talk.web.ui.theme.TalkIcons
@@ -20,8 +20,8 @@ import org.jetbrains.compose.web.dom.Img
 import org.jetbrains.compose.web.dom.Span
 import org.jetbrains.compose.web.dom.Text
 
-/** Loads GitHub cards; provided by the root content. */
-val LocalGitHubCards = staticCompositionLocalOf<GitHubCardsComponent?> { null }
+/** Loads what post cards need beyond the post (link cards, quotes, Retry); provided by the root content. */
+val LocalPostCards = staticCompositionLocalOf<PostCardsComponent?> { null }
 
 /**
  * A GitHub link in a post (`RepoCard`): the repository (description, language, stars, forks) or the user
@@ -29,8 +29,8 @@ val LocalGitHubCards = staticCompositionLocalOf<GitHubCardsComponent?> { null }
  */
 @Composable
 fun GitHubCardView(ref: GitHubRef) {
-    val cards = LocalGitHubCards.current
-    val card by remember(ref, cards) { cards?.card(ref) ?: kotlinx.coroutines.flow.flowOf(null) }.collectAsState(null)
+    val cards = LocalPostCards.current
+    val card by remember(ref, cards) { cards?.gitHub(ref) ?: kotlinx.coroutines.flow.flowOf(null) }.collectAsState(null)
     when (val loaded = card) {
         null -> LinkRow(ref.url)
         is GitHubCard.Repo -> CardLink(ref.url, loaded.avatarUrl, loaded.fullName) {

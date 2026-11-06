@@ -64,6 +64,16 @@
     <string name="post_edited">Edited</string>
     <string name="post_pending">Sending…</string>
     <string name="post_failed">Not sent</string>
+    <string name="post_reposted">%1$s reposted</string>
+    <string name="post_replying_to">Replying to %1$s</string>
+    <string name="post_show_more">Show more</string>
+    <string name="media_open">Open image %1$d of %2$d</string>
+    <string name="media_position">%1$d of %2$d</string>
+    <string name="media_viewer">Image viewer</string>
+    <string name="media_previous">Previous image</string>
+    <string name="media_next">Next image</string>
+    <string name="media_gif">GIF</string>
+    <string name="video_play">Play %1$s</string>
     <string name="post_unavailable">This post is unavailable</string>
     <string name="post_replying_to">Replying to %s</string>
     <string name="post_reposted_by">%s reposted</string>

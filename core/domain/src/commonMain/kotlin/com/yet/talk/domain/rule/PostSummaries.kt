@@ -29,7 +29,9 @@ object PostSummaries {
             excerpt = excerpt.take(MAX_EXCERPT),
             tags = HASHTAG.findAll(prose.joinToString(" ")).map { it.groupValues[1].lowercase() }.distinct().toList(),
             readMinutes = ceil(words / WORDS_PER_MINUTE.toDouble()).toInt().coerceAtLeast(1),
-            github = GitHubLinks.find(markdown),
+            isArticle = markdown.trimStart().startsWith("# "),
+            text = blocks.map(::plainKeepingLines).filter(String::isNotEmpty).joinToString("\n\n"),
+            link = PostLinks.find(markdown),
         )
     }
 
@@ -44,6 +46,9 @@ object PostSummaries {
             }
         }
     }
+
+    /** A paragraph as plain text, keeping its line breaks. */
+    private fun plainKeepingLines(block: String): String = block.lines().map(::plain).filter(String::isNotEmpty).joinToString("\n")
 
     /** Markdown to one line of text: images dropped, links and emphasis unwrapped. */
     private fun plain(block: String): String = block

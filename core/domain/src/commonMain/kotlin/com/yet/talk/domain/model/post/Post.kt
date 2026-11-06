@@ -21,6 +21,10 @@ data class Post(
     val stats: PostStats,
     val viewer: ViewerState,
     val publishState: PublishState,
+    /** For a reply: the author of the post it answers (`Replying to @name`). */
+    val replyTo: User? = null,
+    /** In Following: who reposted it, when that repost brought it into the feed. */
+    val repostedBy: User? = null,
 ) {
     /** Title, excerpt, tags and reading time for cards; computed once per instance. */
     val summary: PostSummary by lazy { PostSummaries.of(content) }

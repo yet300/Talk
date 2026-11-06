@@ -10,6 +10,7 @@ import com.yet.talk.data.repository.MediaRepositoryImpl
 import com.yet.talk.data.repository.PostRepositoryImpl
 import com.yet.talk.data.repository.ProfileRepositoryImpl
 import com.yet.talk.data.repository.GitHubRepositoryImpl
+import com.yet.talk.data.repository.YouTubeRepositoryImpl
 import com.yet.talk.data.repository.ReactionRepositoryImpl
 import com.yet.talk.data.repository.RelayRepositoryImpl
 import com.yet.talk.data.repository.SearchRepositoryImpl
@@ -25,6 +26,7 @@ import com.yet.talk.domain.repository.MediaRepository
 import com.yet.talk.domain.repository.PostRepository
 import com.yet.talk.domain.repository.ProfileRepository
 import com.yet.talk.domain.repository.GitHubRepository
+import com.yet.talk.domain.repository.YouTubeRepository
 import com.yet.talk.domain.repository.ReactionRepository
 import com.yet.talk.domain.repository.RelayRepository
 import com.yet.talk.domain.repository.SearchRepository
@@ -57,6 +59,9 @@ abstract class DataBindings {
 
     @Binds
     internal abstract val GitHubRepositoryImpl.bindGitHubRepository: GitHubRepository
+
+    @Binds
+    internal abstract val YouTubeRepositoryImpl.bindYouTubeRepository: YouTubeRepository
 
     @Binds
     internal abstract val TrendingRepositoryImpl.bindTrendingRepository: TrendingRepository

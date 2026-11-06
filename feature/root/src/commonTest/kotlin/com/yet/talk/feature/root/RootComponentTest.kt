@@ -21,7 +21,7 @@ import com.yet.talk.feature.compose.PreviewComposeComponent
 import com.yet.talk.feature.post.component.revisions.PreviewRevisionsComponent
 import com.yet.talk.feature.root.store.RootStoreFactory
 import com.yet.talk.feature.settings.PreviewSettingsComponent
-import com.yet.talk.feature.post.component.cards.PreviewGitHubCardsComponent
+import com.yet.talk.feature.post.component.cards.PreviewPostCardsComponent
 import com.yet.talk.feature.editprofile.PreviewEditProfileComponent
 import com.yet.talk.feature.tab.main.MainComponent
 import com.yet.talk.feature.tab.main.component.details.DetailsComponent
@@ -87,7 +87,7 @@ class RootComponentTest {
             editProfile = { _, _ -> PreviewEditProfileComponent() },
         )
         val lifecycle = LifecycleRegistry().apply { resume() }
-        DefaultRootComponent(DefaultComponentContext(lifecycle), RootStoreFactory(DefaultStoreFactory(), accounts, Preferences), factories, deepLink, PreviewGitHubCardsComponent())
+        DefaultRootComponent(DefaultComponentContext(lifecycle), RootStoreFactory(DefaultStoreFactory(), accounts, Preferences), factories, deepLink, PreviewPostCardsComponent())
     }
 
     private val active get() = root.stack.value.active.instance

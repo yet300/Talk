@@ -22,6 +22,8 @@ import com.yet.talk.database.dao.PostDao
 import com.yet.talk.database.model.PostFeed
 import com.yet.talk.database.model.PostRecord
 import com.yet.talk.domain.model.error.DomainError
+import com.yet.talk.database.model.PublishStates
+import com.yet.talk.nostr.event.Event
 import com.yet.talk.domain.model.post.Image
 import com.yet.talk.domain.model.post.Post
 import com.yet.talk.domain.model.post.PostId
@@ -73,7 +75,15 @@ internal class PostRepositoryImpl(
         }
         val page = postsRemote.timeline(authors, until, FeedRules.PAGE_SIZE)
         val newItems = sync.storeWithContext(page)
-        return FetchedPage(page.minOfOrNull { it.event.createdAt }, page.size, newItems)
+        // Following also shows what they reposted: the reposts, and the posts they point at.
+        val reposts = if (feed == Feed.Following && authors != null) postsRemote.reposts(authors, until, FeedRules.PAGE_SIZE) else emptyList()
+        if (reposts.isNotEmpty()) {
+            val stored = reposts.map { it.postId }.distinct().filter { posts.authorOf(it) == null }
+            sync.storeWithContext(postsRemote.byIds(stored))
+            ingestor.ingest(reposts)
+        }
+        val oldest = (page.map { it.event.createdAt } + reposts.map { it.event.createdAt }).minOrNull()
+        return FetchedPage(oldest, page.size, newItems)
     }
 
     override fun observePost(id: PostId): Flow<Post?> =
@@ -114,6 +124,13 @@ internal class PostRepositoryImpl(
         val event = publisher.sign { TalkEvents.reply(content, images.toImeta(), parentRef, root, it) }
         publisher.storeAndPublish(event)
         PostId(event.id)
+    }
+
+    override suspend fun retryPublish(id: PostId): Result<Unit> = remote {
+        val event = posts.eventJson(id.value)?.let(Event::fromJson) ?: throw DomainError.NotFound
+        if (event.pubkey != publisher.me()) throw DomainError.NotFound
+        posts.setPublishState(event.id, PublishStates.PENDING) // "Sending…" again
+        publisher.storeAndPublish(event)
     }
 
     override suspend fun edit(id: PostId, content: String, images: List<Image>): Result<Unit> = remote {

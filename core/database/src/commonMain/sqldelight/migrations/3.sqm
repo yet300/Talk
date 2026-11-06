@@ -1,0 +1,17 @@
+-- Version 3 → 4: post_with_stats gains the parent's author, for "Replying to" on reply cards.
+DROP VIEW post_with_stats;
+
+CREATE VIEW post_with_stats AS
+SELECT
+    p.id, p.author, p.root_id, p.parent_id, p.quote_id, p.created_at, p.content, p.images_json,
+    p.revision, p.revision_count, p.edited_at, p.deleted, p.publish_state,
+    a.name AS author_name, a.display_name AS author_display_name, a.picture AS author_picture, a.nip05 AS author_nip05,
+    (SELECT COUNT(DISTINCT r.user) FROM reaction r WHERE r.post_id = p.id AND r.type = 'like') AS like_count,
+    (SELECT COUNT(DISTINCT r.user) FROM reaction r WHERE r.post_id = p.id AND r.type = 'repost') AS repost_count,
+    (SELECT COUNT(*) FROM post c WHERE c.parent_id = p.id AND c.deleted = 0) AS reply_count,
+    pp.author AS parent_author,
+    COALESCE(pa.name, pa.display_name) AS parent_author_name
+FROM post p
+LEFT JOIN profile a ON a.pubkey = p.author
+LEFT JOIN post pp ON pp.id = p.parent_id
+LEFT JOIN profile pa ON pa.pubkey = pp.author;

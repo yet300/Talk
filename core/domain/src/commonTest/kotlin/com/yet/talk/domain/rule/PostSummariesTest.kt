@@ -47,4 +47,13 @@ class PostSummariesTest {
         assertEquals(PostSummaries.MAX_TITLE, summary.title.length)
         assertEquals(PostSummaries.MAX_EXCERPT, summary.excerpt.length)
     }
+
+    @Test
+    fun textCardsKeepParagraphsAndArticlesStartWithATitle() {
+        val text = PostSummaries.of("Fast feedback is **better**.\nSecond line.\n\n![x](https://e.x/a.png)\n\nLast [link](https://e.x).")
+        assertEquals("Fast feedback is better.\nSecond line.\n\nLast link.", text.text)
+        assertEquals(false, text.isArticle)
+        assertEquals(true, PostSummaries.of("# Title\n\nBody").isArticle)
+        assertEquals(false, PostSummaries.of("## Small heading\n\nBody").isArticle)
+    }
 }

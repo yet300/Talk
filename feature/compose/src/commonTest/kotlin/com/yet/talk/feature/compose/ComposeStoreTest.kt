@@ -64,6 +64,7 @@ class ComposeStoreTest {
             return Result.success(Unit)
         }
         override suspend fun delete(id: PostId) = Result.success(Unit)
+        override suspend fun retryPublish(id: PostId): Result<Unit> = error("unused")
     }
 
     private object FakeMedia : MediaRepository {

@@ -29,3 +29,27 @@ class GitHubLinksTest {
         assertNull(GitHubLinks.gistId("http://gist.github.com/x/abc123abc123abc123ab"))
     }
 }
+
+class PostLinksTest {
+
+    @Test
+    fun prefersYouTubeThenGitHubThenAnyLink() {
+        assertEquals(
+            com.yet.talk.domain.model.post.PostLink.YouTube("VMj-3S1tku0", "https://youtu.be/VMj-3S1tku0"),
+            PostLinks.find("Code https://github.com/a/b and the talk https://youtu.be/VMj-3S1tku0."),
+        )
+        assertEquals(com.yet.talk.domain.model.post.PostLink.GitHub(GitHubRef.Repo("a", "b")), PostLinks.find("See https://example.org/x and https://github.com/a/b"))
+        assertEquals(com.yet.talk.domain.model.post.PostLink.Web("https://example.org/notes/fsync"), PostLinks.find("Good: https://example.org/notes/fsync."))
+        assertNull(PostLinks.find("![chart](https://example.com/a.png) and `https://x.y`"))
+    }
+
+    @Test
+    fun readsYouTubeLinkShapes() {
+        listOf(
+            "https://www.youtube.com/watch?v=VMj-3S1tku0&t=10", "https://m.youtube.com/watch?feature=x&v=VMj-3S1tku0",
+            "https://youtube.com/shorts/VMj-3S1tku0", "https://www.youtube-nocookie.com/embed/VMj-3S1tku0",
+        ).forEach { assertEquals("VMj-3S1tku0", PostLinks.youTubeId(it), it) }
+        assertNull(PostLinks.youTubeId("https://youtube.com.evil/watch?v=VMj-3S1tku0"))
+        assertNull(PostLinks.youTubeId("https://www.youtube.com/@karpathy"))
+    }
+}

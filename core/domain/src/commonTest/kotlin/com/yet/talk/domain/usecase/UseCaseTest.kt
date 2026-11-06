@@ -55,6 +55,7 @@ class UseCaseTest {
         override suspend fun refreshRevisions(id: PostId): Result<Unit> = error("unused")
         override suspend fun edit(id: PostId, content: String, images: List<Image>): Result<Unit> = error("unused")
         override suspend fun delete(id: PostId): Result<Unit> = error("unused")
+        override suspend fun retryPublish(id: PostId): Result<Unit> = error("unused")
     }
 
     @Test

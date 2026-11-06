@@ -21,6 +21,12 @@ internal class RelayPostRemoteSource(
         return query(filters).filterIsInstance<TalkEvent.Post>().take(limit)
     }
 
+    override suspend fun reposts(authors: List<String>, until: Long?, limit: Int): List<TalkEvent.Reaction> {
+        if (authors.isEmpty()) return emptyList()
+        val filters = authors.chunked(FILTER_CHUNK).map { Filter(kinds = listOf(Kinds.REPOST), authors = it, tags = LABEL, until = until, limit = limit) }
+        return query(filters).filterIsInstance<TalkEvent.Reaction>().sortedByDescending { it.event.createdAt }.take(limit)
+    }
+
     override suspend fun since(since: Long, limit: Int): List<TalkEvent.Post> =
         query(listOf(Filter(kinds = listOf(Kinds.TEXT_NOTE), tags = LABEL, since = since, limit = limit)))
             .filterIsInstance<TalkEvent.Post>()

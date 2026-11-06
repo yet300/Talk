@@ -10,7 +10,7 @@ import com.yet.talk.feature.auth.AuthComponent
 import com.yet.talk.feature.compose.ComposeComponent
 import com.yet.talk.feature.post.component.revisions.RevisionsComponent
 import com.yet.talk.feature.settings.SettingsComponent
-import com.yet.talk.feature.post.component.cards.GitHubCardsComponent
+import com.yet.talk.feature.post.component.cards.PostCardsComponent
 import com.yet.talk.feature.editprofile.EditProfileComponent
 import com.yet.talk.feature.tab.main.MainComponent
 import com.yet.talk.feature.tab.main.component.tabs.TabsComponent
@@ -25,8 +25,8 @@ import com.yet.talk.feature.tab.main.component.tabs.TabsComponent
 interface RootComponent : BackHandlerOwner, WebNavigationOwner {
     val stack: Value<ChildStack<*, Child>>
 
-    /** Loads cards for GitHub links in post cards, on every screen. */
-    val gitHubCards: GitHubCardsComponent
+    /** What post cards load beyond the post (link cards, quotes, Retry), on every screen. */
+    val postCards: PostCardsComponent
 
     /** The theme chosen in Settings; the platform UI applies it ([ThemeMode.System] follows the device). */
     val theme: Value<ThemeMode>

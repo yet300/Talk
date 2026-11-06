@@ -7,9 +7,10 @@
     <!--
       Scripts only from this origin: markdown from strangers is sanitized, and this keeps an injected script
       from running even if sanitizing ever fails (the private key lives in this page). Relays (wss:), Blossom,
-      YouTube oEmbed and the GitHub API are reached with connect-src; images may come from any https host.
+      YouTube oEmbed and the GitHub API are reached with connect-src; images may come from any https host. The
+      only frame is YouTube's privacy-enhanced player, after Play on a video card.
     -->
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; worker-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' https: data: blob:; connect-src 'self' https: wss: ws:; font-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; worker-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' https: data: blob:; connect-src 'self' https: wss: ws:; font-src 'self'; frame-src https://www.youtube-nocookie.com; object-src 'none'; base-uri 'self'; form-action 'none'">
     <!-- Paths like /post/<id> are app routes: resolve the bundle and the SQLite worker from the site root. -->
     <base href="/">
     <title>Talk</title>

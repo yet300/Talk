@@ -26,4 +26,10 @@ data class PostRecord(
     val viewerBookmarked: Boolean,
     /** Thread depth; 0 outside thread queries. */
     val depth: Int = 0,
+    /** The author of the post this replies to, and their name. */
+    val parentAuthor: String? = null,
+    val parentAuthorName: String? = null,
+    /** In Following: who reposted it, when that repost is why it is in the feed. */
+    val repostedBy: String? = null,
+    val repostedByName: String? = null,
 )

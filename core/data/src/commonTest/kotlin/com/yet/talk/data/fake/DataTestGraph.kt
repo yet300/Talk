@@ -6,6 +6,7 @@ import com.yet.talk.api.di.ApiBindings
 import com.yet.talk.api.source.media.MediaRemoteSource
 import com.yet.talk.api.source.nip05.Nip05Verifier
 import com.yet.talk.api.source.github.GitHubRemoteSource
+import com.yet.talk.api.source.youtube.YouTubeRemoteSource
 import com.yet.talk.api.source.post.PostRemoteSource
 import com.yet.talk.api.source.publish.PublishRemoteSource
 import com.yet.talk.api.source.social.SocialRemoteSource
@@ -57,6 +58,7 @@ internal interface DataTestGraph {
             @Provides mediaRemote: MediaRemoteSource,
             @Provides nip05: Nip05Verifier,
             @Provides github: GitHubRemoteSource,
+            @Provides youtube: YouTubeRemoteSource,
         ): DataTestGraph
     }
 }

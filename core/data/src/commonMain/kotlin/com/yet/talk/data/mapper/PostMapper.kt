@@ -32,4 +32,6 @@ internal fun PostRecord.toPost(): Post = Post(
         PublishStates.FAILED -> PublishState.Failed
         else -> PublishState.Published
     },
+    replyTo = parentAuthor?.let { User(UserId(it), Nip19.npub(it), name = parentAuthorName) },
+    repostedBy = repostedBy?.let { User(UserId(it), Nip19.npub(it), displayName = repostedByName) },
 )

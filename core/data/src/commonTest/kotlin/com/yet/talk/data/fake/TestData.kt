@@ -24,6 +24,7 @@ internal class TestData(factory: SqlDriverFactory, scope: CoroutineScope, io: Co
         mediaRemote = network.media,
         nip05 = { identifier, _ -> identifier == "me@example.com" },
         github = network.github,
+        youtube = { null },
     )
 
     val accounts = graph.accounts

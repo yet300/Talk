@@ -31,6 +31,10 @@ class FakeNetwork {
                 .sortedByDescending { it.event.createdAt }
                 .take(limit)
         }
+        override suspend fun reposts(authors: List<String>, until: Long?, limit: Int) = parsed().filterIsInstance<TalkEvent.Reaction>()
+            .filter { it.type == TalkEvent.Reaction.Type.Repost && it.event.pubkey in authors && (until == null || it.event.createdAt <= until) }
+            .sortedByDescending { it.event.createdAt }.take(limit)
+
         override suspend fun since(since: Long, limit: Int) = parsed().filterIsInstance<TalkEvent.Post>().filter { it.event.createdAt > since }
         override suspend fun byIds(ids: Collection<String>) = parsed().filterIsInstance<TalkEvent.Post>().filter { it.event.id in ids }
         override suspend fun thread(rootId: String) = parsed().filterIsInstance<TalkEvent.Post>().filter { it.thread.root == rootId }

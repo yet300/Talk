@@ -11,7 +11,7 @@ import com.yet.talk.resources.*
 import com.yet.talk.web.browser.rememberIsPhone
 import com.yet.talk.web.decompose.subscribeAsState
 import com.yet.talk.web.ui.screens.editprofile.EditProfileContent
-import com.yet.talk.web.ui.components.post.LocalGitHubCards
+import com.yet.talk.web.ui.components.post.LocalPostCards
 import com.yet.talk.web.ui.root.component.RailActions
 import com.yet.talk.web.ui.root.component.RailSelection
 import com.yet.talk.web.ui.root.component.ShellWidth
@@ -40,7 +40,7 @@ fun RootContent(component: RootComponent) {
         onSettings = component::onOpenSettings,
     )
     val child = stack.active.instance
-    CompositionLocalProvider(LocalGitHubCards provides component.gitHubCards) {
+    CompositionLocalProvider(LocalPostCards provides component.postCards) {
         if (child is RootComponent.Child.EditProfile) {
             EditProfile(child.component, below = stack.backStack.lastOrNull()?.instance, main, railActions)
         } else {

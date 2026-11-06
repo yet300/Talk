@@ -26,7 +26,7 @@ import com.yet.talk.feature.compose.ComposeMode
 import com.yet.talk.feature.post.component.revisions.RevisionsComponent
 import com.yet.talk.feature.root.store.RootStoreFactory
 import com.yet.talk.feature.settings.SettingsComponent
-import com.yet.talk.feature.post.component.cards.GitHubCardsComponent
+import com.yet.talk.feature.post.component.cards.PostCardsComponent
 import com.yet.talk.feature.editprofile.EditProfileComponent
 import com.yet.talk.feature.tab.main.MainComponent
 import com.yet.talk.feature.tab.main.component.tabs.TabsComponent
@@ -42,7 +42,7 @@ internal class DefaultRootComponent(
     storeFactory: RootStoreFactory,
     private val factories: DestinationFactories,
     deepLink: String?,
-    override val gitHubCards: GitHubCardsComponent,
+    override val postCards: PostCardsComponent,
 ) : RootComponent, ComponentContext by componentContext {
 
     private val store = instanceKeeper.getStore { storeFactory.create() }
@@ -239,8 +239,8 @@ internal class DestinationFactories(
 internal class DefaultRootComponentFactory(
     private val storeFactory: RootStoreFactory,
     private val factories: DestinationFactories,
-    private val gitHubCards: GitHubCardsComponent,
+    private val postCards: PostCardsComponent,
 ) : RootComponent.Factory {
     override fun invoke(componentContext: ComponentContext, deepLink: String?): RootComponent =
-        DefaultRootComponent(componentContext, storeFactory, factories, deepLink, gitHubCards)
+        DefaultRootComponent(componentContext, storeFactory, factories, deepLink, postCards)
 }

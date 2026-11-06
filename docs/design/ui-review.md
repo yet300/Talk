@@ -295,6 +295,14 @@ Decisions in these passes:
     set a GitHub avatar. The profile header shows the GitHub badge only for a checked claim. `RepoCard`
     shows in post cards (not in the reader, whose markdown already has the link); while it loads, or when
     GitHub has none or is rate limited, the `LinkRow` shows. The GitHub mark is Octicons `mark-github-24`.
+15. **Cards** (2026-11-06): a post starting with `# heading` is an article card, any other a text card
+    (plain text, 6 lines, Show more when it is longer than 6 lines or 420 characters). One link card per
+    post: the first YouTube link, else the first GitHub repository or user, else the first link as a row.
+    A YouTube card plays inline in YouTube's privacy-enhanced player (`youtube-nocookie.com`, the only
+    `frame-src` in the CSP); until the Videos phase the phone plays inline too. Following shows each post
+    once, at its latest entry: its own time, or the time someone you follow reposted it ("Name reposted").
+    Replies show "Replying to @name". Not sent shows Retry in place of the actions, which publishes the
+    stored event again.
 
 ### Build order
 

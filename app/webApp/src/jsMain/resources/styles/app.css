@@ -141,3 +141,18 @@
 .t-gh-link{display:flex;flex-direction:column;gap:var(--space-sm);padding:0 var(--space-lg) var(--space-lg)}
 .t-start{align-self:flex-start}
 .t-normal{font-weight:400}
+/* Post card content (PostCard, MediaGrid, ImageViewer, VideoCard) */
+.t-pre-line{white-space:pre-line}
+.t-clamp3{-webkit-line-clamp:3}
+.t-tile-img,.t-thumb-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.t-thumb-btn{all:unset;box-sizing:border-box;position:relative;display:flex;align-items:center;justify-content:center;aspect-ratio:16/9;width:100%;cursor:pointer;background:var(--surface)}
+.t-thumb-btn .t-play{position:relative}
+.t-player{border:0;display:block}
+.t-viewer{position:fixed;z-index:600;padding:0}
+.t-viewer-full{max-width:calc(100% - 128px);max-height:calc(100% - 128px);object-fit:contain;border-radius:var(--radius-card)}
+.t-viewer-close{top:16px;left:16px}
+.t-viewer-prev{left:16px;top:50%;margin-top:-22px}
+.t-viewer-next{right:16px;top:50%;margin-top:-22px}
+.t-viewer-count{position:absolute;bottom:16px;left:0;right:0;text-align:center}
+@media (max-width:600px){.t-viewer-full{max-width:100%;max-height:calc(100% - 128px)}}
+.t-grid-1,.t-grid-2{grid-template-rows:minmax(0,1fr)}

@@ -40,7 +40,7 @@ Clean Architecture, SOLID, KISS, YAGNI. In practice:
 | `:core:resources` | `core/resources` | moko-resources (`MR`, package `com.yet.talk.resources`): strings, plurals, light/dark colours, icons; `TalkTokens` (spacing, radii, sizes, type scale) |
 | `:feature:root` | `feature/root` | Root `ChildStack`: Splash, Auth, Main, and Compose, Settings, Revisions above it; `RootStore` swaps Auth/Main on sign-in and exposes the theme |
 | `:feature:auth` | `feature/auth` | Sign in with a local key (create or import an `nsec`) |
-| `:feature:post` | `feature/post` | `component/post` (post, reply thread, actions), `component/revisions`, and `component/cards` (`GitHubCardsComponent`, exposed by the root for every post card) |
+| `:feature:post` | `feature/post` | `component/post` (post, reply thread, actions), `component/revisions`, and `component/cards` (`PostCardsComponent`: GitHub and YouTube cards, quotes, Retry; exposed by the root for every post card) |
 | `:feature:compose` | `feature/compose` | Editor for `ComposeMode` New / Reply / Quote / Edit, image upload, draft kept by StateKeeper |
 | `:feature:profile` | `feature/profile` | A profile (or your own, with `userId = null`): Posts / Replies (and Bookmarks on your own), follow, Edit profile |
 | `:feature:editprofile` | `feature/editprofile` | Profile editor: text fields, NIP-05 check, avatar and banner links from allowed sites (`ProfileImageHosts`), GitHub linking by gist (NIP-39) |

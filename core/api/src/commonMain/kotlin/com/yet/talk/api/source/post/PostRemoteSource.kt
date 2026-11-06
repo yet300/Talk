@@ -8,6 +8,9 @@ interface PostRemoteSource {
     suspend fun timeline(authors: List<String>?, until: Long?, limit: Int): List<TalkEvent.Post>
 
     /** Labelled posts created after [since]: the trending window. */
+    /** Talk reposts (kind 6) by [authors], newest first, before [until]. */
+    suspend fun reposts(authors: List<String>, until: Long?, limit: Int): List<TalkEvent.Reaction>
+
     suspend fun since(since: Long, limit: Int): List<TalkEvent.Post>
 
     suspend fun byIds(ids: Collection<String>): List<TalkEvent.Post>

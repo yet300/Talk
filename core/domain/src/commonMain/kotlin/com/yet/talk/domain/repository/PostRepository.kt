@@ -38,4 +38,7 @@ interface PostRepository {
     suspend fun edit(id: PostId, content: String, images: List<Image>): Result<Unit>
 
     suspend fun delete(id: PostId): Result<Unit>
+
+    /** Publishes again one of your posts marked Not sent ("Retry" on its card). */
+    suspend fun retryPublish(id: PostId): Result<Unit>
 }
