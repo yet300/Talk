@@ -28,6 +28,7 @@ struct RootView: View {
         case is RootComponentChild.Revisions: return strings.revisions_title.text
         case is RootComponentChild.Compose: return strings.compose_new.text
         case is RootComponentChild.Settings: return strings.settings_title.text
+        case is RootComponentChild.EditProfile: return strings.action_edit_profile.text
         default: return strings.app_name.text
         }
     }

@@ -32,3 +32,16 @@ class MetadataMergeTest {
         assertEquals<Map<String, Any>>(mapOf("name" to JsonPrimitive("a")), merge("not json", "name" to "a"))
     }
 }
+
+class Nip39Test {
+    @Test
+    fun replacesOnlyThePlatformsClaim() {
+        val tags = listOf(listOf("i", "github:old", "1"), listOf("i", "mastodon:me@x", "2"), listOf("p", "x"))
+        val updated = replaceIdentity(tags, "github", ExternalIdentity("github", "new", "3"))
+        assertEquals(listOf(listOf("i", "mastodon:me@x", "2"), listOf("p", "x"), listOf("i", "github:new", "3")), updated)
+        assertEquals(
+            listOf(ExternalIdentity("mastodon", "me@x", "2"), ExternalIdentity("github", "new", "3")),
+            updated.externalIdentities(),
+        )
+    }
+}

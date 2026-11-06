@@ -1,5 +1,7 @@
 package com.yet.talk.feature.post.di
 
+import com.yet.talk.feature.post.component.cards.DefaultGitHubCardsComponent
+import com.yet.talk.feature.post.component.cards.GitHubCardsComponent
 import com.yet.talk.feature.post.component.post.DefaultPostComponentFactory
 import com.yet.talk.feature.post.component.post.PostComponent
 import com.yet.talk.feature.post.component.revisions.DefaultRevisionsComponentFactory
@@ -14,6 +16,9 @@ import dev.zacsweers.metro.ContributesTo
 abstract class PostBindings {
     @Binds
     internal abstract val DefaultPostComponentFactory.bindPostComponentFactory: PostComponent.Factory
+
+    @Binds
+    internal abstract val DefaultGitHubCardsComponent.bindGitHubCardsComponent: GitHubCardsComponent
 
     @Binds
     internal abstract val DefaultRevisionsComponentFactory.bindRevisionsComponentFactory: RevisionsComponent.Factory

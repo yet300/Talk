@@ -1,5 +1,7 @@
 package com.yet.talk.api.di
 
+import com.yet.talk.api.source.github.GitHubClient
+import com.yet.talk.api.source.github.GitHubRemoteSource
 import com.yet.talk.api.source.media.BlossomClient
 import com.yet.talk.api.source.media.MediaRemoteSource
 import com.yet.talk.api.source.nip05.Nip05Client
@@ -40,6 +42,9 @@ abstract class ApiBindings {
 
     @Binds
     internal abstract val Nip05Client.bindNip05Verifier: Nip05Verifier
+
+    @Binds
+    internal abstract val GitHubClient.bindGitHubRemoteSource: GitHubRemoteSource
 
     @Binds
     internal abstract val RelaySearchRemoteSource.bindSearchRemoteSource: SearchRemoteSource

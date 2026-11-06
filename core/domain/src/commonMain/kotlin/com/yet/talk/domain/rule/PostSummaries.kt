@@ -29,6 +29,7 @@ object PostSummaries {
             excerpt = excerpt.take(MAX_EXCERPT),
             tags = HASHTAG.findAll(prose.joinToString(" ")).map { it.groupValues[1].lowercase() }.distinct().toList(),
             readMinutes = ceil(words / WORDS_PER_MINUTE.toDouble()).toInt().coerceAtLeast(1),
+            github = GitHubLinks.find(markdown),
         )
     }
 

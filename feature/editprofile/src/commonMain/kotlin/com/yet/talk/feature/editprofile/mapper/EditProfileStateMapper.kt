@@ -18,6 +18,13 @@ internal val stateToModel: (EditProfileStore.State) -> EditProfileComponent.Mode
         website = state.field(Field.Website),
         nip05 = state.field(Field.Nip05),
         nip05Status = state.nip05Status,
+        github = with(state.github) {
+            when {
+                account != null -> EditProfileComponent.GitHub.Linked(account.login, usesAvatar = state.avatar.url == account.avatarUrl)
+                proofText != null -> EditProfileComponent.GitHub.Waiting(login, proofText, gistLink, isChecking, failed)
+                else -> EditProfileComponent.GitHub.NotLinked(login)
+            }
+        },
         avatar = state.avatar.url,
         banner = state.banner.url,
         isLoading = !state.isLoaded,

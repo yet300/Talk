@@ -290,6 +290,11 @@ Decisions in these passes:
     another client or a script, shows the placeholder. The list is `ProfileImageHosts`. An image Talk does not
     show is never removed by saving the profile. The editor caption reads "Avatar and banner come from GIPHY
     or Unsplash. Banner: 1500 × 500." The upload states (uploading, rejected, Retry) are not built.
+14. **GitHub** (2026-11-06): `GitHubLink` sits under NIP-05 in the editor and is saved with Save. Once
+    verified it also offers **Use GitHub avatar** (`avatars.githubusercontent.com/<login>`), the only way to
+    set a GitHub avatar. The profile header shows the GitHub badge only for a checked claim. `RepoCard`
+    shows in post cards (not in the reader, whose markdown already has the link); while it loads, or when
+    GitHub has none or is rate limited, the `LinkRow` shows. The GitHub mark is Octicons `mark-github-24`.
 
 ### Build order
 

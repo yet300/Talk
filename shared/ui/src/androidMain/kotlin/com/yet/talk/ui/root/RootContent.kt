@@ -41,6 +41,7 @@ fun RootContent(component: RootComponent, modifier: Modifier = Modifier) {
             is RootComponent.Child.Revisions -> Placeholder(stringResource(MR.strings.revisions_title))
             is RootComponent.Child.Compose -> Placeholder(stringResource(MR.strings.compose_new))
             is RootComponent.Child.Settings -> Placeholder(stringResource(MR.strings.settings_title))
+            is RootComponent.Child.EditProfile -> Placeholder(stringResource(MR.strings.action_edit_profile))
         }
     }
 }

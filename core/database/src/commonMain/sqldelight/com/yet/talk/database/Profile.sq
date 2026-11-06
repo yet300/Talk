@@ -8,18 +8,33 @@ CREATE TABLE profile (
     website TEXT,
     nip05 TEXT,
     updated_at INTEGER NOT NULL,
-    -- Added in version 2 (migrations/1.sqm); last so SELECT * reads the same columns on new and migrated databases.
-    banner TEXT
+    -- Added by migrations, at the end so SELECT * reads the same columns on new and migrated databases.
+    banner TEXT, -- 1.sqm
+    -- 2.sqm: the NIP-39 GitHub claim, and whether its gist proof was checked (1 verified, 0 not, NULL unknown).
+    github_login TEXT,
+    github_proof TEXT,
+    github_verified INTEGER,
+    github_checked_at INTEGER
 );
 
 insertIfAbsent:
-INSERT OR IGNORE INTO profile(pubkey, name, display_name, about, picture, banner, website, nip05, updated_at)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+INSERT OR IGNORE INTO profile(pubkey, name, display_name, about, picture, banner, website, nip05, updated_at, github_login, github_proof)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 updateIfNewer:
+-- A changed GitHub claim forgets the old check (SET reads the row's old values).
 UPDATE profile
-SET name = :name, display_name = :displayName, about = :about, picture = :picture, banner = :banner, website = :website, nip05 = :nip05, updated_at = :updatedAt
+SET name = :name, display_name = :displayName, about = :about, picture = :picture, banner = :banner, website = :website, nip05 = :nip05,
+    updated_at = :updatedAt,
+    github_verified = CASE WHEN github_login IS :githubLogin AND github_proof IS :githubProof THEN github_verified ELSE NULL END,
+    github_checked_at = CASE WHEN github_login IS :githubLogin AND github_proof IS :githubProof THEN github_checked_at ELSE NULL END,
+    github_login = :githubLogin, github_proof = :githubProof
 WHERE pubkey = :pubkey AND updated_at < :updatedAt;
+
+-- Stores a check only for the claim that was checked.
+setGitHubCheck:
+UPDATE profile SET github_verified = :verified, github_checked_at = :checkedAt
+WHERE pubkey = :pubkey AND github_login = :login AND github_proof = :proof;
 
 selectByPubkey:
 SELECT * FROM profile WHERE pubkey = ?;

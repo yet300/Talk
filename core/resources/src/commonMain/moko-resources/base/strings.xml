@@ -140,6 +140,20 @@
     <string name="edit_profile_open_giphy">Open GIPHY</string>
     <string name="edit_profile_open_unsplash">Open Unsplash</string>
     <string name="action_use">Use</string>
+    <string name="github_title">GitHub</string>
+    <string name="github_username">GitHub username</string>
+    <string name="github_username_placeholder">username</string>
+    <string name="github_link">Link GitHub</string>
+    <string name="github_gist_hint">Put this text in a public gist, then paste the gist link.</string>
+    <string name="github_proof_missing">The gist doesn’t contain the text</string>
+    <string name="github_gist_link">Gist link</string>
+    <string name="github_gist_placeholder">https://gist.github.com/…</string>
+    <string name="github_verify">Verify</string>
+    <string name="github_verifying">Checking…</string>
+    <string name="github_verified">Verified</string>
+    <string name="github_use_avatar">Use GitHub avatar</string>
+    <string name="github_badge">GitHub %1$s, verified</string>
+    <string name="github_followers">%1$s followers</string>
 
     <!-- Search -->
     <string name="search_placeholder">Search</string>
@@ -221,6 +235,8 @@
     <string name="error_unsupported_image">PNG, JPEG, GIF or WebP only.</string>
     <string name="error_about_too_long">About can be at most %d characters.</string>
     <string name="error_image_host">Use a link to a GIF on GIPHY or a photo on Unsplash.</string>
+    <string name="error_github_login">That is not a GitHub username.</string>
+    <string name="error_gist_link">Paste the link to your gist, like https://gist.github.com/you/….</string>
     <string name="error_invalid_key">That is not a valid nsec or secret key.</string>
     <string name="error_invalid_relay">A relay address starts with wss://</string>
     <string name="error_not_signed_in">Sign in to do this.</string>

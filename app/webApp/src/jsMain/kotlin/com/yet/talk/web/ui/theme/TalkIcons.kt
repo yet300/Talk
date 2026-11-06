@@ -40,6 +40,10 @@ object TalkIcons {
     val Offline = MR.images.ic_offline
     val Image = MR.images.ic_image
     val Trash = MR.images.ic_trash
+    val GitHub = MR.images.ic_github
+    val Star = MR.images.ic_star
+    val Fork = MR.images.ic_fork
+    val Globe = MR.images.ic_globe
 }
 
 /**
@@ -69,6 +73,12 @@ fun TalkIcon(
         if (tint != null) style { color(tint) }
         attrs?.invoke(this)
     }) {
-        if (path != null) Path(path.d, attrs = { if (path.filled) attr("fill", "currentColor") })
+        if (path != null) {
+            Path(path.d, attrs = {
+                if (path.filled) attr("fill", "currentColor")
+                // Marks drawn as shapes only (the GitHub mark) must not get the set's outline.
+                if (!path.stroked) attr("stroke", "none")
+            })
+        }
     }
 }

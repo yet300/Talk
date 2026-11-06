@@ -15,6 +15,13 @@ import com.yet.talk.nostr.nip.Kinds
 import com.yet.talk.nostr.nip.contactPubkeys
 import com.yet.talk.nostr.signer.LocalKeySigner
 import com.yet.talk.domain.model.user.ProfileEdit
+import com.yet.talk.api.source.github.GistDto
+import com.yet.talk.api.source.github.RepoDto
+import com.yet.talk.domain.model.github.GitHubAccount
+import com.yet.talk.domain.model.github.GitHubCard
+import com.yet.talk.domain.model.github.GitHubRef
+import com.yet.talk.nostr.nip.githubProofText
+import kotlinx.coroutines.flow.toList
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
@@ -91,6 +98,53 @@ class DataTest {
         // Kept on relays, but Talk shows avatars only from allowed sites.
         assertEquals(Triple("new", "https://images.unsplash.com/photo-1", null), Triple(user.name, user.banner, user.picture))
         assertTrue(data.profiles.verifyNip05(user.id, "me@example.com").getOrThrow())
+    }
+
+    @Test
+    fun gitHubLinkIsVerifiedByItsGistAndSavedWithTheOtherTags() = dataTest { data ->
+        val key = SecretKey.generate()
+        val me = LocalKeySigner(key)
+        data.accounts.importKey(Nip19.nsec(key)).getOrThrow()
+        val otherTag = listOf("i", "mastodon:me@example.social", "123")
+        data.network.events += me.sign(EventTemplate(Kinds.METADATA, """{"name":"me"}""", listOf(otherTag), createdAt = 1))
+        val proof = data.github.proofText().getOrThrow()
+        data.network.gists["abc123abc123abc123ab"] = GistDto("Me-Dev", "https://avatars.githubusercontent.com/u/1", "hello\n$proof")
+        data.network.gists["ffff0000ffff0000ffff"] = GistDto("someone-else", null, proof)
+
+        assertEquals(DomainError.GitHubProofMissing, data.github.verifyLink("me-dev", "https://gist.github.com/someone-else/ffff0000ffff0000ffff").exceptionOrNull())
+        assertEquals(DomainError.InvalidGistLink, data.github.verifyLink("me-dev", "https://example.com/x").exceptionOrNull())
+        val account = data.github.verifyLink("me-dev", "https://gist.github.com/Me-Dev/abc123abc123abc123ab").getOrThrow()
+        assertEquals(GitHubAccount("Me-Dev", "abc123abc123abc123ab"), account)
+
+        data.profiles.updateMyProfile(ProfileEdit(name = "me", github = account)).getOrThrow()
+        assertEquals(listOf(otherTag, listOf("i", "github:Me-Dev", "abc123abc123abc123ab")), data.network.published.single().tags)
+        assertEquals("Me-Dev", data.profiles.observeUser(UserId(me.publicKey())).first().github?.login)
+    }
+
+    @Test
+    fun othersGitHubClaimsShowOnlyOnceTheGistProvesThem() = dataTest { data ->
+        val bobId = UserId(bob.publicKey())
+        data.network.events += bob.sign(EventTemplate(Kinds.METADATA, """{"name":"bob"}""", listOf(listOf("i", "github:bob", "0123456789abcdef0123")), createdAt = 1))
+        data.profiles.refresh(bobId)
+        assertNull(data.profiles.observeUser(bobId).first().github, "the gist does not exist")
+
+        data.network.gists["0123456789abcdef0123"] = GistDto("bob", null, githubProofText(Nip19.npub(bob.publicKey())))
+        data.profiles.refresh(bobId)
+        assertNull(data.profiles.observeUser(bobId).first().github, "checked less than a day ago")
+        data.clock.seconds += 24 * 60 * 60
+        data.profiles.refresh(bobId)
+        assertEquals("bob", data.profiles.observeUser(bobId).first().github?.login)
+    }
+
+    @Test
+    fun gitHubCardsAreCached() = dataTest { data ->
+        data.network.repos["ines/relaydiff"] = RepoDto("ines/relaydiff", "Diffs relays", "Rust", 248, 17, null)
+        val ref = GitHubRef.Repo("ines", "relaydiff")
+        val card = data.github.card(ref).toList().last() as GitHubCard.Repo
+        assertEquals("ines/relaydiff" to 248L, card.fullName to card.stars)
+        val calls = data.network.gitHubCalls
+        assertEquals(card, data.github.card(ref).toList().last())
+        assertEquals(calls, data.network.gitHubCalls, "served from the database")
     }
 
     @Test

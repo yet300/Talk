@@ -13,6 +13,7 @@ import com.yet.talk.database.dao.SyncDao
 import com.yet.talk.database.dao.Transactor
 import com.yet.talk.database.model.NewPostRecord
 import com.yet.talk.database.model.ProfileRecord
+import com.yet.talk.nostr.nip.externalIdentities
 import com.yet.talk.database.model.PublishStates
 import com.yet.talk.database.model.ReactionRecord
 import com.yet.talk.database.model.ReactionTypes
@@ -59,7 +60,13 @@ internal class EventIngestor(
                     ),
                 )
                 is TalkEvent.Profile -> with(event.metadata) {
-                    profiles.upsert(ProfileRecord(event.event.pubkey, name, displayName, about, picture, website, nip05, event.event.createdAt, banner))
+                    val github = event.event.tags.externalIdentities().firstOrNull { it.platform == "github" }
+                    profiles.upsert(
+                        ProfileRecord(
+                            event.event.pubkey, name, displayName, about, picture, website, nip05, event.event.createdAt, banner,
+                            githubLogin = github?.identity, githubProof = github?.proof,
+                        ),
+                    )
                 }
                 is TalkEvent.Deletion -> {
                     posts.markDeleted(event.eventIds, author = event.event.pubkey)

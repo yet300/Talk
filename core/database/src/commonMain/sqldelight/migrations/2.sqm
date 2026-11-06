@@ -1,0 +1,11 @@
+-- Version 2 → 3: NIP-39 GitHub claims on profiles, and cached GitHub cards.
+ALTER TABLE profile ADD COLUMN github_login TEXT;
+ALTER TABLE profile ADD COLUMN github_proof TEXT;
+ALTER TABLE profile ADD COLUMN github_verified INTEGER;
+ALTER TABLE profile ADD COLUMN github_checked_at INTEGER;
+
+CREATE TABLE github_card (
+    ref_key TEXT NOT NULL PRIMARY KEY,
+    json TEXT,
+    fetched_at INTEGER NOT NULL
+);

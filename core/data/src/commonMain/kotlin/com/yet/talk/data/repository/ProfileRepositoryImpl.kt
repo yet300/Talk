@@ -19,6 +19,9 @@ import com.yet.talk.domain.model.error.DomainError
 import com.yet.talk.nostr.event.EventTemplate
 import com.yet.talk.nostr.nip.Kinds
 import com.yet.talk.nostr.nip.mergeMetadataContent
+import com.yet.talk.nostr.nip.ExternalIdentity
+import com.yet.talk.nostr.nip.replaceIdentity
+import com.yet.talk.data.github.GitHubProofs
 import kotlinx.coroutines.flow.first
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.Inject
@@ -39,6 +42,7 @@ internal class ProfileRepositoryImpl(
     private val ingestor: EventIngestor,
     private val publisher: Publisher,
     private val nip05: Nip05Verifier,
+    private val gitHubProofs: GitHubProofs,
 ) : ProfileRepository {
     /** NIP-45 counts are not cached in the database: they are only meaningful fresh. */
     private val counts = MutableStateFlow<Map<String, Pair<Long?, Long?>>>(emptyMap())
@@ -53,6 +57,7 @@ internal class ProfileRepositoryImpl(
 
     override suspend fun refresh(id: UserId): Result<Unit> = remote {
         ingestor.ingest(socialRemote.profiles(listOf(id.value)))
+        checkGitHub(id.value)
         sync.syncLists(id.value)
         val followers = socialRemote.countFollowers(id.value)
         val posts = socialRemote.countPosts(id.value)
@@ -76,13 +81,36 @@ internal class ProfileRepositoryImpl(
                     listOfNotNull(picture?.let { "picture" to it }, banner?.let { "banner" to it })
             },
         )
+        val previousTags = latest?.event?.tags.orEmpty()
+        val tags = edit.github?.let { replaceIdentity(previousTags, GITHUB, ExternalIdentity(GITHUB, it.login, it.gistId)) } ?: previousTags
         val previousAt = latest?.event?.createdAt ?: 0
-        val event = publisher.sign { now -> EventTemplate(kind = Kinds.METADATA, content = content, createdAt = maxOf(now, previousAt + 1)) }
+        val event = publisher.sign { now -> EventTemplate(Kinds.METADATA, content, tags, createdAt = maxOf(now, previousAt + 1)) }
         ingestor.ingest(listOfNotNull(TalkEvent.parse(event)))
+        // The editor verified this link a moment ago.
+        edit.github?.let { profiles.setGitHubCheck(me, it.login, it.gistId, verified = true, checkedAt = publisher.now()) }
         publisher.publish(event)
+    }
+
+    /**
+     * Checks [pubkey]'s GitHub claim when it was never checked or the last check is a day old. GitHub's limit
+     * (60 requests an hour) or a network failure leaves it unchecked, so it is not shown.
+     */
+    private suspend fun checkGitHub(pubkey: String) {
+        val record = profiles.observe(pubkey).first() ?: return
+        val login = record.githubLogin ?: return
+        val proof = record.githubProof ?: return
+        val checkedAt = record.githubCheckedAt
+        if (checkedAt != null && publisher.now() - checkedAt < GITHUB_RECHECK_SECONDS) return
+        val proves = runCatching { gitHubProofs.check(pubkey, login, proof) != null }.getOrElse { return }
+        profiles.setGitHubCheck(pubkey, login, proof, proves, publisher.now())
     }
 
     override suspend fun verifyNip05(id: UserId, identifier: String): Result<Boolean> = remote {
         nip05.verify(identifier, id.value)
+    }
+
+    private companion object {
+        const val GITHUB = "github"
+        const val GITHUB_RECHECK_SECONDS = 24 * 60 * 60L
     }
 }

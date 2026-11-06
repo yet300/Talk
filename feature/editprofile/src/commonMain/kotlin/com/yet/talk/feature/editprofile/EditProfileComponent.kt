@@ -18,6 +18,19 @@ interface EditProfileComponent {
      */
     fun onImageLinkSubmitted(kind: ProfileImage, link: String)
 
+    fun onGitHubLoginChanged(login: String)
+
+    /** "Link GitHub": shows the proof text to put in a public gist. */
+    fun onLinkGitHub()
+
+    fun onGistLinkChanged(link: String)
+
+    /** "Verify": checks the gist; saved with the profile. */
+    fun onVerifyGitHub()
+
+    /** Sets the avatar to the linked GitHub account's. */
+    fun onUseGitHubAvatar()
+
     fun onSave()
 
     fun onCancel()
@@ -27,6 +40,15 @@ interface EditProfileComponent {
     enum class Field { Name, DisplayName, About, Website, Nip05 }
 
     enum class Nip05Status { None, Checking, Verified, NotVerified }
+
+    /** The GitHub link (`GitHubLink`): not linked, waiting for the gist (or failed), linked. */
+    sealed interface GitHub {
+        data class NotLinked(val login: String) : GitHub
+
+        data class Waiting(val login: String, val proofText: String, val gistLink: String, val isChecking: Boolean, val failed: Boolean) : GitHub
+
+        data class Linked(val login: String, val usesAvatar: Boolean) : GitHub
+    }
 
     data class Model(
         /** For the avatar placeholder (initials) until a picture is set. */
@@ -40,6 +62,7 @@ interface EditProfileComponent {
         val website: String,
         val nip05: String,
         val nip05Status: Nip05Status,
+        val github: GitHub,
         /** Shown only from allowed sites; null shows the placeholder. */
         val avatar: String?,
         val banner: String?,

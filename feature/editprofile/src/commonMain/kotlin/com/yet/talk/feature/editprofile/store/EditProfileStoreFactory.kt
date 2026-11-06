@@ -9,6 +9,8 @@ import com.yet.talk.domain.model.error.DomainError
 import com.yet.talk.domain.model.user.ProfileEdit
 import com.yet.talk.domain.repository.AccountRepository
 import com.yet.talk.domain.repository.ProfileRepository
+import com.yet.talk.domain.repository.GitHubRepository
+import com.yet.talk.domain.rule.GitHubLinks
 import com.yet.talk.domain.rule.ProfileImage
 import com.yet.talk.domain.rule.ProfileImageHosts
 import com.yet.talk.domain.usecase.profile.UpdateProfile
@@ -32,6 +34,7 @@ internal class EditProfileStoreFactory(
     private val accounts: AccountRepository,
     private val profiles: ProfileRepository,
     private val updateProfile: UpdateProfile,
+    private val github: GitHubRepository,
 ) {
     fun create(): EditProfileStore =
         object : EditProfileStore, Store<Intent, State, Label> by storeFactory.create(
@@ -63,6 +66,13 @@ internal class EditProfileStoreFactory(
                     if (intent.field == Field.Nip05) checkNip05(NIP05_PAUSE_MILLIS)
                 }
                 is Intent.SubmitImageLink -> submitImageLink(intent.kind, intent.link)
+                is Intent.ChangeGitHubLogin -> dispatch(Msg.GitHubChanged(state().github.copy(login = intent.login, failed = false)))
+                Intent.LinkGitHub -> linkGitHub()
+                is Intent.ChangeGistLink -> dispatch(Msg.GitHubChanged(state().github.copy(gistLink = intent.link, failed = false)))
+                Intent.VerifyGitHub -> verifyGitHub()
+                Intent.UseGitHubAvatar -> state().github.account?.let {
+                    dispatch(Msg.SlotChanged(ProfileImage.Avatar, Slot(it.avatarUrl, changed = true)))
+                }
                 Intent.Save -> save()
                 Intent.DismissError -> dispatch(Msg.Failed(null))
             }
@@ -91,6 +101,32 @@ internal class EditProfileStoreFactory(
             dispatch(Msg.SlotChanged(kind, Slot(url, changed = true)))
         }
 
+        private fun linkGitHub() {
+            val login = state().github.login.trim().removePrefix("@")
+            if (!GitHubLinks.isLogin(login)) return dispatch(Msg.Failed(DomainError.InvalidGitHubLogin))
+            scope.launch {
+                github.proofText()
+                    .onSuccess { dispatch(Msg.GitHubChanged(state().github.copy(login = login, proofText = it, failed = false))) }
+                    .onFailure { dispatch(Msg.Failed(it as? DomainError)) }
+            }
+        }
+
+        private fun verifyGitHub() {
+            val link = state().github
+            if (link.isChecking || link.proofText == null) return
+            dispatch(Msg.GitHubChanged(link.copy(isChecking = true, failed = false)))
+            scope.launch {
+                val result = github.verifyLink(link.login, link.gistLink)
+                val current = state().github.copy(isChecking = false)
+                result
+                    .onSuccess { dispatch(Msg.GitHubChanged(current.copy(account = it, changed = true, proofText = null))) }
+                    .onFailure { error ->
+                        dispatch(Msg.GitHubChanged(current.copy(failed = error == DomainError.GitHubProofMissing)))
+                        if (error != DomainError.GitHubProofMissing) dispatch(Msg.Failed(error as? DomainError))
+                    }
+            }
+        }
+
         private fun save() {
             val state = state()
             if (state.isSaving) return
@@ -104,6 +140,7 @@ internal class EditProfileStoreFactory(
                     banner = state.banner.url.takeIf { state.banner.changed },
                     website = state.field(Field.Website),
                     nip05 = state.field(Field.Nip05),
+                    github = state.github.account.takeIf { state.github.changed },
                 )
                 val result = updateProfile(edit)
                 dispatch(Msg.Saving(false))
@@ -124,10 +161,12 @@ internal class EditProfileStoreFactory(
                 },
                 avatar = Slot(msg.user.picture),
                 banner = Slot(msg.user.banner),
+                github = if (github.changed) github else github.copy(account = msg.user.github),
             )
             Msg.Loaded -> copy(isLoaded = true)
             is Msg.FieldChanged -> copy(fields = fields + (msg.field to msg.text), isEdited = true)
             is Msg.SlotChanged -> if (msg.kind == ProfileImage.Avatar) copy(avatar = msg.slot, isEdited = true) else copy(banner = msg.slot, isEdited = true)
+            is Msg.GitHubChanged -> copy(github = msg.github, isEdited = isEdited || msg.github.changed)
             is Msg.Nip05Checked -> copy(nip05Status = msg.status)
             is Msg.Saving -> copy(isSaving = msg.saving)
             is Msg.Failed -> copy(error = msg.error)

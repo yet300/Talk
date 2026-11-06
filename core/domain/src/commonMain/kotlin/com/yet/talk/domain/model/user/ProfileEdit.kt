@@ -13,4 +13,6 @@ data class ProfileEdit(
     val banner: String? = null,
     val website: String? = null,
     val nip05: String? = null,
+    /** A GitHub account verified in the editor; null keeps the current link. */
+    val github: com.yet.talk.domain.model.github.GitHubAccount? = null,
 )

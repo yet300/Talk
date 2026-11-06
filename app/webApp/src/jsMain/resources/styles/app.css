@@ -131,3 +131,13 @@
 .t-banner-img > img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .t-edit-modal{width:600px;max-width:100%;max-height:90vh;padding:0}
 .t-banner-img + .x-profile-top{position:relative;z-index:1}
+/* GitHub cards and link rows in posts (RepoCard, LinkRow) */
+.t-repo{color:var(--text-primary)}
+.t-repo:hover,.t-linkrow:hover{background:var(--hover-overlay)}
+.t-repo-text{display:flex;flex-direction:column;gap:var(--space-xs);min-width:0}
+.t-block{display:block}
+.t-repo .x-avatar{flex-shrink:0;overflow:hidden}
+.t-profile-links{display:flex;flex-wrap:wrap;gap:var(--space-md);align-items:center}
+.t-gh-link{display:flex;flex-direction:column;gap:var(--space-sm);padding:0 var(--space-lg) var(--space-lg)}
+.t-start{align-self:flex-start}
+.t-normal{font-weight:400}

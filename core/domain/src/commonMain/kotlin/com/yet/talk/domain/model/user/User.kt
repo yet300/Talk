@@ -11,4 +11,6 @@ data class User(
     val banner: String? = null,
     val website: String? = null,
     val nip05: String? = null,
+    /** Set only when the NIP-39 gist proof was checked. */
+    val github: com.yet.talk.domain.model.github.GitHubAccount? = null,
 )

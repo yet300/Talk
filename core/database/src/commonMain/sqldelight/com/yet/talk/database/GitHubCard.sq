@@ -1,0 +1,13 @@
+-- GitHub cards for links in posts, cached because the API allows 60 unauthenticated requests an hour.
+-- json is NULL when GitHub has no such repository or user.
+CREATE TABLE github_card (
+    ref_key TEXT NOT NULL PRIMARY KEY,
+    json TEXT,
+    fetched_at INTEGER NOT NULL
+);
+
+selectCard:
+SELECT json, fetched_at FROM github_card WHERE ref_key = ?;
+
+putCard:
+INSERT OR REPLACE INTO github_card(ref_key, json, fetched_at) VALUES (?, ?, ?);

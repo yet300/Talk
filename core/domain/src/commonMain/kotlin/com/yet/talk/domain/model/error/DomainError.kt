@@ -25,6 +25,13 @@ sealed class DomainError(message: String) : Exception(message) {
     /** Avatars and banners come only from the hosts in [com.yet.talk.domain.rule.ProfileImageHosts]. */
     data object ImageHostNotAllowed : Validation("Image link is not from an allowed site")
 
+    data object InvalidGitHubLogin : Validation("Not a GitHub username")
+
+    data object InvalidGistLink : Validation("Not a gist link")
+
+    /** The gist is not the user's, or does not contain the proof text. */
+    data object GitHubProofMissing : Validation("The gist does not prove this key")
+
     data object InvalidKey : Validation("Not a valid nsec or secret key")
 
     data object InvalidRelayUrl : Validation("A relay address starts with wss://")

@@ -53,6 +53,7 @@ fun PostCard(
                     summary.tags.forEach { tag -> Span { Text("#$tag") } }
                 }
             }
+            summary.github?.let { GitHubCardView(it) }
             PostActions(post, actions)
         }
     }

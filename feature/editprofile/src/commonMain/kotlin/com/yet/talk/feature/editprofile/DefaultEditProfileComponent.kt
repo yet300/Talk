@@ -39,6 +39,16 @@ internal class DefaultEditProfileComponent(
 
     override fun onImageLinkSubmitted(kind: ProfileImage, link: String) = store.accept(EditProfileStore.Intent.SubmitImageLink(kind, link))
 
+    override fun onGitHubLoginChanged(login: String) = store.accept(EditProfileStore.Intent.ChangeGitHubLogin(login))
+
+    override fun onLinkGitHub() = store.accept(EditProfileStore.Intent.LinkGitHub)
+
+    override fun onGistLinkChanged(link: String) = store.accept(EditProfileStore.Intent.ChangeGistLink(link))
+
+    override fun onVerifyGitHub() = store.accept(EditProfileStore.Intent.VerifyGitHub)
+
+    override fun onUseGitHubAvatar() = store.accept(EditProfileStore.Intent.UseGitHubAvatar)
+
     override fun onSave() = store.accept(EditProfileStore.Intent.Save)
 
     override fun onCancel() = output(EditProfileComponent.Output.Closed)

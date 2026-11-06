@@ -43,6 +43,14 @@ overwrite it. The new event's `created_at` is newer than the one it replaces. `p
 only to GIPHY or Unsplash links, and Talk shows them only from those hosts and GitHub avatars
 (`ProfileImageHosts`).
 
+GitHub (NIP-39): the editor shows the proof text "Verifying that I control the following Nostr public key:
+<npub>", the user puts it in a public gist, and Talk checks through GitHub's API that the gist's owner is the
+claimed login and that it contains the text. The claim is saved with the profile; other `i` tags (other
+platforms) are kept. Someone else's claim is checked when their profile is refreshed, at most once a day, and
+shown only when the check holds; the result lives in the profile cache. GitHub links in posts get cards from
+the API (repository or user), cached for a day. Without a token GitHub allows 60 requests an hour, so a
+failure pauses fetching for five minutes and the plain link row shows meanwhile.
+
 Key storage per platform:
 
 - **Android:** an external signer (Amber, NIP-55) when installed, otherwise the `nsec` in KSafe.

@@ -3,6 +3,10 @@ package com.yet.talk.data.fake
 import com.yet.talk.api.schema.TalkEvent
 import com.yet.talk.api.source.media.BlobDescriptor
 import com.yet.talk.api.source.media.MediaRemoteSource
+import com.yet.talk.api.source.github.GistDto
+import com.yet.talk.api.source.github.GitHubRemoteSource
+import com.yet.talk.api.source.github.RepoDto
+import com.yet.talk.api.source.github.UserDto
 import com.yet.talk.api.source.post.PostRemoteSource
 import com.yet.talk.api.source.publish.PublishRemoteSource
 import com.yet.talk.api.source.social.SocialRemoteSource
@@ -54,6 +58,16 @@ class FakeNetwork {
         } else {
             PublishResult(emptySet(), mapOf("wss://fake" to "blocked"), emptySet())
         }
+    }
+
+    val gists = mutableMapOf<String, GistDto>()
+    val repos = mutableMapOf<String, RepoDto>()
+    var gitHubCalls = 0
+
+    val github = object : GitHubRemoteSource {
+        override suspend fun gist(id: String) = gists[id].also { gitHubCalls++ }
+        override suspend fun repo(owner: String, name: String) = repos["$owner/$name"].also { gitHubCalls++ }
+        override suspend fun user(login: String): UserDto? = null.also { gitHubCalls++ }
     }
 
     val media = object : MediaRemoteSource {

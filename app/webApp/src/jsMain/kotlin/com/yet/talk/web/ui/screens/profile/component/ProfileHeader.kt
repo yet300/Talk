@@ -1,26 +1,29 @@
 package com.yet.talk.web.ui.screens.profile.component
 
 import androidx.compose.runtime.Composable
+import com.yet.talk.domain.model.user.User
 import com.yet.talk.feature.profile.ProfileComponent
 import com.yet.talk.resources.*
 import com.yet.talk.web.ui.components.Avatar
 import com.yet.talk.web.ui.components.AvatarSize
 import com.yet.talk.web.ui.components.ButtonStyle
 import com.yet.talk.web.ui.components.TalkButton
+import com.yet.talk.web.ui.theme.TalkIcon
+import com.yet.talk.web.ui.theme.TalkIcons
 import com.yet.talk.web.ui.theme.stringResource
 import org.jetbrains.compose.web.dom.A
 import org.jetbrains.compose.web.dom.Div
-import org.jetbrains.compose.web.dom.Img
 import org.jetbrains.compose.web.dom.H1
 import org.jetbrains.compose.web.dom.Header
+import org.jetbrains.compose.web.dom.Img
 import org.jetbrains.compose.web.dom.P
 import org.jetbrains.compose.web.dom.Span
 import org.jetbrains.compose.web.dom.Text
 
 /**
  * The full profile header (`ProfileHeader`): the banner (or the surface colour), 134 px avatar, Follow on
- * someone else's profile or Edit profile on yours, name, `nip05 · npub`, about, website and
- * `posts · following · followers`.
+ * someone else's profile or Edit profile on yours, name, `nip05 · npub`, about, the website and the verified
+ * GitHub account, and `posts · following · followers`.
  */
 @Composable
 fun ProfileHeader(model: ProfileComponent.Model, onFollow: () -> Unit, onEditProfile: () -> Unit) {
@@ -48,17 +51,38 @@ fun ProfileHeader(model: ProfileComponent.Model, onFollow: () -> Unit, onEditPro
                 }
             }
             user?.about?.takeIf(String::isNotBlank)?.let { P({ classes("t-flush", "t-about") }) { Text(it) } }
-            user?.website?.takeIf(String::isNotBlank)?.let { site ->
-                A(href = if (site.startsWith("http")) site else "https://$site", attrs = {
-                    classes("x-link")
-                    attr("target", "_blank")
-                    attr("rel", "noopener noreferrer nofollow")
-                }) { Text(site.removePrefix("https://").removePrefix("http://").removeSuffix("/")) }
-            }
+            if (user != null && (user.website?.isNotBlank() == true || user.github != null)) ProfileLinks(user)
             Div({ classes("t-stats") }) {
                 model.stats.posts?.let { Stat(it, stringResource(MR.strings.profile_articles)) }
                 Stat(model.stats.following.toLong(), stringResource(MR.strings.profile_following))
                 model.stats.followers?.let { Stat(it, stringResource(MR.strings.profile_followers)) }
+            }
+        }
+    }
+}
+
+/** The website, and the GitHub account when its gist proof holds (a link to github.com/<login>). */
+@Composable
+private fun ProfileLinks(user: User) {
+    Div({ classes("t-profile-links") }) {
+        user.website?.takeIf(String::isNotBlank)?.let { site ->
+            A(href = if (site.startsWith("http")) site else "https://$site", attrs = {
+                classes("x-link")
+                attr("target", "_blank")
+                attr("rel", "noopener noreferrer nofollow")
+            }) { Text(site.removePrefix("https://").removePrefix("http://").removeSuffix("/")) }
+        }
+        user.github?.let { github ->
+            val label = stringResource(MR.strings.github_badge, github.login)
+            A(href = "https://github.com/${github.login}", attrs = {
+                classes("t-gh")
+                attr("target", "_blank")
+                attr("rel", "noopener noreferrer")
+                attr("aria-label", label)
+            }) {
+                TalkIcon(TalkIcons.GitHub, size = 18f)
+                Text(github.login)
+                TalkIcon(TalkIcons.Check, size = 18f)
             }
         }
     }

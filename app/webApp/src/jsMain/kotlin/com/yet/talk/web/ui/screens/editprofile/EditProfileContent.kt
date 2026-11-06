@@ -11,6 +11,7 @@ import com.yet.talk.resources.*
 import com.yet.talk.web.decompose.subscribeAsState
 import com.yet.talk.web.ui.components.ErrorRow
 import com.yet.talk.web.ui.screens.editprofile.component.EditProfileBar
+import com.yet.talk.web.ui.screens.editprofile.component.GitHubSection
 import com.yet.talk.web.ui.screens.editprofile.component.ImageFields
 import com.yet.talk.web.ui.screens.editprofile.component.ProfileFields
 import com.yet.talk.web.ui.screens.editprofile.dialog.ImageLinkDialog
@@ -20,7 +21,7 @@ import org.jetbrains.compose.web.dom.Text
 
 /**
  * The profile editor (`ProfileEditor`): Cancel · Edit profile · Save, the banner and avatar (each opens
- * [ImageLinkDialog]), then Name, Display name, About (/ 160), Website and NIP-05 with Verified.
+ * [ImageLinkDialog]), then Name, Display name, About (/ 160), Website, NIP-05 with Verified, and Link GitHub.
  */
 @Composable
 fun EditProfileContent(component: EditProfileComponent) {
@@ -33,6 +34,7 @@ fun EditProfileContent(component: EditProfileComponent) {
         Div({ classes("t-caption", "t-edit-caption") }) { Text(stringResource(MR.strings.edit_profile_images)) }
         model.error?.let { ErrorRow(it, onDismiss = component::onErrorShown) }
         ProfileFields(model, enabled = !model.isLoading && !model.isSaving, onChange = component::onFieldChanged)
+        if (!model.isLoading) GitHubSection(model.github, component)
     }
     linkFor?.let { kind ->
         ImageLinkDialog(

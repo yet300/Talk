@@ -6,11 +6,16 @@ package com.yet.talk.domain.rule
  * avatars and banners from them; anything else shows as the placeholder.
  */
 object ProfileImageHosts {
+    private const val GITHUB_AVATARS = "avatars.githubusercontent.com"
+
     /** Hosts a link pasted in the editor may point at. */
     val PASTEABLE: Set<String> = setOf("i.giphy.com", "media.giphy.com") + (0..4).map { "media$it.giphy.com" } + "images.unsplash.com"
 
     /** Hosts shown. GitHub avatars are set only from a verified GitHub link, never pasted. */
-    val SHOWN: Set<String> = PASTEABLE + "avatars.githubusercontent.com"
+    val SHOWN: Set<String> = PASTEABLE + GITHUB_AVATARS
+
+    /** True for a GitHub avatar link, which only a verified GitHub link may set. */
+    fun isGitHubAvatar(url: String): Boolean = hostOf(url.trim()) == GITHUB_AVATARS
 
     /** [url] when it is an https link to a [SHOWN] host, else null. */
     fun shownOrNull(url: String?): String? = url?.takeIf { hostOf(it) in SHOWN }
