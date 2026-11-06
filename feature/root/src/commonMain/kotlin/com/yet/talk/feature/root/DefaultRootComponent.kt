@@ -26,6 +26,7 @@ import com.yet.talk.feature.compose.ComposeMode
 import com.yet.talk.feature.post.component.revisions.RevisionsComponent
 import com.yet.talk.feature.root.store.RootStoreFactory
 import com.yet.talk.feature.settings.SettingsComponent
+import com.yet.talk.feature.editprofile.EditProfileComponent
 import com.yet.talk.feature.tab.main.MainComponent
 import com.yet.talk.feature.tab.main.component.tabs.TabsComponent
 import dev.zacsweers.metro.Inject
@@ -106,7 +107,8 @@ internal class DefaultRootComponent(
             }
             is Config.Revisions -> RootComponent.Child.Revisions(factories.revisions(context, PostId(config.id), navigation::pop))
             is Config.Compose -> RootComponent.Child.Compose(factories.compose(context, config.toMode()) { onComposeOutput(config, it) })
-            Config.Settings -> RootComponent.Child.Settings(factories.settings(context, navigation::pop))
+            Config.Settings -> RootComponent.Child.Settings(factories.settings(context, ::onSettingsOutput))
+            Config.EditProfile -> RootComponent.Child.EditProfile(factories.editProfile(context) { navigation.pop() })
         }
 
     private fun onMainOutput(event: MainComponent.Output) = when (event) {
@@ -116,6 +118,12 @@ internal class DefaultRootComponent(
         is MainComponent.Output.OpenRevisions -> navigation.pushNew(Config.Revisions(event.id.value))
         MainComponent.Output.NewPost -> navigation.pushNew(Config.Compose.new())
         MainComponent.Output.OpenSettings -> navigation.pushNew(Config.Settings)
+        MainComponent.Output.EditProfile -> navigation.pushNew(Config.EditProfile)
+    }
+
+    private fun onSettingsOutput(event: SettingsComponent.Output) = when (event) {
+        SettingsComponent.Output.Back -> navigation.pop()
+        SettingsComponent.Output.EditProfile -> navigation.pushNew(Config.EditProfile)
     }
 
     /** KarpathyTalk shows a new post or quote after publishing; a reply or an edit returns to where it came from. */
@@ -182,6 +190,12 @@ internal class DefaultRootComponent(
             override val path get() = "settings"
         }
 
+        /** A modal on the web, full screen on the phone; saved or cancelled, it closes. */
+        @Serializable
+        data object EditProfile : Config {
+            override val path get() = "settings/profile"
+        }
+
         @Serializable
         data class Compose(val kind: Kind, val target: String?) : Config {
             enum class Kind { New, Reply, Quote, Edit }
@@ -216,6 +230,7 @@ internal class DestinationFactories(
     val revisions: RevisionsComponent.Factory,
     val compose: ComposeComponent.Factory,
     val settings: SettingsComponent.Factory,
+    val editProfile: EditProfileComponent.Factory,
 )
 
 @Inject

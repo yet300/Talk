@@ -16,6 +16,8 @@ fun DomainError.toStringDesc(): StringDesc = when (this) {
     is DomainError.TooManyImages -> StringDesc.ResourceFormatted(MR.strings.error_too_many_images, max)
     is DomainError.ImageTooLarge -> StringDesc.ResourceFormatted(MR.strings.error_image_too_large, maxBytes / (1024 * 1024))
     is DomainError.UnsupportedImageType -> StringDesc.Resource(MR.strings.error_unsupported_image)
+    is DomainError.AboutTooLong -> StringDesc.ResourceFormatted(MR.strings.error_about_too_long, max)
+    DomainError.ImageHostNotAllowed -> StringDesc.Resource(MR.strings.error_image_host)
     DomainError.InvalidKey -> StringDesc.Resource(MR.strings.error_invalid_key)
     DomainError.InvalidRelayUrl -> StringDesc.Resource(MR.strings.error_invalid_relay)
     DomainError.NotSignedIn -> StringDesc.Resource(MR.strings.error_not_signed_in)

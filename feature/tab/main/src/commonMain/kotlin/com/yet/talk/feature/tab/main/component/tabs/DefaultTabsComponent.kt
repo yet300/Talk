@@ -128,6 +128,7 @@ internal class DefaultTabsComponent(
                 is ProfileComponent.Output.Quote -> TabsComponent.Output.Quote(event.quoted)
                 is ProfileComponent.Output.OpenRevisions -> TabsComponent.Output.OpenRevisions(event.id)
                 ProfileComponent.Output.OpenSettings -> TabsComponent.Output.OpenSettings
+                ProfileComponent.Output.EditProfile -> TabsComponent.Output.EditProfile
             },
         )
     }

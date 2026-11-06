@@ -20,6 +20,11 @@ sealed class DomainError(message: String) : Exception(message) {
 
     data class UnsupportedImageType(val mimeType: String) : Validation("Unsupported image type: $mimeType")
 
+    data class AboutTooLong(val max: Int) : Validation("About is longer than $max characters")
+
+    /** Avatars and banners come only from the hosts in [com.yet.talk.domain.rule.ProfileImageHosts]. */
+    data object ImageHostNotAllowed : Validation("Image link is not from an allowed site")
+
     data object InvalidKey : Validation("Not a valid nsec or secret key")
 
     data object InvalidRelayUrl : Validation("A relay address starts with wss://")

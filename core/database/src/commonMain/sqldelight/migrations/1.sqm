@@ -1,0 +1,2 @@
+-- Version 1 → 2: profile header images (NIP-24 `banner`).
+ALTER TABLE profile ADD COLUMN banner TEXT;

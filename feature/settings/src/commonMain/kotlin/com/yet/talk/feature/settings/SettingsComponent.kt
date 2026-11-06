@@ -14,6 +14,8 @@ interface SettingsComponent {
 
     fun onBack()
 
+    fun onEditProfile()
+
     fun onRelayInputChanged(url: String)
 
     fun onAddRelay()
@@ -43,7 +45,13 @@ interface SettingsComponent {
         val error: DomainError?,
     )
 
+    sealed interface Output {
+        data object Back : Output
+
+        data object EditProfile : Output
+    }
+
     fun interface Factory {
-        operator fun invoke(componentContext: ComponentContext, onBack: () -> Unit): SettingsComponent
+        operator fun invoke(componentContext: ComponentContext, output: (Output) -> Unit): SettingsComponent
     }
 }

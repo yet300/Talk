@@ -4,6 +4,7 @@ import com.app.common.AppDispatchers
 import com.app.common.di.CommonBindings
 import com.yet.talk.api.di.ApiBindings
 import com.yet.talk.api.source.media.MediaRemoteSource
+import com.yet.talk.api.source.nip05.Nip05Verifier
 import com.yet.talk.api.source.post.PostRemoteSource
 import com.yet.talk.api.source.publish.PublishRemoteSource
 import com.yet.talk.api.source.social.SocialRemoteSource
@@ -15,6 +16,7 @@ import com.yet.talk.domain.repository.AccountRepository
 import com.yet.talk.domain.repository.BookmarkRepository
 import com.yet.talk.domain.repository.FollowRepository
 import com.yet.talk.domain.repository.PostRepository
+import com.yet.talk.domain.repository.ProfileRepository
 import com.yet.talk.domain.repository.ReactionRepository
 import com.yet.talk.domain.repository.TrendingRepository
 import dev.zacsweers.metro.AppScope
@@ -35,6 +37,7 @@ internal interface DataTestGraph {
     val bookmarks: BookmarkRepository
     val follows: FollowRepository
     val trending: TrendingRepository
+    val profiles: ProfileRepository
     val syncDao: SyncDao
 
     @DependencyGraph.Factory
@@ -49,6 +52,7 @@ internal interface DataTestGraph {
             @Provides socialRemote: SocialRemoteSource,
             @Provides publishRemote: PublishRemoteSource,
             @Provides mediaRemote: MediaRemoteSource,
+            @Provides nip05: Nip05Verifier,
         ): DataTestGraph
     }
 }

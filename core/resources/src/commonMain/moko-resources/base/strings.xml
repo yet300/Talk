@@ -119,6 +119,27 @@
     <string name="profile_articles">posts</string>
     <string name="profile_empty_title">No posts yet</string>
     <string name="profile_empty_replies_title">No replies yet</string>
+    <string name="profile_bookmarks">Bookmarks</string>
+    <string name="action_edit_profile">Edit profile</string>
+    <string name="action_save">Save</string>
+    <string name="edit_profile_name">Name</string>
+    <string name="edit_profile_display_name">Display name</string>
+    <string name="edit_profile_about">About</string>
+    <string name="edit_profile_website">Website</string>
+    <string name="edit_profile_nip05">NIP-05</string>
+    <string name="edit_profile_nip05_placeholder">you@domain</string>
+    <string name="edit_profile_verified">Verified</string>
+    <string name="edit_profile_images">Avatar and banner come from GIPHY or Unsplash. Banner: 1500 × 500.</string>
+    <string name="edit_profile_change_banner">Change banner, 1500 by 500</string>
+    <string name="edit_profile_change_avatar">Change avatar</string>
+    <string name="edit_profile_avatar_link">Avatar link</string>
+    <string name="edit_profile_banner_link">Banner link</string>
+    <string name="edit_profile_link_body">Find a GIF on GIPHY or a photo on Unsplash, copy its link and paste it here. Talk shows avatars and banners only from these sites.</string>
+    <string name="edit_profile_link_label">Link</string>
+    <string name="edit_profile_link_placeholder">https://giphy.com/gifs/…</string>
+    <string name="edit_profile_open_giphy">Open GIPHY</string>
+    <string name="edit_profile_open_unsplash">Open Unsplash</string>
+    <string name="action_use">Use</string>
 
     <!-- Search -->
     <string name="search_placeholder">Search</string>
@@ -198,6 +219,8 @@
     <string name="error_too_many_images">A post can have at most %d images.</string>
     <string name="error_image_too_large">Images can be at most %d MB.</string>
     <string name="error_unsupported_image">PNG, JPEG, GIF or WebP only.</string>
+    <string name="error_about_too_long">About can be at most %d characters.</string>
+    <string name="error_image_host">Use a link to a GIF on GIPHY or a photo on Unsplash.</string>
     <string name="error_invalid_key">That is not a valid nsec or secret key.</string>
     <string name="error_invalid_relay">A relay address starts with wss://</string>
     <string name="error_not_signed_in">Sign in to do this.</string>

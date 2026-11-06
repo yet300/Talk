@@ -57,6 +57,8 @@ interface MainComponent : WebNavigationOwner {
         data object NewPost : Output
 
         data object OpenSettings : Output
+
+        data object EditProfile : Output
     }
 
     fun interface Factory {

@@ -282,13 +282,21 @@ Decisions in these passes:
     Nostr.
 12. **Security** (designer's notes, agreed): a strict Content-Security-Policy on the web, markdown stays
     sanitized, signers stay on the roadmap.
+13. **Avatars and banners come only from sites that moderate them** (2026-11-06, replaces the uploads with
+    the on-device check): GIPHY and Unsplash links, pasted in a small dialog (Avatar link / Banner link, Open
+    GIPHY, Open Unsplash, Link field, Use, Cancel) that the banner and avatar in the editor open; a GIPHY page
+    link becomes its GIF. Talk also *shows* avatars and banners only from these hosts (plus
+    `avatars.githubusercontent.com`, set only from a verified GitHub link in phase 3); any other URL, set by
+    another client or a script, shows the placeholder. The list is `ProfileImageHosts`. An image Talk does not
+    show is never removed by saving the profile. The editor caption reads "Avatar and banner come from GIPHY
+    or Unsplash. Banner: 1500 × 500." The upload states (uploading, rejected, Retry) are not built.
 
 ### Build order
 
 1. Accounts and polish: Save your key, the Sign out dialog, "Edited" → Revisions, the edit-mode line, the
    Link copied toast, the web CSP.
-2. Profiles: Edit profile (banner, fields, uploads with the on-device check, NIP-05), your profile header,
-   the Bookmarks tab on Phone.
+2. Profiles: Edit profile (banner, fields, image links from allowed sites (decision 13), NIP-05), your
+   profile header with banner, website and Edit profile, the Bookmarks tab on Phone.
 3. GitHub: NIP-39 linking and verification; repo and user cards in posts.
 4. Cards: text and article variants, media grid and viewer, quote, repost header, reply context, link rows,
    YouTube cards.

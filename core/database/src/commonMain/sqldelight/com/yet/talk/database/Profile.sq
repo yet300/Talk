@@ -7,16 +7,18 @@ CREATE TABLE profile (
     picture TEXT,
     website TEXT,
     nip05 TEXT,
-    updated_at INTEGER NOT NULL
+    updated_at INTEGER NOT NULL,
+    -- Added in version 2 (migrations/1.sqm); last so SELECT * reads the same columns on new and migrated databases.
+    banner TEXT
 );
 
 insertIfAbsent:
-INSERT OR IGNORE INTO profile(pubkey, name, display_name, about, picture, website, nip05, updated_at)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+INSERT OR IGNORE INTO profile(pubkey, name, display_name, about, picture, banner, website, nip05, updated_at)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 updateIfNewer:
 UPDATE profile
-SET name = :name, display_name = :displayName, about = :about, picture = :picture, website = :website, nip05 = :nip05, updated_at = :updatedAt
+SET name = :name, display_name = :displayName, about = :about, picture = :picture, banner = :banner, website = :website, nip05 = :nip05, updated_at = :updatedAt
 WHERE pubkey = :pubkey AND updated_at < :updatedAt;
 
 selectByPubkey:

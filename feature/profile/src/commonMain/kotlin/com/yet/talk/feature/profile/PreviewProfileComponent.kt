@@ -46,6 +46,8 @@ class PreviewProfileComponent(
 
     override fun onOpenSettings() = Unit
 
+    override fun onEditProfile() = Unit
+
     override fun onBack() = Unit
 
     override fun onErrorShown() = Unit

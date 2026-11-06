@@ -12,11 +12,13 @@ import com.arkivanov.mvikotlin.extensions.coroutines.states
 import com.yet.talk.domain.model.post.Post
 import com.yet.talk.domain.model.post.PostId
 import com.yet.talk.domain.model.user.UserId
+import com.yet.talk.domain.repository.BookmarkRepository
 import com.yet.talk.domain.repository.Feed
 import com.yet.talk.domain.repository.PostRepository
 import com.yet.talk.feature.profile.mapper.stateToModel
 import com.yet.talk.feature.profile.store.ProfileStore
 import com.yet.talk.feature.profile.store.ProfileStoreFactory
+import com.yet.talk.feature.profile.store.isMe
 import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -32,6 +34,7 @@ internal class DefaultProfileComponent(
     private val output: (ProfileComponent.Output) -> Unit,
     storeFactory: ProfileStoreFactory,
     postRepository: PostRepository,
+    bookmarkRepository: BookmarkRepository,
 ) : ProfileComponent, ComponentContext by componentContext {
 
     private val store = instanceKeeper.getStore { storeFactory.create(userId) }
@@ -39,13 +42,15 @@ internal class DefaultProfileComponent(
     override val model: Value<ProfileComponent.Model> = store.asValue().map(stateToModel)
 
     override val posts: Flow<PagingData<Post>> = store.states
-        .map { it.userId to it.tab }
+        .map { Triple(it.userId, it.tab, it.isMe) }
         .distinctUntilChanged()
-        .flatMapLatest { (id, tab) ->
+        .flatMapLatest { (id, tab, isMe) ->
             when {
                 id == null -> flowOf(PagingData.empty())
                 tab == ProfileComponent.Tab.Posts -> postRepository.feed(Feed.UserPosts(id))
-                else -> postRepository.feed(Feed.UserReplies(id))
+                tab == ProfileComponent.Tab.Replies -> postRepository.feed(Feed.UserReplies(id))
+                isMe -> bookmarkRepository.bookmarks()
+                else -> flowOf(PagingData.empty())
             }
         }
         .cachedIn(coroutineScope())
@@ -74,6 +79,8 @@ internal class DefaultProfileComponent(
 
     override fun onOpenSettings() = output(ProfileComponent.Output.OpenSettings)
 
+    override fun onEditProfile() = output(ProfileComponent.Output.EditProfile)
+
     override fun onBack() = output(ProfileComponent.Output.Back)
 
     override fun onErrorShown() = store.accept(ProfileStore.Intent.DismissError)
@@ -83,7 +90,8 @@ internal class DefaultProfileComponent(
 internal class DefaultProfileComponentFactory(
     private val storeFactory: ProfileStoreFactory,
     private val postRepository: PostRepository,
+    private val bookmarkRepository: BookmarkRepository,
 ) : ProfileComponent.Factory {
     override fun invoke(componentContext: ComponentContext, userId: UserId?, output: (ProfileComponent.Output) -> Unit): ProfileComponent =
-        DefaultProfileComponent(componentContext, userId, output, storeFactory, postRepository)
+        DefaultProfileComponent(componentContext, userId, output, storeFactory, postRepository, bookmarkRepository)
 }

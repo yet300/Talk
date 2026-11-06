@@ -43,11 +43,15 @@ interface ProfileComponent {
 
     fun onOpenSettings()
 
+    /** "Edit profile" on your own profile. */
+    fun onEditProfile()
+
     fun onBack()
 
     fun onErrorShown()
 
-    enum class Tab { Posts, Replies }
+    /** [Tab.Bookmarks] exists only on your own profile (the phone shows it there instead of a nav item). */
+    enum class Tab { Posts, Replies, Bookmarks }
 
     data class Model(
         val user: User?,
@@ -74,6 +78,8 @@ interface ProfileComponent {
         data class OpenRevisions(val id: PostId) : Output
 
         data object OpenSettings : Output
+
+        data object EditProfile : Output
     }
 
     fun interface Factory {

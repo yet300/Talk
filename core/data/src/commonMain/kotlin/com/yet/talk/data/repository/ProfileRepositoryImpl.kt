@@ -14,7 +14,12 @@ import com.yet.talk.domain.model.user.User
 import com.yet.talk.domain.model.user.UserId
 import com.yet.talk.domain.model.user.UserStats
 import com.yet.talk.domain.repository.ProfileRepository
-import com.yet.talk.nostr.nip.Metadata
+import com.yet.talk.api.source.nip05.Nip05Verifier
+import com.yet.talk.domain.model.error.DomainError
+import com.yet.talk.nostr.event.EventTemplate
+import com.yet.talk.nostr.nip.Kinds
+import com.yet.talk.nostr.nip.mergeMetadataContent
+import kotlinx.coroutines.flow.first
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
@@ -33,6 +38,7 @@ internal class ProfileRepositoryImpl(
     private val sync: RemoteSync,
     private val ingestor: EventIngestor,
     private val publisher: Publisher,
+    private val nip05: Nip05Verifier,
 ) : ProfileRepository {
     /** NIP-45 counts are not cached in the database: they are only meaningful fresh. */
     private val counts = MutableStateFlow<Map<String, Pair<Long?, Long?>>>(emptyMap())
@@ -53,10 +59,30 @@ internal class ProfileRepositoryImpl(
         counts.update { it + (id.value to (followers to posts)) }
     }
 
+    /**
+     * Merges [edit] into the latest kind 0 on relays, so fields Talk does not edit (`lud16`, other apps' keys)
+     * survive. When relays return no kind 0 but one is cached, it exists and could not be read: rather than
+     * overwrite it with only Talk's fields, this fails as a network error.
+     */
     override suspend fun updateMyProfile(edit: ProfileEdit): Result<Unit> = remote {
-        val metadata = with(edit) { Metadata(name = name, displayName = displayName, about = about, picture = picture, website = website, nip05 = nip05) }
-        val event = publisher.sign { metadata.toTemplate(it) }
+        val me = publisher.me()
+        val latest = socialRemote.profiles(listOf(me)).maxByOrNull { it.event.createdAt }
+        if (latest == null && profiles.observe(me).first() != null) throw DomainError.Network()
+        val content = mergeMetadataContent(
+            previous = latest?.event?.content,
+            changes = with(edit) {
+                // A null picture or banner keeps the current one; a blank text field removes its key.
+                mapOf("name" to name, "display_name" to displayName, "about" to about, "website" to website, "nip05" to nip05) +
+                    listOfNotNull(picture?.let { "picture" to it }, banner?.let { "banner" to it })
+            },
+        )
+        val previousAt = latest?.event?.createdAt ?: 0
+        val event = publisher.sign { now -> EventTemplate(kind = Kinds.METADATA, content = content, createdAt = maxOf(now, previousAt + 1)) }
         ingestor.ingest(listOfNotNull(TalkEvent.parse(event)))
         publisher.publish(event)
+    }
+
+    override suspend fun verifyNip05(id: UserId, identifier: String): Result<Boolean> = remote {
+        nip05.verify(identifier, id.value)
     }
 }

@@ -58,3 +58,5 @@ internal interface ProfileStore : Store<ProfileStore.Intent, ProfileStore.State,
         data class Failed(val error: DomainError?) : Msg
     }
 }
+
+internal val ProfileStore.State.isMe: Boolean get() = userId != null && userId == viewer

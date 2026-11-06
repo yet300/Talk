@@ -42,7 +42,8 @@ Clean Architecture, SOLID, KISS, YAGNI. In practice:
 | `:feature:auth` | `feature/auth` | Sign in with a local key (create or import an `nsec`) |
 | `:feature:post` | `feature/post` | Two components: `component/post` (post, reply thread, actions) and `component/revisions` |
 | `:feature:compose` | `feature/compose` | Editor for `ComposeMode` New / Reply / Quote / Edit, image upload, draft kept by StateKeeper |
-| `:feature:profile` | `feature/profile` | A profile (or your own, with `userId = null`): Posts / Replies, follow |
+| `:feature:profile` | `feature/profile` | A profile (or your own, with `userId = null`): Posts / Replies (and Bookmarks on your own), follow, Edit profile |
+| `:feature:editprofile` | `feature/editprofile` | Profile editor: text fields, NIP-05 check, avatar and banner links from allowed sites (`ProfileImageHosts`) |
 | `:feature:settings` | `feature/settings` | Account, key export, relays (`RelayRules`), sign out |
 | `:feature:tab:main` | `feature/tab/main` | `MainComponent`: list-detail `childPanels` — `component/tabs` (Home, Search, Activity, Bookmarks, Profile) in the main panel, `component/details` (a stack of posts and profiles) in the details panel; `isReading` for the Duo replies pose |
 | `:feature:tab:home` | `feature/tab/home` | Home timeline: Following / Popular (trending) / Latest |
@@ -54,7 +55,7 @@ Dependency graph:
 
 ```
 feature:root → feature:tab:main → feature:tab:{home,search,activity,bookmarks}, feature:profile
-feature:root → feature:{auth,post,compose,profile,settings}
+feature:root → feature:{auth,post,compose,profile,settings,editprofile}
 every feature → core:domain, core:common
 core:data → core:domain, core:database, core:api → core:nostr
 sharedLogic → features (api, exported) + core:data (implementation, not exported)
@@ -97,7 +98,7 @@ excerpts are derived from the markdown (`PostSummaries`), as in KarpathyTalk.
   created and migrated by `PRAGMA user_version`. DAO and repository tests skip on JS (Node has no Web Worker/OPFS).
 - **Web routing:** Decompose `withWebHistory`; the root and `MainComponent` are `WebNavigationOwner`s (paths:
   `/signin`, `/post/<id>`, `/post/<id>/revisions`, `/user/<id>`, `/settings`, `/compose`, tabs `/search`,
-  `/activity`, `/bookmarks`, `/me`). A shared link is the root factory's `deepLink`, opened above Main after sign-in.
+  `/activity`, `/bookmarks`, `/me`, `/settings/profile` for the profile editor). A shared link is the root factory's `deepLink`, opened above Main after sign-in.
   The dev server falls back to `index.html` (`webpack.config.d/devServer.js`).
 - **Keys:** `KSafeKeyVault` is the only place the secret key is persisted. `SecretKey.toString()` is redacted.
   Android backups are off (`allowBackup="false"`).

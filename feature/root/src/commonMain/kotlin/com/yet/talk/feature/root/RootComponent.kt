@@ -10,6 +10,7 @@ import com.yet.talk.feature.auth.AuthComponent
 import com.yet.talk.feature.compose.ComposeComponent
 import com.yet.talk.feature.post.component.revisions.RevisionsComponent
 import com.yet.talk.feature.settings.SettingsComponent
+import com.yet.talk.feature.editprofile.EditProfileComponent
 import com.yet.talk.feature.tab.main.MainComponent
 import com.yet.talk.feature.tab.main.component.tabs.TabsComponent
 
@@ -51,6 +52,8 @@ interface RootComponent : BackHandlerOwner, WebNavigationOwner {
         class Compose(val component: ComposeComponent) : Child()
 
         class Settings(val component: SettingsComponent) : Child()
+
+        class EditProfile(val component: EditProfileComponent) : Child()
     }
 
     fun interface Factory {

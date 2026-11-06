@@ -10,12 +10,13 @@ import com.yet.talk.domain.model.post.ThreadPosition
 import com.yet.talk.domain.model.post.ViewerState
 import com.yet.talk.domain.model.user.User
 import com.yet.talk.domain.model.user.UserId
+import com.yet.talk.domain.rule.ProfileImageHosts
 import com.yet.talk.nostr.encoding.Nip19
 import kotlin.time.Instant
 
 internal fun PostRecord.toPost(): Post = Post(
     id = PostId(id),
-    author = User(UserId(author), Nip19.npub(author), authorName, authorDisplayName, picture = authorPicture, nip05 = authorNip05),
+    author = User(UserId(author), Nip19.npub(author), authorName, authorDisplayName, picture = ProfileImageHosts.shownOrNull(authorPicture), nip05 = authorNip05),
     content = content,
     images = imagesFromJson(imagesJson),
     createdAt = Instant.fromEpochSeconds(createdAt),

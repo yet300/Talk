@@ -10,6 +10,7 @@ kotlin {
             api(projects.feature.post)
             api(projects.feature.compose)
             api(projects.feature.settings)
+            api(projects.feature.editprofile)
         }
     }
 }

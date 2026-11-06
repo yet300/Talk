@@ -22,6 +22,7 @@ internal class TestData(factory: SqlDriverFactory, scope: CoroutineScope, io: Co
         socialRemote = network.social,
         publishRemote = network.publisher,
         mediaRemote = network.media,
+        nip05 = { identifier, _ -> identifier == "me@example.com" },
     )
 
     val accounts = graph.accounts
@@ -30,5 +31,6 @@ internal class TestData(factory: SqlDriverFactory, scope: CoroutineScope, io: Co
     val bookmarks = graph.bookmarks
     val follows = graph.follows
     val trending = graph.trending
+    val profiles = graph.profiles
     val syncDao = graph.syncDao
 }

@@ -33,8 +33,15 @@ NIP-32 label namespace:
 |---|---|
 | GitHub OAuth | A secp256k1 key pair (`nsec`/`npub`) |
 | `username` | `npub`, plus an optional NIP-05 handle for a readable name |
-| display name, avatar, bio | kind 0 metadata (NIP-01) |
+| display name, avatar, bio | kind 0 metadata (NIP-01; `banner`, `website` from NIP-24) |
 | GitHub link | NIP-39 external identity (`["i", "github:<login>", "<proof gist id>"]`) |
+
+Editing kind 0: Talk fetches the latest kind 0 from relays and changes only the keys it edits (`name`,
+`display_name`, `about`, `website`, `nip05`, and `picture`/`banner` when changed), keeping every other key
+(`lud16`, other apps' fields). If relays return none while one is cached, the save fails rather than
+overwrite it. The new event's `created_at` is newer than the one it replaces. `picture` and `banner` are set
+only to GIPHY or Unsplash links, and Talk shows them only from those hosts and GitHub avatars
+(`ProfileImageHosts`).
 
 Key storage per platform:
 

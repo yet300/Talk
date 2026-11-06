@@ -14,5 +14,9 @@ interface ProfileRepository {
 
     suspend fun refresh(id: UserId): Result<Unit>
 
+    /** Publishes a new kind 0 that keeps the fields [edit] does not cover. */
     suspend fun updateMyProfile(edit: ProfileEdit): Result<Unit>
+
+    /** True when the NIP-05 [identifier] (`name@domain`) points at [id]. */
+    suspend fun verifyNip05(id: UserId, identifier: String): Result<Boolean>
 }

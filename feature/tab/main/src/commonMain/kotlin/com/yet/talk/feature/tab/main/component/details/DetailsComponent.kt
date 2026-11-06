@@ -44,6 +44,8 @@ interface DetailsComponent : WebNavigationOwner {
         data class OpenRevisions(val id: PostId) : Output
 
         data object OpenSettings : Output
+
+        data object EditProfile : Output
     }
 
     fun interface Factory {

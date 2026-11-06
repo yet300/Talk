@@ -15,6 +15,7 @@ import com.yet.talk.web.ui.components.TalkButton
 import com.yet.talk.web.ui.components.list.SectionTitle
 import com.yet.talk.web.ui.screens.settings.dialog.SignOutDialog
 import com.yet.talk.web.ui.theme.stringResource
+import org.jetbrains.compose.web.dom.A
 import org.jetbrains.compose.web.dom.Div
 import org.jetbrains.compose.web.dom.P
 import org.jetbrains.compose.web.dom.Span
@@ -38,6 +39,10 @@ fun IdentitySection(model: SettingsComponent.Model, component: SettingsComponent
         }
         TalkButton(stringResource(MR.strings.settings_sign_out), { signingOut = true }, ButtonStyle.Secondary, enabled = !model.isWorking)
     }
+    A(href = "/settings/profile", attrs = {
+        classes("t-row")
+        onClick { it.preventDefault(); component.onEditProfile() }
+    }) { Span({ classes("t-row-text", "x-name") }) { Text(stringResource(MR.strings.action_edit_profile)) } }
     if (signingOut) {
         // The dialog shows the key only while it is open.
         SignOutDialog(

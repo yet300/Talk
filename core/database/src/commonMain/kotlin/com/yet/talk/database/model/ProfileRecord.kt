@@ -9,4 +9,5 @@ data class ProfileRecord(
     val website: String?,
     val nip05: String?,
     val updatedAt: Long,
+    val banner: String? = null,
 )

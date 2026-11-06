@@ -14,6 +14,10 @@ import com.yet.talk.nostr.key.SecretKey
 import com.yet.talk.nostr.nip.Kinds
 import com.yet.talk.nostr.nip.contactPubkeys
 import com.yet.talk.nostr.signer.LocalKeySigner
+import com.yet.talk.domain.model.user.ProfileEdit
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -65,6 +69,41 @@ class DataTest {
         assertEquals(DomainError.NoRelayAccepted, data.posts.publish("again", emptyList(), null).exceptionOrNull())
         val failed = data.posts.feed(Feed.Latest).asSnapshot().first()
         assertEquals("again" to PublishState.Failed, failed.content to failed.publishState)
+    }
+
+    @Test
+    fun profileSaveKeepsFieldsOtherAppsSet() = dataTest { data ->
+        val key = SecretKey.generate()
+        val me = LocalKeySigner(key)
+        data.accounts.importKey(Nip19.nsec(key)).getOrThrow()
+        val previousAt = data.clock.seconds + 100 // a clock ahead of ours: the new version must still be newer
+        data.network.events += me.sign(EventTemplate(Kinds.METADATA, """{"name":"old","lud16":"me@ln.example","about":"hi","picture":"https://nostr.build/a.gif"}""", createdAt = previousAt))
+
+        data.profiles.updateMyProfile(ProfileEdit(name = "new", banner = "https://images.unsplash.com/photo-1")).getOrThrow()
+
+        val saved = data.network.published.single()
+        assertEquals(previousAt + 1, saved.createdAt)
+        assertEquals(
+            mapOf("name" to "new", "lud16" to "me@ln.example", "picture" to "https://nostr.build/a.gif", "banner" to "https://images.unsplash.com/photo-1"),
+            Json.parseToJsonElement(saved.content).jsonObject.mapValues { it.value.jsonPrimitive.content },
+        )
+        val user = data.profiles.observeUser(UserId(me.publicKey())).first()
+        // Kept on relays, but Talk shows avatars only from allowed sites.
+        assertEquals(Triple("new", "https://images.unsplash.com/photo-1", null), Triple(user.name, user.banner, user.picture))
+        assertTrue(data.profiles.verifyNip05(user.id, "me@example.com").getOrThrow())
+    }
+
+    @Test
+    fun profileSaveRefusesToOverwriteAProfileItCannotRead() = dataTest { data ->
+        val key = SecretKey.generate()
+        val me = LocalKeySigner(key)
+        data.accounts.importKey(Nip19.nsec(key)).getOrThrow()
+        data.network.events += me.sign(EventTemplate(Kinds.METADATA, """{"name":"old"}""", createdAt = 1))
+        data.profiles.refresh(UserId(me.publicKey())).getOrThrow() // cached
+        data.network.events.clear() // relays now unreachable or empty
+
+        assertTrue(data.profiles.updateMyProfile(ProfileEdit(name = "new")).exceptionOrNull() is DomainError.Network)
+        assertTrue(data.network.published.isEmpty())
     }
 
     @Test

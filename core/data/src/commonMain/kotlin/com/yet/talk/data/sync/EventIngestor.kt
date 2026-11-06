@@ -59,7 +59,7 @@ internal class EventIngestor(
                     ),
                 )
                 is TalkEvent.Profile -> with(event.metadata) {
-                    profiles.upsert(ProfileRecord(event.event.pubkey, name, displayName, about, picture, website, nip05, event.event.createdAt))
+                    profiles.upsert(ProfileRecord(event.event.pubkey, name, displayName, about, picture, website, nip05, event.event.createdAt, banner))
                 }
                 is TalkEvent.Deletion -> {
                     posts.markDeleted(event.eventIds, author = event.event.pubkey)

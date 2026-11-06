@@ -14,6 +14,8 @@ class PreviewSettingsComponent(
 
     override fun onBack() = Unit
 
+    override fun onEditProfile() = Unit
+
     override fun onRelayInputChanged(url: String) = Unit
 
     override fun onAddRelay() = Unit

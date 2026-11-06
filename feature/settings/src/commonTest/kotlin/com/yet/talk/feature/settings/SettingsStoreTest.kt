@@ -56,6 +56,7 @@ class SettingsStoreTest {
         override fun observeStats(id: UserId): Flow<UserStats> = flowOf(UserStats())
         override suspend fun refresh(id: UserId) = Result.success(Unit)
         override suspend fun updateMyProfile(edit: ProfileEdit) = Result.success(Unit)
+        override suspend fun verifyNip05(id: UserId, identifier: String) = Result.success(false)
     }
 
     private class FakePreferences : PreferencesRepository {

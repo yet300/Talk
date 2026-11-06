@@ -87,6 +87,7 @@ internal class DefaultMainComponent(
         is TabsComponent.Output.Quote -> output(MainComponent.Output.Quote(event.quoted))
         TabsComponent.Output.NewPost -> output(MainComponent.Output.NewPost)
         TabsComponent.Output.OpenSettings -> output(MainComponent.Output.OpenSettings)
+        TabsComponent.Output.EditProfile -> output(MainComponent.Output.EditProfile)
         is TabsComponent.Output.OpenRevisions -> output(MainComponent.Output.OpenRevisions(event.id))
     }
 
@@ -97,6 +98,7 @@ internal class DefaultMainComponent(
         is DetailsComponent.Output.Edit -> output(MainComponent.Output.Edit(event.id))
         is DetailsComponent.Output.OpenRevisions -> output(MainComponent.Output.OpenRevisions(event.id))
         DetailsComponent.Output.OpenSettings -> output(MainComponent.Output.OpenSettings)
+        DetailsComponent.Output.EditProfile -> output(MainComponent.Output.EditProfile)
     }
 
     private val ChildPanelsMode.isTwoPane get() = this != ChildPanelsMode.SINGLE

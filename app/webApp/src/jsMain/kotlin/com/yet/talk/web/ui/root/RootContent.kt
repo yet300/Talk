@@ -2,11 +2,14 @@ package com.yet.talk.web.ui.root
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import com.yet.talk.feature.editprofile.EditProfileComponent
 import com.yet.talk.feature.root.RootComponent
 import com.yet.talk.feature.tab.main.MainComponent
 import com.yet.talk.feature.tab.main.component.tabs.TabsComponent
 import com.yet.talk.resources.*
+import com.yet.talk.web.browser.rememberIsPhone
 import com.yet.talk.web.decompose.subscribeAsState
+import com.yet.talk.web.ui.screens.editprofile.EditProfileContent
 import com.yet.talk.web.ui.root.component.RailActions
 import com.yet.talk.web.ui.root.component.RailSelection
 import com.yet.talk.web.ui.root.component.ShellWidth
@@ -34,7 +37,17 @@ fun RootContent(component: RootComponent) {
         onCompose = component::onNewPost,
         onSettings = component::onOpenSettings,
     )
-    when (val child = stack.active.instance) {
+    val child = stack.active.instance
+    if (child is RootComponent.Child.EditProfile) {
+        EditProfile(child.component, below = stack.backStack.lastOrNull()?.instance, main, railActions)
+    } else {
+        Destination(child, main, railActions)
+    }
+}
+
+@Composable
+private fun Destination(child: RootComponent.Child, main: MainComponent?, railActions: RailActions) {
+    when (child) {
         RootComponent.Child.Splash -> Splash()
         is RootComponent.Child.Auth -> AuthContent(child.component)
         is RootComponent.Child.Main -> MainContent(child.component, railActions)
@@ -47,6 +60,28 @@ fun RootContent(component: RootComponent) {
         is RootComponent.Child.Revisions -> Shell(main, RailSelection.None, railActions, right = { RevisionsSide(child.component) }) {
             RevisionsContent(child.component)
         }
+        // Full screen on a phone (no navigation capsule), as in EditProfile · Mobile.
+        is RootComponent.Child.EditProfile -> Shell(main, RailSelection.None, railActions, ShellWidth.Wide) { EditProfileContent(child.component) }
+    }
+}
+
+/** `EditProfile · Web`: a modal over the screen it was opened from; `EditProfile · Mobile`: the whole screen. */
+@Composable
+private fun EditProfile(component: EditProfileComponent, below: RootComponent.Child?, main: MainComponent?, railActions: RailActions) {
+    if (rememberIsPhone() || below == null) {
+        Destination(RootComponent.Child.EditProfile(component), main, railActions)
+        return
+    }
+    Destination(below, main, railActions)
+    val label = stringResource(MR.strings.action_edit_profile)
+    Div({ classes("x-scrim", "t-layer"); onClick { component.onCancel() } }) {
+        Div({
+            classes("x-modal", "t-edit-modal")
+            attr("role", "dialog")
+            attr("aria-modal", "true")
+            attr("aria-label", label)
+            onClick { it.stopPropagation() }
+        }) { EditProfileContent(component) }
     }
 }
 

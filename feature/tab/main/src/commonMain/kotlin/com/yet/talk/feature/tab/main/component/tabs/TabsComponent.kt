@@ -57,6 +57,8 @@ interface TabsComponent : WebNavigationOwner {
 
         data object OpenSettings : Output
 
+        data object EditProfile : Output
+
         data class OpenRevisions(val id: PostId) : Output
     }
 

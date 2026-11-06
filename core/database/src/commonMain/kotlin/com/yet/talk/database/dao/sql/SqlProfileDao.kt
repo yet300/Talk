@@ -15,23 +15,23 @@ internal class SqlProfileDao(private val holder: DatabaseHolder, private val dis
         val queries = holder.get().profileQueries
         holder.get().transaction {
             with(profile) {
-                queries.insertIfAbsent(pubkey, name, displayName, about, picture, website, nip05, updatedAt)
-                queries.updateIfNewer(name, displayName, about, picture, website, nip05, updatedAt, pubkey)
+                queries.insertIfAbsent(pubkey, name, displayName, about, picture, banner, website, nip05, updatedAt)
+                queries.updateIfNewer(name, displayName, about, picture, banner, website, nip05, updatedAt, pubkey)
             }
         }
     }
 
     override fun observe(pubkey: String): Flow<ProfileRecord?> =
         holder.observeOneOrNull(dispatchers.io) {
-            profileQueries.selectByPubkey(pubkey) { key, name, displayName, about, picture, website, nip05, updatedAt ->
-                ProfileRecord(key, name, displayName, about, picture, website, nip05, updatedAt)
+            profileQueries.selectByPubkey(pubkey) { key, name, displayName, about, picture, website, nip05, updatedAt, banner ->
+                ProfileRecord(key, name, displayName, about, picture, website, nip05, updatedAt, banner)
             }
         }
 
     override fun observeSearch(text: String, limit: Int): Flow<List<ProfileRecord>> =
         holder.observeList(dispatchers.io) {
-            profileQueries.searchProfiles(likePattern(text), limit.toLong()) { key, name, displayName, about, picture, website, nip05, updatedAt ->
-                ProfileRecord(key, name, displayName, about, picture, website, nip05, updatedAt)
+            profileQueries.searchProfiles(likePattern(text), limit.toLong()) { key, name, displayName, about, picture, website, nip05, updatedAt, banner ->
+                ProfileRecord(key, name, displayName, about, picture, website, nip05, updatedAt, banner)
             }
         }
 }

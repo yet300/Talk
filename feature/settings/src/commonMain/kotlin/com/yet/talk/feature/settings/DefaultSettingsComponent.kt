@@ -13,7 +13,7 @@ import dev.zacsweers.metro.Inject
 
 internal class DefaultSettingsComponent(
     componentContext: ComponentContext,
-    private val onBack: () -> Unit,
+    private val output: (SettingsComponent.Output) -> Unit,
     storeFactory: SettingsStoreFactory,
 ) : SettingsComponent, ComponentContext by componentContext {
 
@@ -21,7 +21,9 @@ internal class DefaultSettingsComponent(
 
     override val model: Value<SettingsComponent.Model> = store.asValue().map(stateToModel)
 
-    override fun onBack() = onBack.invoke()
+    override fun onBack() = output(SettingsComponent.Output.Back)
+
+    override fun onEditProfile() = output(SettingsComponent.Output.EditProfile)
 
     override fun onRelayInputChanged(url: String) = store.accept(SettingsStore.Intent.ChangeRelayInput(url))
 
@@ -42,6 +44,6 @@ internal class DefaultSettingsComponent(
 
 @Inject
 internal class DefaultSettingsComponentFactory(private val storeFactory: SettingsStoreFactory) : SettingsComponent.Factory {
-    override fun invoke(componentContext: ComponentContext, onBack: () -> Unit): SettingsComponent =
-        DefaultSettingsComponent(componentContext, onBack, storeFactory)
+    override fun invoke(componentContext: ComponentContext, output: (SettingsComponent.Output) -> Unit): SettingsComponent =
+        DefaultSettingsComponent(componentContext, output, storeFactory)
 }
