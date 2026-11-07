@@ -3,6 +3,7 @@ package com.yet.talk.web.ui.root.component
 import androidx.compose.runtime.Composable
 import com.yet.talk.feature.tab.main.component.tabs.TabsComponent
 import com.yet.talk.resources.*
+import com.yet.talk.web.browser.trackScroll
 import com.yet.talk.web.ui.components.Avatar
 import com.yet.talk.web.ui.components.AvatarSize
 import com.yet.talk.web.ui.components.IconButton
@@ -46,7 +47,10 @@ internal val PhoneTabs = TabsComponent.Tab.entries - TabsComponent.Tab.Profile -
 /** The home header on phones (`x-mobile-header`): your avatar (Profile), the wordmark, Settings. */
 @Composable
 fun MobileHomeHeader(me: TabsComponent.Me, actions: RailActions) {
-    Header({ classes("x-mobile-header", "t-bar-sticky") }) {
+    Header({
+        classes("x-mobile-header", "t-bar-sticky")
+        ref { bar -> val stop = trackScroll(bar); onDispose { stop() } }
+    }) {
         Avatar(me.user, AvatarSize.Small, onClick = { actions.onTab(TabsComponent.Tab.Profile) })
         Span({ classes("t-wordmark") }) { Text(stringResource(MR.strings.app_name)) }
         IconButton(TalkIcons.Settings, stringResource(MR.strings.action_settings), actions.onSettings, attrs = { classes("t-header-end") })

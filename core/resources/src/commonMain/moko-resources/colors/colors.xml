@@ -20,6 +20,12 @@
     <color name="header_blur"><light>FFFFFFA6</light><dark>000000A6</dark></color>
 
     <!-- Bottom navigation capsule -->
+    <!-- Glass app bars (design pass 4): the bar material and its round buttons. -->
+    <color name="glass_bar"><light>FFFFFF9E</light><dark>0000008C</dark></color>
+    <color name="glass_btn"><light>FFFFFFCC</light><dark>202327B8</dark></color>
+    <!-- Chat bubbles (decision 22): outgoing is darker than x-blue so white text reaches 5.4:1. -->
+    <color name="bubble_out"><light>0A6BC2FF</light><dark>0A6BC2FF</dark></color>
+    <color name="bubble_theirs"><light>EFF3F4FF</light><dark>2F3336FF</dark></color>
     <color name="glass_bg"><light>FFFFFFD1</light><dark>111111C7</dark></color>
     <color name="glass_solid"><light>FFFFFFFF</light><dark>111111FF</dark></color>
     <color name="glass_pill"><light>0000000F</light><dark>FFFFFF24</dark></color>

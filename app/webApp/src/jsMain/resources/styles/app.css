@@ -187,3 +187,29 @@ iframe.t-player{border:0;display:block}
 .t-menu-note{margin:0;padding:var(--space-md) var(--space-lg);max-width:280px}
 .t-profile-more{position:relative;margin-left:auto;margin-right:var(--space-sm)}
 .x-profile-top .t-profile-more + .t-follow{margin-left:0}
+/* Glass app bars (design pass 4, decisions in ui-review section 10): every top bar is glass over the content that
+   scrolls under it; no line, a soft scroll-edge shadow once content is under it (t-scrolled, set by trackScroll). */
+.t-bar,.x-mobile-header,.t-composer-bar{position:relative;z-index:4;background:var(--glass-bar);-webkit-backdrop-filter:var(--glass-filter);backdrop-filter:var(--glass-filter);border-bottom:0}
+.t-bar.t-bar-sticky,.x-mobile-header.t-bar-sticky{position:sticky;top:0}
+.t-bar::after,.x-mobile-header::after,.t-composer-bar::after{content:"";position:absolute;left:0;right:0;top:100%;height:24px;background:var(--glass-edge);opacity:0;pointer-events:none;transition:opacity .2s ease-out}
+.t-bar.t-scrolled::after,.x-mobile-header.t-scrolled::after{opacity:1}
+.t-bar .t-icon-btn,.x-mobile-header .t-icon-btn,.t-composer-bar .t-icon-btn,.t-glass-btn{background:var(--glass-btn);box-shadow:var(--shadow-glass-sm)}
+.x-mobile-header .x-avatar{box-shadow:var(--shadow-glass-sm)}
+/* Profile: clear over the banner, glass with the name once the banner has scrolled away */
+.t-bar-clear{background:transparent;-webkit-backdrop-filter:none;backdrop-filter:none;margin-bottom:calc(-1 * var(--bar-height));transition:background-color .2s ease-out}
+.t-bar-clear .t-bar-title{opacity:0;transition:opacity .2s ease-out}
+.t-bar-clear.t-scrolled::after{opacity:0}
+.t-bar-clear.t-scrolled-far{background:var(--glass-bar);-webkit-backdrop-filter:var(--glass-filter);backdrop-filter:var(--glass-filter)}
+.t-bar-clear.t-scrolled-far .t-bar-title,.t-bar-clear.t-scrolled-far::after{opacity:1}
+/* Home: Following · Popular · Latest as a floating glass capsule under the bar */
+.t-main,.t-phone-page{--tabs-top:61px}
+.t-seg-capsule{position:sticky;top:var(--tabs-top,8px);z-index:3;display:flex;width:fit-content;margin:8px auto;padding:4px;gap:2px;border-radius:var(--radius-pill);background:var(--glass-bg);-webkit-backdrop-filter:var(--glass-filter);backdrop-filter:var(--glass-filter);box-shadow:var(--shadow-glass)}
+.t-seg-item{all:unset;box-sizing:border-box;min-height:var(--touch-min);padding:0 var(--space-lg);display:inline-flex;align-items:center;border-radius:var(--radius-pill);font-weight:500;color:var(--glass-icon);cursor:pointer;transition:background-color .2s}
+.t-seg-item.is-active{background:var(--glass-pill);color:var(--text-primary);font-weight:700}
+.t-seg-item:focus-visible{box-shadow:var(--focus-ring)}
+/* Reduced transparency: solid bars, no blur (the system setting, or t-solid on <html>) */
+@media (prefers-reduced-transparency: reduce){
+.t-bar:not(.t-bar-clear),.x-mobile-header,.t-composer-bar,.t-seg-capsule,.t-bar .t-icon-btn,.x-mobile-header .t-icon-btn,.t-glass-btn,.t-bar-clear.t-scrolled-far{background:var(--glass-solid)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+}
+.t-solid .t-bar:not(.t-bar-clear),.t-solid .x-mobile-header,.t-solid .t-composer-bar,.t-solid .t-seg-capsule,.t-solid .x-bottom-nav,.t-solid .t-bar .t-icon-btn,.t-solid .x-mobile-header .t-icon-btn,.t-solid .t-glass-btn,.t-solid .t-bar-clear.t-scrolled-far{background:var(--glass-solid)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+.t-under-bar{margin-top:calc(-1 * var(--bar-height))}

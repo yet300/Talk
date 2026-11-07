@@ -16,6 +16,7 @@ import com.yet.talk.web.ui.components.list.PagedList
 import com.yet.talk.web.ui.components.post.PostActionHandlers
 import com.yet.talk.web.ui.components.post.PostCard
 import com.yet.talk.web.ui.screens.profile.component.ProfileHeader
+import com.yet.talk.web.ui.screens.profile.component.ProfileMore
 import com.yet.talk.web.ui.theme.stringResource
 
 /** A profile (`Profile · Web`): bar with the name, the full header, Posts · Replies, the paged cards. */
@@ -30,7 +31,12 @@ fun ProfileContent(component: ProfileComponent) {
         title = model.user?.displayLabel ?: stringResource(MR.strings.tab_profile),
         // Your profile is a tab on the web; on the phone it opens from the home header, so it has Back too.
         onBack = component::onBack.takeIf { model.canGoBack || phone },
-    )
+        // The banner reaches the top edge under a clear bar, which turns to glass once it has scrolled away.
+        clear = true,
+    ) {
+        val user = model.user
+        if (!model.isMe && user != null) ProfileMore(user)
+    }
     ProfileHeader(model, onFollow = component::onFollowToggle, onEditProfile = component::onEditProfile)
     // Bookmarks is a tab of your own profile on the phone only; the web has its own Bookmarks destination.
     val tabs = ProfileComponent.Tab.entries.filter { it != ProfileComponent.Tab.Bookmarks || (phone && model.isMe) }

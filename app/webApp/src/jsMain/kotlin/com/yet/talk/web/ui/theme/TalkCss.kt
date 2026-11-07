@@ -25,6 +25,7 @@ internal object TalkCss {
             "warning-yellow" to warning_yellow, "tooltip-bg" to tooltip_bg, "nav-badge" to nav_badge,
             "tint-blue" to tint_blue, "tint-green" to tint_green, "tint-pink" to tint_pink,
             "modal-scrim" to modal_scrim, "media-scrim" to media_scrim,
+            "glass-bar" to glass_bar, "glass-btn" to glass_btn, "bubble-out" to bubble_out, "bubble-theirs" to bubble_theirs,
         )
     }
 
@@ -32,11 +33,15 @@ internal object TalkCss {
     private fun shadows(dark: Boolean) = if (dark) {
         "--shadow-menu:0 0 0 1px rgba(255,255,255,.15),0 0 15px rgba(255,255,255,.1);" +
             "--shadow-modal:0 0 0 1px rgba(255,255,255,.15);" +
-            "--shadow-glass:inset 0 0 0 1px rgba(255,255,255,.08),inset 0 1px 0 rgba(255,255,255,.18),0 10px 30px rgba(0,0,0,.6);"
+            "--shadow-glass:inset 0 0 0 1px rgba(255,255,255,.08),inset 0 1px 0 rgba(255,255,255,.18),0 10px 30px rgba(0,0,0,.6);" +
+            "--shadow-glass-sm:inset 0 0 0 1px rgba(255,255,255,.1),inset 0 1px 0 rgba(255,255,255,.16),0 2px 8px rgba(0,0,0,.5);" +
+            "--glass-edge:linear-gradient(to bottom,rgba(0,0,0,.8),rgba(0,0,0,0));"
     } else {
         "--shadow-menu:0 0 0 1px rgba(15,20,25,.15),0 0 15px rgba(15,20,25,.1);" +
             "--shadow-modal:0 0 0 1px rgba(15,20,25,.15);" +
-            "--shadow-glass:inset 0 0 0 1px rgba(0,0,0,.06),inset 0 1px 0 rgba(255,255,255,.7),0 8px 24px rgba(0,0,0,.12);"
+            "--shadow-glass:inset 0 0 0 1px rgba(0,0,0,.06),inset 0 1px 0 rgba(255,255,255,.7),0 8px 24px rgba(0,0,0,.12);" +
+            "--shadow-glass-sm:inset 0 0 0 1px rgba(0,0,0,.06),inset 0 1px 0 rgba(255,255,255,.8),0 2px 8px rgba(0,0,0,.12);" +
+            "--glass-edge:linear-gradient(to bottom,rgba(255,255,255,.6),rgba(255,255,255,0));"
     }
 
     private fun Color.css() = "rgba($red, $green, $blue, ${alpha / 255.0})"

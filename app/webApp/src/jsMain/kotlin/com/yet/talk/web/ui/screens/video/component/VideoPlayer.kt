@@ -13,12 +13,12 @@ import org.jetbrains.compose.web.dom.Iframe
 import org.jetbrains.compose.web.dom.Img
 import org.jetbrains.compose.web.dom.Span
 
-/** The player (`VideoPlayer`): the thumbnail with Play, then YouTube's privacy-enhanced embedded player. */
+/** The player (`VideoPlayer`): the thumbnail with Play, then YouTube's privacy-enhanced embedded player; it sits under the glass bar. */
 @Composable
 fun VideoPlayer(model: VideoComponent.Model, onPlay: () -> Unit) {
     if (model.isPlaying) {
         Iframe({
-            classes("t-player")
+            classes("t-player", "t-under-bar")
             attr("src", "https://www.youtube-nocookie.com/embed/${model.id}?autoplay=1")
             attr("title", model.video?.title ?: model.url)
             attr("allow", "autoplay; encrypted-media; picture-in-picture; fullscreen")
@@ -29,7 +29,7 @@ fun VideoPlayer(model: VideoComponent.Model, onPlay: () -> Unit) {
     }
     val label = stringResource(MR.strings.video_play_video)
     Button({
-        classes("t-player", "t-thumb-btn", "t-player-start")
+        classes("t-player", "t-thumb-btn", "t-player-start", "t-under-bar")
         type(ButtonType.Button)
         attr("aria-label", label)
         onClick { onPlay() }

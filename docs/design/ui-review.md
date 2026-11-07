@@ -391,6 +391,9 @@ Decisions in this pass (on the designer's notes):
 
 1. Glass app bars on the web: tokens, the bars and the Home capsule, edge-to-edge lists, Profile's banner bar,
    the scroll-edge shadow, the solid fallback.
+   Built (2026-11-07): `glass_bar`, `glass_btn`, `bubble_out`, `bubble_theirs` in `core:resources`; the shadow and
+   edge gradient in `TalkCss`; `TopBar(clear = …)` and `trackScroll` (`t-scrolled` past 4 px, `t-scrolled-far`
+   past 160 px, in every browser rather than CSS scroll timelines); the video player under its bar.
 2. Chats core: NIP-44 v2, NIP-59 seal and gift wrap, NIP-17 text messages, the kind 10050 inbox relays (yours
    published, theirs read), the list with Chats · Requests, the conversation, Sending… / Not sent, offline,
    "Can't receive chats yet"; the fifth navigation item with the unread count; messages encrypted at rest.

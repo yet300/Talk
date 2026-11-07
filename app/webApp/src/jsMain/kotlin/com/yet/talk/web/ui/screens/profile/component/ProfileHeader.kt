@@ -39,7 +39,6 @@ fun ProfileHeader(model: ProfileComponent.Model, onFollow: () -> Unit, onEditPro
     // Outside your network the banner and avatar are blurred until Show (decision 18).
     var shown by remember(user?.id) { mutableStateOf(false) }
     val outside = user != null && !shown && !LocalModeration.current.isInNetwork(user.id)
-    var reporting by remember { mutableStateOf(false) }
     Header({ classes("t-part") }) {
         Div({ classes("t-banner-img") }) {
             user?.banner?.let { Img(src = it, alt = "") { if (outside) classes("t-blur") } }
@@ -56,13 +55,6 @@ fun ProfileHeader(model: ProfileComponent.Model, onFollow: () -> Unit, onEditPro
             if (model.isMe) {
                 TalkButton(stringResource(MR.strings.action_edit_profile), onEditProfile, ButtonStyle.Secondary, attrs = { classes("t-follow") })
             } else if (user != null) {
-                Div({ classes("t-menu-host", "t-profile-more") }) {
-                    IconButton(TalkIcons.More, stringResource(MR.strings.action_more), onClick = { reporting = !reporting }, attrs = {
-                        attr("aria-haspopup", "menu")
-                        attr("aria-expanded", reporting.toString())
-                    })
-                    if (reporting) ReportMenu(ReportTarget.Profile(user.id), onDismiss = { reporting = false })
-                }
                 TalkButton(
                     text = stringResource(if (model.isFollowing) MR.strings.action_following else MR.strings.action_follow),
                     onClick = onFollow,
@@ -122,5 +114,18 @@ private fun Stat(value: Long, label: String) {
         Span({ classes("t-strong") }) { Text(value.toString()) }
         Text(" ")
         Span({ classes("t-muted") }) { Text(label) }
+    }
+}
+
+/** … in the profile's glass bar, on someone else's profile: Report the profile. */
+@Composable
+fun ProfileMore(user: User) {
+    var reporting by remember { mutableStateOf(false) }
+    Div({ classes("t-menu-host") }) {
+        IconButton(TalkIcons.More, stringResource(MR.strings.action_more), onClick = { reporting = !reporting }, attrs = {
+            attr("aria-haspopup", "menu")
+            attr("aria-expanded", reporting.toString())
+        })
+        if (reporting) ReportMenu(ReportTarget.Profile(user.id), onDismiss = { reporting = false })
     }
 }

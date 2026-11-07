@@ -19,6 +19,8 @@ fun FeedTabs(selected: HomeComponent.Feed, onSelect: (HomeComponent.Feed) -> Uni
         label = { it.label() },
         onSelect = onSelect,
         ariaLabel = stringResource(MR.strings.tab_home),
+        // A floating glass capsule under the bar (design pass 4).
+        capsule = true,
     )
     if (selected == HomeComponent.Feed.Popular) {
         P({ classes("t-caption", "t-popular-caption") }) { Text(stringResource(MR.strings.feed_popular_caption)) }

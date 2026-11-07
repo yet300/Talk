@@ -19,16 +19,23 @@ fun <T> Tabs(
     onSelect: (T) -> Unit,
     ariaLabel: String,
     segmented: Boolean = false,
+    capsule: Boolean = false,
 ) {
     Div({
-        classes(if (segmented) "t-seg" else "x-tabs")
+        classes(
+            when {
+                capsule -> "t-seg-capsule"
+                segmented -> "t-seg"
+                else -> "x-tabs"
+            },
+        )
         attr("role", "tablist")
         attr("aria-label", ariaLabel)
     }) {
         items.forEach { item ->
             val active = item == selected
             Button({
-                classes("x-tab")
+                classes(if (capsule) "t-seg-item" else "x-tab")
                 if (active) classes("is-active")
                 type(ButtonType.Button)
                 attr("role", "tab")
