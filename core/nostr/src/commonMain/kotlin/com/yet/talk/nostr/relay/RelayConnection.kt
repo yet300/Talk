@@ -25,6 +25,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 
 /**
  * One relay. Connects lazily on the first [send], reconnects with exponential backoff, and on every
@@ -114,8 +115,16 @@ internal class RelayConnection(
             _state.value = State.Disconnected
             // Anything still queued was meant for the lost connection; open subscriptions are re-sent on connect.
             while (outgoing.tryReceive().isSuccess) Unit
-            delay(backoff(attempt++))
+            // Back off, unless the network comes back first (reconnectNow).
+            withTimeoutOrNull(backoff(attempt++)) { wakeUps.receive() }
         }
+    }
+
+    private val wakeUps = Channel<Unit>(Channel.CONFLATED)
+
+    /** The device is online again: a relay waiting out its backoff tries at once. */
+    fun reconnectNow() {
+        wakeUps.trySend(Unit)
     }
 
     /** Emits once the relay is unreachable (now or later): a caller waiting for an answer can stop. */

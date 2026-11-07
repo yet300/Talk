@@ -8,7 +8,7 @@ import dev.zacsweers.metro.AppScope
 import com.yet.talk.domain.repository.LocationSource
 import com.yet.talk.location.UnavailableLocationSource
 import com.yet.talk.domain.repository.ConnectivitySource
-import com.yet.talk.network.AssumedOnline
+import com.yet.talk.network.DeviceConnectivity
 import dev.zacsweers.metro.DependencyGraph
 import dev.zacsweers.metro.Provides
 import dev.zacsweers.metro.SingleIn
@@ -25,7 +25,8 @@ internal interface AndroidAppGraph : AppGraph, RepositoriesGraph {
     fun locationSource(): LocationSource = UnavailableLocationSource()
 
     @Provides
-    fun connectivity(): ConnectivitySource = AssumedOnline()
+    @SingleIn(AppScope::class)
+    fun connectivity(): ConnectivitySource = DeviceConnectivity()
 
     @Provides
     fun httpClient(): HttpClient = relayHttpClient(OkHttp)

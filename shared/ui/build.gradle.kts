@@ -37,6 +37,9 @@ kotlin {
             implementation(libs.androidx.lifecycle.runtimeCompose)
             implementation(libs.haze)
             implementation(libs.haze.glass)
+            implementation(libs.coil.compose)
+            implementation(libs.coil.network.okhttp)
+            implementation(libs.androidx.paging.compose)
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.compose.uiTooling)
         }

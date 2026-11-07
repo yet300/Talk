@@ -30,7 +30,7 @@ Clean Architecture, SOLID, KISS, YAGNI. In practice:
 | — | `app/iosApp` | iOS app (SwiftUI); links the `SharedLogic` framework. `AppDelegate` owns the graph and root; `Theme/`, `Decompose/` |
 | `:webApp` | `app/webApp` | Web app (Compose HTML, webpack): `Main.kt` wires the graph, `withWebHistory` and the theme |
 | `:sharedLogic` | `shared/logic` | Composition root: the Metro graph (`AndroidAppGraph`, `IosAppGraph`, `JsAppGraph`), `DomainError.toStringDesc()`, the umbrella exported to iOS (`SharedLogic.framework`) |
-| `:sharedUI` | `shared/ui` | Android Compose UI (Android-only on purpose, code in `androidMain`): `TalkTheme`, root content |
+| `:sharedUI` | `shared/ui` | Android Compose UI (Android-only on purpose, code in `androidMain`): `TalkApp`, `TalkTheme`, root content; glass bars and the iOS 26-style tab capsule with Haze Glass (`components/glass`), images with Coil, paged lists with `paging-compose` |
 | `:core:common` | `core/common` | Dispatchers, `Log` (Kermit), Decompose/MVIKotlin helpers, `StoreFactory` binding. Package `com.app.common` |
 | `:core:domain` | `core/domain` | Models, repository interfaces, `Pager`, `ContentRules`, `TrendingRanker`, use cases; pure Kotlin |
 | `:core:nostr` | `core/nostr` | Protocol only: NIP-01 events and ids, BIP-340 signing (libsecp256k1 on Android/iOS, `@noble/curves` on JS), NIP-19, `RelayClient`/`RelayPool`, NIP helpers |
@@ -112,8 +112,9 @@ excerpts are derived from the markdown (`PostSummaries`), as in KarpathyTalk.
   `/signin`, `/post/<id>`, `/post/<id>/revisions`, `/user/<id>`, `/settings`, `/compose`, tabs `/search`,
   `/activity`, `/chats`, `/videos`, `/bookmarks`, `/me`, `/video/<id>`, `/settings/profile` for the profile editor). A shared link is the root factory's `deepLink`, opened above Main after sign-in.
   The dev server falls back to `index.html` (`webpack.config.d/devServer.js`).
-- **Network status:** `NetworkRepository` combines `ConnectivitySource` (browser `online`/`offline` on the web,
-  assumed online on Android and iOS for now), the pool's relay states and the outbox's waiting count; the web shows
+- **Network status:** `NetworkRepository` combines `ConnectivitySource` (jordond/connectivity on Android and iOS; the browser's
+  `online`/`offline` events on the web, where that library would poll third-party sites); when the device comes back online, relays skip the
+  rest of their reconnect backoff, the pool's relay states and the outbox's waiting count; the web shows
   `NetworkBar` on every screen and the state of each relay in Settings.
 - **Video catalog:** the HackerTube catalog (ODC-By 1.0) is committed as Kotlin sources in `core:data`
   (`data/video/catalog/VideoCatalogPart*.kt`, string chunks under the JVM's 64 KB constant limit), so every platform

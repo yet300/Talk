@@ -6,11 +6,16 @@ import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.flow.Flow
 
 /** The relays' connection states, for Settings and the offline indicator. */
-fun interface RelayStatusSource {
+interface RelayStatusSource {
     fun statuses(): Flow<Map<String, RelayStatus>>
+
+    /** The device is online again: relays waiting out a backoff try at once. */
+    fun reconnect()
 }
 
 @Inject
 internal class RelayClientStatusSource(private val relays: RelayClient) : RelayStatusSource {
     override fun statuses(): Flow<Map<String, RelayStatus>> = relays.statuses
+
+    override fun reconnect() = relays.reconnectNow()
 }

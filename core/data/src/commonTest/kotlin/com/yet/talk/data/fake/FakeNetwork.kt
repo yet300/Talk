@@ -140,6 +140,7 @@ class FakeNetwork {
     /** The device's connection and the relays' states. */
     val online = kotlinx.coroutines.flow.MutableStateFlow(true)
     val relayStatuses = kotlinx.coroutines.flow.MutableStateFlow(emptyMap<String, com.yet.talk.nostr.relay.RelayStatus>())
+    var reconnects = 0
 
     /** Uploaded blobs by URL. */
     val blobs = mutableMapOf<String, ByteArray>()

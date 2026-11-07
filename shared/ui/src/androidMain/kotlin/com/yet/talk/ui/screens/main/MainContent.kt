@@ -29,6 +29,7 @@ import com.yet.talk.ui.components.glass.LocalGlassSource
 import com.yet.talk.ui.components.glass.PhoneTabs
 import com.yet.talk.ui.components.glass.label
 import com.yet.talk.ui.screens.main.component.HomeHeader
+import com.yet.talk.ui.screens.tab.home.HomeContent
 import com.yet.talk.ui.theme.TalkIcons
 import com.yet.talk.ui.theme.sizes
 import com.yet.talk.ui.theme.stringResource
@@ -79,10 +80,13 @@ private fun TabsContent(tabs: TabsComponent, onOpenSettings: () -> Unit) {
     }
 }
 
-/** Each tab's screen; filled in by the next steps (feed, search, activity, chats, videos, profile). */
+/** Each tab's screen; the ones not built yet show their name. */
 @Composable
 private fun TabScreen(child: TabsComponent.Child) {
-    Placeholder(child.tab.label())
+    when (child) {
+        is TabsComponent.Child.Home -> HomeContent(child.component)
+        else -> Placeholder(child.tab.label())
+    }
 }
 
 @Composable

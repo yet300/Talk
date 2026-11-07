@@ -44,6 +44,10 @@ internal class NetworkRepositoryImpl(
         }.distinctUntilChanged().shareIn(scope, SharingStarted.WhileSubscribed(5_000), replay = 1)
 
     init {
+        // Back online: relays reconnect now rather than at the end of their backoff.
+        scope.launch {
+            connectivity.online.distinctUntilChanged().drop(1).filter { it }.collect { statuses.reconnect() }
+        }
         // Back online, or one more relay reachable: send what is waiting now.
         scope.launch {
             combine(connectivity.online, statuses.statuses().map { all -> all.count { it.value == RelayStatus.Connected } }) { online, connected -> online to connected }

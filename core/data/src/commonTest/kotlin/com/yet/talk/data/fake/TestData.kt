@@ -34,7 +34,10 @@ internal class TestData(factory: SqlDriverFactory, scope: CoroutineScope, io: Co
         connectivity = object : com.yet.talk.domain.repository.ConnectivitySource {
             override val online = network.online
         },
-        relayStatuses = { network.relayStatuses },
+        relayStatuses = object : com.yet.talk.api.source.relay.RelayStatusSource {
+            override fun statuses() = network.relayStatuses
+            override fun reconnect() { network.reconnects++ }
+        },
         catalog = object : VideoCatalogSource {
             override val version get() = network.catalogVersion
             override fun catalogJson() = network.catalogJson

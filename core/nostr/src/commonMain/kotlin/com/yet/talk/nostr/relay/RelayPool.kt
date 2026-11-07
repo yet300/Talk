@@ -59,6 +59,8 @@ internal class RelayPool(
         RelayConnection.State.Disconnected -> RelayStatus.Disconnected
     }
 
+    override fun reconnectNow() = connections.value.values.forEach { it.reconnectNow() }
+
     fun connection(url: String): RelayConnection {
         connections.value[url]?.let { return it }
         connections.update { if (url in it) it else it + (url to RelayConnection(url, transport, scope, authenticator = authenticator)) }

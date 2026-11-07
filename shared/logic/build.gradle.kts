@@ -87,9 +87,11 @@ kotlin {
         }
         androidMain.dependencies {
             implementation(libs.ktor.client.okhttp)
+            implementation(libs.connectivity.device)
         }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)
+            implementation(libs.connectivity.device)
         }
         jsMain.dependencies {
             implementation(libs.wrappers.browser)

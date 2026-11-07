@@ -19,6 +19,9 @@ interface RelayClient {
 
     /** Every relay this client has talked to, and whether it is connected now. */
     val statuses: Flow<Map<String, RelayStatus>> get() = flowOf(emptyMap())
+
+    /** The device is online again: relays waiting out a backoff try at once. */
+    fun reconnectNow() = Unit
 }
 
 /** A relay connection's state, as Settings and the offline indicator show it. */

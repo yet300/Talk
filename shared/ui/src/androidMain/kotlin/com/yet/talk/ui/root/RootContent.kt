@@ -6,6 +6,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
+import com.arkivanov.decompose.extensions.compose.subscribeAsState
+import com.yet.talk.ui.components.LocalModeration
+import com.yet.talk.ui.components.LocalPostCards
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.arkivanov.decompose.ExperimentalDecomposeApi
@@ -27,6 +32,8 @@ import com.yet.talk.ui.theme.talkTypography
 @OptIn(ExperimentalDecomposeApi::class)
 @Composable
 fun RootContent(component: RootComponent, modifier: Modifier = Modifier) {
+    val moderation by component.moderation.model.subscribeAsState()
+    CompositionLocalProvider(LocalModeration provides moderation, LocalPostCards provides component.postCards) {
     Children(
         stack = component.stack,
         modifier = modifier.fillMaxSize().background(MaterialTheme.talkColors.bg),
@@ -47,6 +54,7 @@ fun RootContent(component: RootComponent, modifier: Modifier = Modifier) {
             is RootComponent.Child.Settings -> Placeholder(stringResource(MR.strings.settings_title))
             is RootComponent.Child.EditProfile -> Placeholder(stringResource(MR.strings.action_edit_profile))
         }
+    }
     }
 }
 

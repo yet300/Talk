@@ -85,5 +85,11 @@ class NetworkStatusTest {
         data.network.relayStatuses.value = mapOf("wss://b" to RelayStatus.Connected)
         data.network.online.value = false
         assertEquals(true, data.networkStatus.status.first { !it.deviceOnline }.isOffline)
+
+        // Back online: relays try again at once.
+        data.network.online.value = true
+        data.networkStatus.status.first { it.deviceOnline }
+        testScheduler.runCurrent()
+        assertEquals(1, data.network.reconnects)
     }
 }
