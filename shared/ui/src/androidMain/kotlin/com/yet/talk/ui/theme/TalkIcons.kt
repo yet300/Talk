@@ -52,6 +52,16 @@ object TalkIcons {
     val Chevron = MR.images.ic_chevron
     val Image = MR.images.ic_image
     val Trash = MR.images.ic_trash
+    val GitHub = MR.images.ic_github
+    val Star = MR.images.ic_star
+    val Fork = MR.images.ic_fork
+    val Globe = MR.images.ic_globe
+    val Play = MR.images.ic_play
+    val Video = MR.images.ic_video
+    val Clock = MR.images.ic_clock
+    val Link = MR.images.ic_link
+    val Report = MR.images.ic_report
+    val EyeOff = MR.images.ic_eye_off
 }
 
 /** One icon, tinted with the content colour by default; [contentDescription] null for decoration. */

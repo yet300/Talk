@@ -1,7 +1,5 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
-// Android-only on purpose: iOS renders with SwiftUI and web with React, so the shared KMP
-// convention (which adds iOS and JS targets) is not applied here; only the Compose convention is.
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidMultiplatformLibrary)
@@ -37,6 +35,8 @@ kotlin {
             api(projects.sharedLogic)
             implementation(libs.decompose.compose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
+            implementation(libs.haze)
+            implementation(libs.haze.glass)
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.compose.uiTooling)
         }

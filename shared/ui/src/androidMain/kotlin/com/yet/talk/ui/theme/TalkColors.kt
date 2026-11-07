@@ -39,6 +39,12 @@ data class TalkColors(
     val glassSolid: Color,
     val glassPill: Color,
     val glassIcon: Color,
+    /** Top bars and round bar buttons over content (design pass 4). */
+    val glassBar: Color,
+    val glassBtn: Color,
+    /** Chat bubbles: yours (darker than [accent] for contrast, decision 22) and theirs. */
+    val bubbleOut: Color,
+    val bubbleTheirs: Color,
     /** X blue: links, focus, selected tab, primary button. */
     val accent: Color,
     val accentHover: Color,
@@ -83,6 +89,10 @@ internal fun talkColors(context: Context, dark: Boolean): TalkColors {
             glassSolid = color(glass_solid),
             glassPill = color(glass_pill),
             glassIcon = color(glass_icon),
+            glassBar = color(glass_bar),
+            glassBtn = color(glass_btn),
+            bubbleOut = color(bubble_out),
+            bubbleTheirs = color(bubble_theirs),
             accent = color(x_blue),
             accentHover = color(x_blue_hover),
             onAccent = color(on_accent),

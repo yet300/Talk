@@ -5,8 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import com.arkivanov.decompose.retainedComponent
-import com.yet.talk.ui.root.RootContent
-import com.yet.talk.ui.theme.TalkTheme
+import com.yet.talk.ui.TalkApp
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -18,10 +17,6 @@ class MainActivity : ComponentActivity() {
             (application as TalkApplication).graph.rootComponentFactory(context, deepLink = intent?.dataString)
         }
 
-        setContent {
-            TalkTheme {
-                RootContent(root)
-            }
-        }
+        setContent { TalkApp(root) }
     }
 }
