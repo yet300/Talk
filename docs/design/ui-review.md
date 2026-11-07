@@ -335,3 +335,68 @@ Decisions in these passes:
 5. Videos: the catalog in the database, Videos and the video page, comments and likes on Nostr, the lists,
    For you; the Phone capsule switches to Videos.
 6. Moderation: network-based blurring, reports (NIP-56) and hidden content.
+
+All six are built (2026-11-07).
+
+## 10. Design pass 4: glass app bars and Chats (2026-11-07)
+
+Prompt: [claude-design-prompt-3.md](claude-design-prompt-3.md); research: [../research/chats.md](../research/chats.md).
+
+| Area | Boards | What they add |
+|---|---|---|
+| Glass bars | `Glass-Scrolled`, `Glass-States`, `GlassBarDemo`, `Light-Glass-Scrolled`; the Home, Profile, Post, Videos, video page and Settings boards | every top bar is glass over edge-to-edge content; Home's tabs a floating glass capsule; Profile's banner under a transparent bar that turns to glass with the name after ~160 px; the scroll-edge shadow past 4 px; the solid fallback |
+| Chats | `ChatList`, `Chats-Mobile/Web/Outer/Upright/Inner`, `Chats-Web-Menu`, `Conversation`, `Chat-Mobile/Group-Mobile/Request-Mobile/Outer/Upright`, `Chats-States-1/2` | list with Chats · Requests and the Location channels row; conversation with bubbles, reply quotes, images, reactions, message menu (sheet on Phone, hover menu on Web), Sending… / Not sent, request bar (Accept, Delete, Block); empty states, offline, no inbox relays |
+| New chat, info, verify | `NewChat*`, `ChatInfo*`, `ChatInfo-Encryption`, `VerifyContact`, `Verify-Mobile`, `Verify-Verified` | people search (up to 10, a group name from 2), chat info (verify, disappearing messages, mute, block, report, leave), the encryption explainer sheet, safety code and QR |
+| Location channels | `LocationChannels`, `Channels-*`, `ChannelsIntro`, `Channels-Intro`, `ChannelRoom`, `Channel-Room-Mobile`, `Channel-Teleported-Mobile`, `Teleport*` | five levels with counts ("? people" for neighborhood and block), first run and the location step, nickname, room, teleport by area code or map |
+| Security | `SecurityPanel`, `Security-States`, `AppLock`, `Lock-Mobile`, `Lock-Web` | Settings' Security section: app lock, hide in screenshots (Android), erase chats, erase everything; the lock screen |
+| Light | `Light-Chats-*` | light versions |
+
+Glass materials (designer's values, to add to `TalkTokens` and the colours when building):
+
+- `glass-bar`: dark `rgba(0,0,0,.55)`, light `rgba(255,255,255,.62)`, `backdrop-filter: blur(20px) saturate(180%)`.
+- `glass-btn` (round buttons): dark `rgba(32,35,39,.72)`, light `rgba(255,255,255,.8)`, with `shadow-glass-sm`
+  (dark `inset 0 0 0 1px rgba(255,255,255,.1), inset 0 1px 0 rgba(255,255,255,.16), 0 2px 8px rgba(0,0,0,.5)`;
+  light `inset 0 0 0 1px rgba(0,0,0,.06), inset 0 1px 0 rgba(255,255,255,.8), 0 2px 8px rgba(0,0,0,.12)`).
+- Scroll edge: a 24 px gradient under the bar, dark `rgba(0,0,0,.8)` to 0, light `rgba(255,255,255,.6)` to 0,
+  hidden at rest, shown past 4 px in 200 ms ease-out.
+- Capsule: `glass-bg`, the glass filter, `shadow-glass`, the active item `glass-pill`.
+- Reduced transparency: `glass-solid`, no blur (the system setting; on the web `prefers-reduced-transparency`,
+  which only Chromium supports, so also a `t-solid-bars` class on `<html>`).
+
+Decisions in this pass (on the designer's notes):
+
+19. **Phone navigation is five items:** Home, Search, Activity, Videos, Chats, with an unread count (replaces
+    decision 9's four). Web: Chats in the rail after Activity, with the count. Duo: Chats in the side column
+    with a dot. Web Chats is two panes (list | conversation), the one exception to the web's single pane.
+20. **The encryption explainer says** "…can see that someone sent you a message and when it arrived, but not
+    who sent it or what it says." (the designer's correction: relays see arrival times and the connection that
+    publishes).
+21. **Block channels warn:** the Block level adds "People here can tell you're within about a block." (a
+    7-character geohash is about 150 m, and a relay can tie it to an IP address).
+22. **Outgoing bubbles use `#0A6BC2`** (a new colour, `bubble-out`), not `x-blue`: white on `x-blue` is 3.0:1,
+    under the 4.5:1 that message text needs; `#0A6BC2` is 5.4:1. Links and buttons keep `x-blue`.
+23. **Leave group only hides it on this device** (a NIP-17 group is its set of keys); the confirmation says "You
+    won't see this group here. Its members can still message it." Delete for everyone keeps "Other apps may
+    still show it".
+24. **Web app lock encrypts the key:** the passcode encrypts the stored key with NIP-49 (`ncryptsec`, scrypt +
+    XChaCha20-Poly1305), so the key cannot be used until it is entered; a forgotten passcode means signing in
+    again with the `nsec` backup. Android and iOS use the device lock (biometrics or passcode) to unlock KSafe.
+25. **Reactions are emoji** sent as the reaction's content (NIP-25 inside the wrap); the safety-code words, area
+    codes and counts on the canvas are samples.
+26. **Copy the designer wrote is accepted:** the channels explainer and nickname line, the Teleport text, "No
+    requests", the "Can't receive chats yet" banner, "Talk is locked", "If the codes don't match, don't mark as
+    verified."
+
+### Build order
+
+1. Glass app bars on the web: tokens, the bars and the Home capsule, edge-to-edge lists, Profile's banner bar,
+   the scroll-edge shadow, the solid fallback.
+2. Chats core: NIP-44 v2, NIP-59 seal and gift wrap, NIP-17 text messages, the kind 10050 inbox relays (yours
+   published, theirs read), the list with Chats · Requests, the conversation, Sending… / Not sent, offline,
+   "Can't receive chats yet"; the fifth navigation item with the unread count; messages encrypted at rest.
+3. Chats in full: groups up to 10, replies, reactions, delete for everyone / for me, encrypted images (kind 15,
+   AES-GCM on Blossom), disappearing messages (NIP-40), mute and block (NIP-51 kind 10000), report, leave.
+4. Trust and security: verify a contact (safety code, QR), Settings' Security section, app lock (NIP-49 on the
+   web), erase chats, erase everything.
+5. Location channels: bitchat-compatible kinds 20000 and 20001, a throwaway key per area, nicknames, presence
+   at region, province and city only, teleport, the location step, optional proof of work (NIP-13).
