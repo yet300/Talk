@@ -416,3 +416,8 @@ Decisions in this pass (on the designer's notes):
    line (on Nostr the key is the account, so there is no key change to warn about).
 5. Location channels: bitchat-compatible kinds 20000 and 20001, a throwaway key per area, nicknames, presence
    at region, province and city only, teleport, the location step, optional proof of work (NIP-13).
+   Built (2026-11-07): `feature:channels` (`ChannelsComponent`: first run, location step, nickname, the list with
+   counts, teleport; `RoomComponent`), `ChannelRepository` with keys per area and the georelays list; on the web the
+   Location channels row at the top of Chats, the room as a plain timeline. Not built: the teleport map (an area
+   code and a level instead), proof of work (optional, off as in bitchat Android), location on Android and iOS
+   (they open channels by code until their apps add it).

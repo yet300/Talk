@@ -19,6 +19,9 @@ object Kinds {
     const val CHAT_MESSAGE = 14
     const val CHAT_FILE = 15
     const val MUTE_LIST = 10000
+    // bitchat location channels (ephemeral)
+    const val GEOHASH_MESSAGE = 20000
+    const val GEOHASH_PRESENCE = 20001
     /** NIP-59 gift wrap, signed by a throwaway key. */
     const val GIFT_WRAP = 1059
     /** NIP-17 relays to receive chats on. */

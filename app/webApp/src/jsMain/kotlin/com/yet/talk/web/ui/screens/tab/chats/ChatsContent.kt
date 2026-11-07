@@ -17,6 +17,8 @@ import com.yet.talk.web.ui.screens.chat.ChatInfoContent
 import com.yet.talk.web.ui.screens.chat.ConversationContent
 import com.yet.talk.web.ui.screens.chat.NewChatContent
 import com.yet.talk.web.ui.screens.chat.VerifyContent
+import com.yet.talk.web.ui.screens.channels.ChannelsContent
+import com.yet.talk.web.ui.screens.tab.chats.component.ChannelsRow
 import com.yet.talk.web.ui.screens.tab.chats.component.ChatRow
 import com.yet.talk.web.ui.theme.TalkIcons
 import com.yet.talk.web.ui.theme.stringResource
@@ -54,6 +56,7 @@ private fun Pane(pane: ChatsComponent.Pane) {
         is ChatsComponent.Pane.NewChat -> NewChatContent(pane.component)
         is ChatsComponent.Pane.Info -> ChatInfoContent(pane.component)
         is ChatsComponent.Pane.Verify -> VerifyContent(pane.component)
+        is ChatsComponent.Pane.Channels -> ChannelsContent(pane.component)
     }
 }
 
@@ -74,6 +77,7 @@ private fun ChatList(component: ChatsComponent, open: ChatsComponent.Pane?) {
         ariaLabel = stringResource(MR.strings.tab_chats),
     )
     model.error?.let { ErrorRow(it, onDismiss = component::onErrorShown) }
+    if (model.tab == ChatsComponent.Tab.Chats) ChannelsRow(selected = open is ChatsComponent.Pane.Channels, onClick = component::onOpenChannels)
     if (!model.isLoading && model.chats.isEmpty()) {
         if (model.tab == ChatsComponent.Tab.Chats) {
             EmptyState(

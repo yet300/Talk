@@ -12,6 +12,7 @@ internal class TestData(factory: SqlDriverFactory, scope: CoroutineScope, io: Co
     val network = FakeNetwork()
     val clock = FixedClock(1_800_000_000)
     val vault = FakeKeyVault()
+    val preferences = FakePreferences()
 
     private val graph = createGraphFactory<DataTestGraph.Factory>().create(
         driverFactory = factory,
@@ -28,6 +29,8 @@ internal class TestData(factory: SqlDriverFactory, scope: CoroutineScope, io: Co
         youtube = { null },
         videoRemote = network.videos,
         chatRemote = network.chats,
+        channelRemote = network.channels,
+        preferences = preferences,
         catalog = object : VideoCatalogSource {
             override val version get() = network.catalogVersion
             override fun catalogJson() = network.catalogJson
@@ -45,5 +48,6 @@ internal class TestData(factory: SqlDriverFactory, scope: CoroutineScope, io: Co
     val videos = graph.videos
     val moderation = graph.moderation
     val chats = graph.chats
+    val channels = graph.channels
     val syncDao = graph.syncDao
 }

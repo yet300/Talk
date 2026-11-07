@@ -11,6 +11,7 @@ import com.yet.talk.feature.chat.component.conversation.ConversationComponent
 import com.yet.talk.feature.chat.component.info.ChatInfoComponent
 import com.yet.talk.feature.chat.component.newchat.NewChatComponent
 import com.yet.talk.feature.chat.component.verify.VerifyComponent
+import com.yet.talk.feature.channels.ChannelsComponent
 
 /**
  * The Chats tab: the list (Chats · Requests) and, in [pane], the open conversation, its info, or New chat. Wide screens show
@@ -26,6 +27,9 @@ interface ChatsComponent {
     fun onOpenChat(id: ChatId)
 
     fun onNewChat()
+
+    /** The Location channels row at the top of the list. */
+    fun onOpenChannels()
 
     fun onErrorShown()
 
@@ -48,6 +52,8 @@ interface ChatsComponent {
         class Info(val id: ChatId, val component: ChatInfoComponent) : Pane()
 
         class Verify(val id: ChatId, val component: VerifyComponent) : Pane()
+
+        class Channels(val component: ChannelsComponent) : Pane()
     }
 
     sealed interface Output {

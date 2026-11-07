@@ -12,4 +12,8 @@
         <item quantity="one">%d unread message</item>
         <item quantity="other">%d unread messages</item>
     </plural>
+    <plural name="channels_people">
+        <item quantity="one">%d person</item>
+        <item quantity="other">%d people</item>
+    </plural>
 </resources>

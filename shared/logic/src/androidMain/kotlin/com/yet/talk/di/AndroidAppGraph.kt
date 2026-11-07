@@ -5,6 +5,8 @@ import com.yet.talk.api.di.relayHttpClient
 import com.yet.talk.database.driver.SqlDriverFactory
 import com.yet.talk.database.driver.androidSqlDriverFactory
 import dev.zacsweers.metro.AppScope
+import com.yet.talk.domain.repository.LocationSource
+import com.yet.talk.location.UnavailableLocationSource
 import dev.zacsweers.metro.DependencyGraph
 import dev.zacsweers.metro.Provides
 import dev.zacsweers.metro.SingleIn
@@ -17,6 +19,9 @@ import io.ktor.client.engine.okhttp.OkHttp
 internal interface AndroidAppGraph : AppGraph, RepositoriesGraph {
 
     @SingleIn(AppScope::class)
+    @Provides
+    fun locationSource(): LocationSource = UnavailableLocationSource()
+
     @Provides
     fun httpClient(): HttpClient = relayHttpClient(OkHttp)
 

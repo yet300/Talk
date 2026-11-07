@@ -29,6 +29,15 @@ import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
+import com.yet.talk.domain.model.account.AppLock
+import com.yet.talk.domain.model.chat.Chat
+import com.yet.talk.domain.model.chat.ChatId
+import com.yet.talk.domain.model.chat.ChatMessage
+import com.yet.talk.domain.model.chat.Disappearing
+import com.yet.talk.domain.model.media.ImageFile
+import com.yet.talk.domain.repository.ChatRepository
+import kotlin.time.Instant
+
 class SettingsStoreTest {
 
     private class FakeRelays : RelayRepository {
@@ -49,6 +58,44 @@ class SettingsStoreTest {
             signedOut = true
             account.value = null
         }
+        var passcode: String? = null
+        override val lock = MutableStateFlow(AppLock(passcodeSupported = true))
+        override suspend fun unlock(passcode: String) = error("unused")
+        override suspend fun setPasscode(passcode: String) = Result.success(Unit).also {
+            this.passcode = passcode
+            lock.value = lock.value.copy(enabled = true)
+        }
+        override suspend fun removePasscode() = Result.success(Unit).also { lock.value = lock.value.copy(enabled = false) }
+    }
+
+    /** Only Erase chats is reached from Settings. */
+    private class FakeChats : ChatRepository {
+        var erased = false
+        override suspend fun eraseAll() { erased = true }
+        override suspend fun prepare() = error("unused")
+        override fun chats(): Flow<List<Chat>> = error("unused")
+        override fun unreadCount(): Flow<Int> = error("unused")
+        override fun chat(id: ChatId): Flow<Chat?> = error("unused")
+        override fun messages(id: ChatId): Flow<List<ChatMessage>> = error("unused")
+        override suspend fun canReceive(id: ChatId) = error("unused")
+        override suspend fun createGroup(id: ChatId, name: String?) = error("unused")
+        override suspend fun send(id: ChatId, text: String, replyTo: String?) = error("unused")
+        override suspend fun sendImage(id: ChatId, file: ImageFile) = error("unused")
+        override suspend fun image(messageId: String) = error("unused")
+        override suspend fun retry(messageId: String) = error("unused")
+        override suspend fun react(messageId: String, emoji: String) = error("unused")
+        override suspend fun deleteForEveryone(messageId: String) = error("unused")
+        override suspend fun deleteForMe(messageId: String) = error("unused")
+        override suspend fun setDisappearing(id: ChatId, disappearing: Disappearing) = error("unused")
+        override suspend fun setMuted(id: ChatId, muted: Boolean) = error("unused")
+        override suspend fun leave(id: ChatId) = error("unused")
+        override suspend fun safetyCode(person: UserId) = error("unused")
+        override fun verified(): Flow<Map<UserId, Instant>> = error("unused")
+        override suspend fun setVerified(person: UserId, verified: Boolean) = error("unused")
+        override suspend fun verifyScanned(person: UserId, payload: String) = error("unused")
+        override suspend fun markRead(id: ChatId) = error("unused")
+        override suspend fun accept(id: ChatId) = error("unused")
+        override suspend fun delete(id: ChatId) = error("unused")
     }
 
     private class FakeProfiles : ProfileRepository {
@@ -64,12 +111,30 @@ class SettingsStoreTest {
         override suspend fun setTheme(mode: ThemeMode) {
             theme.value = mode
         }
+        override val channelNickname = MutableStateFlow("anon")
+        override suspend fun setChannelNickname(nickname: String) = Unit
+        override val channelIntroSeen = MutableStateFlow(false)
+        override suspend fun setChannelIntroSeen() = Unit
     }
 
     private val preferences = FakePreferences()
     private val relays = FakeRelays()
     private val accounts = FakeAccounts()
-    private val store by lazy { SettingsStoreFactory(DefaultStoreFactory(), accounts, relays, FakeProfiles(), preferences).create() }
+    private val chats = FakeChats()
+    private val store by lazy { SettingsStoreFactory(DefaultStoreFactory(), accounts, relays, FakeProfiles(), preferences, chats).create() }
+
+    @Test
+    fun aPasscodeIsTypedTwiceAndErasingChatsErasesThem() = runTest {
+        store.accept(SettingsStore.Intent.SetPasscode("correct horse", "correct hose"))
+        assertEquals(DomainError.PasscodesDontMatch, store.state.error)
+        assertEquals(null, accounts.passcode)
+        store.accept(SettingsStore.Intent.SetPasscode("correct horse", "correct horse"))
+        assertEquals("correct horse", accounts.passcode)
+        assertEquals(true, store.state.lock.enabled)
+
+        store.accept(SettingsStore.Intent.EraseChats)
+        assertEquals(true, chats.erased)
+    }
 
     @BeforeTest
     fun setUp() {

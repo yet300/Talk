@@ -15,6 +15,7 @@ import com.yet.talk.feature.chat.component.conversation.ConversationComponent
 import com.yet.talk.feature.chat.component.info.ChatInfoComponent
 import com.yet.talk.feature.chat.component.newchat.NewChatComponent
 import com.yet.talk.feature.chat.component.verify.VerifyComponent
+import com.yet.talk.feature.channels.ChannelsComponent
 import com.yet.talk.feature.tab.chats.store.ChatsStore
 import com.yet.talk.feature.tab.chats.store.ChatsStoreFactory
 import dev.zacsweers.metro.Inject
@@ -28,6 +29,7 @@ internal class DefaultChatsComponent(
     private val newChatFactory: NewChatComponent.Factory,
     private val infoFactory: ChatInfoComponent.Factory,
     private val verifyFactory: VerifyComponent.Factory,
+    private val channelsFactory: ChannelsComponent.Factory,
 ) : ChatsComponent, ComponentContext by componentContext {
 
     private val store = instanceKeeper.getStore { storeFactory.create() }
@@ -58,6 +60,8 @@ internal class DefaultChatsComponent(
 
     override fun onNewChat() = navigation.activate(Config.NewChat)
 
+    override fun onOpenChannels() = navigation.activate(Config.Channels)
+
     override fun onErrorShown() = store.accept(ChatsStore.Intent.DismissError)
 
     private fun child(config: Config, context: ComponentContext): ChatsComponent.Pane = when (config) {
@@ -86,6 +90,7 @@ internal class DefaultChatsComponent(
             ChatId(config.id),
             verifyFactory(context, ChatId(config.id).members.single()) { navigation.activate(Config.Info(config.id)) },
         )
+        Config.Channels -> ChatsComponent.Pane.Channels(channelsFactory(context, navigation::dismiss))
         Config.NewChat -> ChatsComponent.Pane.NewChat(
             newChatFactory(context) { event ->
                 when (event) {
@@ -108,6 +113,9 @@ internal class DefaultChatsComponent(
         data class Verify(val id: String) : Config
 
         @Serializable
+        data object Channels : Config
+
+        @Serializable
         data object NewChat : Config
     }
 }
@@ -119,7 +127,8 @@ internal class DefaultChatsComponentFactory(
     private val newChatFactory: NewChatComponent.Factory,
     private val infoFactory: ChatInfoComponent.Factory,
     private val verifyFactory: VerifyComponent.Factory,
+    private val channelsFactory: ChannelsComponent.Factory,
 ) : ChatsComponent.Factory {
     override fun invoke(componentContext: ComponentContext, output: (ChatsComponent.Output) -> Unit): ChatsComponent =
-        DefaultChatsComponent(componentContext, output, storeFactory, conversationFactory, newChatFactory, infoFactory, verifyFactory)
+        DefaultChatsComponent(componentContext, output, storeFactory, conversationFactory, newChatFactory, infoFactory, verifyFactory, channelsFactory)
 }

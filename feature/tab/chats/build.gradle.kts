@@ -6,6 +6,7 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             api(projects.feature.chat)
+            api(projects.feature.channels)
         }
     }
 }
