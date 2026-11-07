@@ -10,6 +10,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import com.yet.talk.ui.components.LocalModeration
+import com.yet.talk.ui.components.LocalModerationActions
 import com.yet.talk.ui.components.LocalPostCards
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -33,7 +34,11 @@ import com.yet.talk.ui.theme.talkTypography
 @Composable
 fun RootContent(component: RootComponent, modifier: Modifier = Modifier) {
     val moderation by component.moderation.model.subscribeAsState()
-    CompositionLocalProvider(LocalModeration provides moderation, LocalPostCards provides component.postCards) {
+    CompositionLocalProvider(
+        LocalModeration provides moderation,
+        LocalModerationActions provides component.moderation,
+        LocalPostCards provides component.postCards,
+    ) {
     Children(
         stack = component.stack,
         modifier = modifier.fillMaxSize().background(MaterialTheme.talkColors.bg),

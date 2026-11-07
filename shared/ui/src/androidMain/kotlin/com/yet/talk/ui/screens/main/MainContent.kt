@@ -29,6 +29,7 @@ import com.yet.talk.ui.components.glass.LocalGlassSource
 import com.yet.talk.ui.components.glass.PhoneTabs
 import com.yet.talk.ui.components.glass.label
 import com.yet.talk.ui.screens.main.component.HomeHeader
+import com.yet.talk.ui.screens.post.PostScreen
 import com.yet.talk.ui.screens.tab.home.HomeContent
 import com.yet.talk.ui.theme.TalkIcons
 import com.yet.talk.ui.theme.sizes
@@ -92,17 +93,22 @@ private fun TabScreen(child: TabsComponent.Child) {
 @Composable
 private fun DetailsContent(details: DetailsComponent) {
     val stack by details.stack.subscribeAsState()
-    val glass = rememberHazeState()
-    val title = when (stack.active.instance) {
-        is DetailsComponent.Child.Post -> stringResource(MR.strings.post_title)
-        is DetailsComponent.Child.Profile -> stringResource(MR.strings.tab_profile)
-        is DetailsComponent.Child.Video -> stringResource(MR.strings.tab_videos)
+    when (val page = stack.active.instance) {
+        is DetailsComponent.Child.Post -> PostScreen(page.component)
+        is DetailsComponent.Child.Profile -> DetailPlaceholder(stringResource(MR.strings.tab_profile), details::onBack)
+        is DetailsComponent.Child.Video -> DetailPlaceholder(stringResource(MR.strings.tab_videos), details::onBack)
     }
+}
+
+/** A page not built yet: its title under a glass bar with Back. */
+@Composable
+private fun DetailPlaceholder(title: String, onBack: () -> Unit) {
+    val glass = rememberHazeState()
     CompositionLocalProvider(LocalGlassSource provides glass) {
         Box(Modifier.fillMaxSize()) {
             Box(Modifier.fillMaxSize().background(MaterialTheme.talkColors.bg).hazeSource(glass)) { Placeholder(title) }
             GlassTopBar(
-                leading = { GlassIconButton(TalkIcons.Back, stringResource(MR.strings.action_back), details::onBack) },
+                leading = { GlassIconButton(TalkIcons.Back, stringResource(MR.strings.action_back), onBack) },
                 title = { Text(title, style = MaterialTheme.talkTypography.headingMedium, color = MaterialTheme.talkColors.textPrimary) },
             )
         }

@@ -40,6 +40,8 @@ kotlin {
             implementation(libs.coil.compose)
             implementation(libs.coil.network.okhttp)
             implementation(libs.androidx.paging.compose)
+            implementation(libs.markdown.renderer.m3)
+            implementation(libs.markdown.renderer.coil3)
             implementation(libs.compose.uiToolingPreview)
             implementation(libs.compose.uiTooling)
         }
