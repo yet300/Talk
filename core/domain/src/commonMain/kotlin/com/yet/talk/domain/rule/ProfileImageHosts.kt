@@ -17,6 +17,22 @@ object ProfileImageHosts {
     /** True for a GitHub avatar link, which only a verified GitHub link may set. */
     fun isGitHubAvatar(url: String): Boolean = hostOf(url.trim()) == GITHUB_AVATARS
 
+    /**
+     * The first frame of a GIPHY GIF (its `giphy_s.gif` still), for avatars of people outside the viewer's
+     * network, which do not animate; any other image as it is.
+     */
+    fun still(url: String): String {
+        val host = hostOf(url) ?: return url
+        if (!host.endsWith("giphy.com")) return url
+        val path = url.pathSegments()
+        val id = when {
+            path.size == 3 && path[0] == "media" -> path[1]
+            path.size == 1 -> path[0].substringBefore('.')
+            else -> return url
+        }
+        return "https://media.giphy.com/media/$id/giphy_s.gif"
+    }
+
     /** [url] when it is an https link to a [SHOWN] host, else null. */
     fun shownOrNull(url: String?): String? = url?.takeIf { hostOf(it) in SHOWN }
 

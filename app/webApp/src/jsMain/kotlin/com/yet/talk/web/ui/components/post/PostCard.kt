@@ -9,6 +9,8 @@ import androidx.compose.runtime.setValue
 import com.yet.talk.domain.model.post.PostId
 import com.yet.talk.web.ui.components.ButtonStyle
 import com.yet.talk.web.ui.components.TalkButton
+import com.yet.talk.web.ui.components.moderation.HiddenRow
+import com.yet.talk.web.ui.components.moderation.LocalModeration
 import com.yet.talk.web.ui.theme.TalkIcon
 import com.yet.talk.web.ui.theme.TalkIcons
 import kotlinx.coroutines.flow.flowOf
@@ -45,6 +47,8 @@ fun PostCard(
     dense: Boolean = false,
 ) {
     val summary = post.summary
+    var revealed by remember(post.id) { mutableStateOf(false) }
+    if (post.id in LocalModeration.current.hiddenPosts && !revealed) return HiddenRow(onShow = { revealed = true })
     Article({
         classes("t-part", "x-post", "t-post-wrap")
         if (selected) classes("t-selected")

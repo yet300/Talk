@@ -1,6 +1,12 @@
 package com.yet.talk.web.ui.screens.post.component
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import com.yet.talk.web.ui.components.moderation.HiddenRow
+import com.yet.talk.web.ui.components.moderation.LocalModeration
 import com.yet.talk.domain.model.post.ThreadReply
 import com.yet.talk.feature.post.component.post.PostComponent
 import com.yet.talk.resources.*
@@ -49,6 +55,8 @@ fun Replies(model: PostComponent.Model, component: PostComponent, idSuffix: Stri
 @Composable
 private fun ReplyCard(reply: ThreadReply, component: PostComponent) {
     val post = reply.post
+    var revealed by remember(post.id) { mutableStateOf(false) }
+    if (post.id in LocalModeration.current.hiddenPosts && !revealed) return HiddenRow(onShow = { revealed = true })
     Article({ classes("x-post"); onClick { component.onOpenPost(post.id) } }) {
         Avatar(post.author, onClick = { component.onOpenAuthor(post.author.id) })
         Div({ classes("x-post-body") }) {

@@ -21,6 +21,12 @@ internal class RelaySocialRemoteSource(
         return query(filters).filterIsInstance<TalkEvent.Profile>()
     }
 
+    override suspend fun reports(authors: Collection<String>, limit: Int): List<TalkEvent.Report> {
+        if (authors.isEmpty()) return emptyList()
+        val filters = authors.distinct().chunked(FILTER_CHUNK).map { Filter(kinds = listOf(Kinds.REPORT), authors = it, limit = limit) }
+        return query(filters).filterIsInstance<TalkEvent.Report>().sortedByDescending { it.event.createdAt }
+    }
+
     override suspend fun lists(pubkey: String): List<TalkEvent> =
         query(listOf(Filter(kinds = listOf(Kinds.CONTACTS, Kinds.BOOKMARKS, Kinds.RELAY_LIST), authors = listOf(pubkey))))
             .groupBy { it.event.kind }

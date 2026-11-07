@@ -53,6 +53,18 @@ object TalkEvents {
     fun repost(target: Event, createdAt: Long) =
         repost(target, createdAt, extraTags = TalkSchema.labels(TalkSchema.Role.REPOST))
 
+    /**
+     * A public report (NIP-56 kind 1984) of a post ([eventId] with its [pubkey]) or of a profile ([eventId] null),
+     * [type] being one of NIP-56's report types.
+     */
+    fun report(pubkey: String, eventId: String?, type: String, createdAt: Long) = EventTemplate(
+        kind = Kinds.REPORT,
+        content = "",
+        tags = (if (eventId != null) listOf(listOf("e", eventId, type), listOf("p", pubkey)) else listOf(listOf("p", pubkey, type))) +
+            TalkSchema.labels(TalkSchema.Role.REPORT),
+        createdAt = createdAt,
+    )
+
     /** A like of a video (NIP-25 kind 17 on the NIP-73 URL). */
     fun videoLike(videoUrl: String, createdAt: Long) = EventTemplate(
         kind = Kinds.EXTERNAL_REACTION,

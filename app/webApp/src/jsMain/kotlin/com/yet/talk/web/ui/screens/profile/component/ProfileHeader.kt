@@ -1,6 +1,14 @@
 package com.yet.talk.web.ui.screens.profile.component
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import com.yet.talk.domain.model.moderation.ReportTarget
+import com.yet.talk.web.ui.components.IconButton
+import com.yet.talk.web.ui.components.moderation.LocalModeration
+import com.yet.talk.web.ui.components.moderation.ReportMenu
 import com.yet.talk.domain.model.user.User
 import com.yet.talk.feature.profile.ProfileComponent
 import com.yet.talk.resources.*
@@ -28,13 +36,33 @@ import org.jetbrains.compose.web.dom.Text
 @Composable
 fun ProfileHeader(model: ProfileComponent.Model, onFollow: () -> Unit, onEditProfile: () -> Unit) {
     val user = model.user
+    // Outside your network the banner and avatar are blurred until Show (decision 18).
+    var shown by remember(user?.id) { mutableStateOf(false) }
+    val outside = user != null && !shown && !LocalModeration.current.isInNetwork(user.id)
+    var reporting by remember { mutableStateOf(false) }
     Header({ classes("t-part") }) {
-        Div({ classes("t-banner-img") }) { user?.banner?.let { Img(src = it, alt = "") } }
+        Div({ classes("t-banner-img") }) {
+            user?.banner?.let { Img(src = it, alt = "") { if (outside) classes("t-blur") } }
+            if (outside && (user?.banner != null || user?.picture != null)) {
+                val label = stringResource(MR.strings.moderation_show_profile)
+                TalkButton(stringResource(MR.strings.action_show), { shown = true }, ButtonStyle.Secondary, attrs = {
+                    classes("t-banner-show")
+                    attr("aria-label", label)
+                })
+            }
+        }
         Div({ classes("x-profile-top") }) {
-            Avatar(user, AvatarSize.Profile)
+            Avatar(user, AvatarSize.Profile, shown = shown)
             if (model.isMe) {
                 TalkButton(stringResource(MR.strings.action_edit_profile), onEditProfile, ButtonStyle.Secondary, attrs = { classes("t-follow") })
             } else if (user != null) {
+                Div({ classes("t-menu-host", "t-profile-more") }) {
+                    IconButton(TalkIcons.More, stringResource(MR.strings.action_more), onClick = { reporting = !reporting }, attrs = {
+                        attr("aria-haspopup", "menu")
+                        attr("aria-expanded", reporting.toString())
+                    })
+                    if (reporting) ReportMenu(ReportTarget.Profile(user.id), onDismiss = { reporting = false })
+                }
                 TalkButton(
                     text = stringResource(if (model.isFollowing) MR.strings.action_following else MR.strings.action_follow),
                     onClick = onFollow,

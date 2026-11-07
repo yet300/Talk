@@ -58,6 +58,11 @@ root and parent both the URL (`I`/`K` and `i`/`k`, role `video-comment`); Talk s
 comments. Watch later and History stay on the device. Likes and comments from other clients on the same URL
 count and show.
 
+Moderation: a report is a public NIP-56 kind 1984 event (`["e", <post>, <type>], ["p", <author>]` for a post,
+`["p", <pubkey>, <type>]` for a profile; Talk label role `report`), with type nudity, spam, illegal,
+impersonation or other. Talk reads the reports made by the viewer and the people they follow (500 newest per
+refresh, at sign-in) and hides the posts they report behind a row. Nothing is deleted or filtered on relays.
+
 Key storage per platform:
 
 - **Android:** an external signer (Amber, NIP-55) when installed, otherwise the `nsec` in KSafe.

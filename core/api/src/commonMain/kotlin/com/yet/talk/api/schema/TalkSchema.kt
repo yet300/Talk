@@ -21,6 +21,7 @@ object TalkSchema {
         const val DELETION = "deletion"
         const val VIDEO_LIKE = "video-like"
         const val VIDEO_COMMENT = "video-comment"
+        const val REPORT = "report"
     }
 
     /** NIP-73 kind for a URL. */

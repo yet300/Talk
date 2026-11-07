@@ -11,6 +11,7 @@ import com.yet.talk.feature.compose.ComposeComponent
 import com.yet.talk.feature.post.component.revisions.RevisionsComponent
 import com.yet.talk.feature.settings.SettingsComponent
 import com.yet.talk.feature.post.component.cards.PostCardsComponent
+import com.yet.talk.feature.root.moderation.ModerationComponent
 import com.yet.talk.feature.editprofile.EditProfileComponent
 import com.yet.talk.feature.tab.main.MainComponent
 import com.yet.talk.feature.tab.main.component.tabs.TabsComponent
@@ -27,6 +28,9 @@ interface RootComponent : BackHandlerOwner, WebNavigationOwner {
 
     /** What post cards load beyond the post (link cards, quotes, Retry), on every screen. */
     val postCards: PostCardsComponent
+
+    /** Blurring and hiding by the viewer's network, and Report. */
+    val moderation: ModerationComponent
 
     /** The theme chosen in Settings; the platform UI applies it ([ThemeMode.System] follows the device). */
     val theme: Value<ThemeMode>

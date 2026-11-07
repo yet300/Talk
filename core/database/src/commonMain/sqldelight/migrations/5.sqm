@@ -1,0 +1,11 @@
+-- Version 5 → 6: NIP-56 reports, for hiding posts the viewer's network reported.
+CREATE TABLE report (
+    event_id TEXT NOT NULL PRIMARY KEY,
+    reporter TEXT NOT NULL,
+    target_pubkey TEXT NOT NULL,
+    target_event TEXT,
+    type TEXT NOT NULL,
+    created_at INTEGER NOT NULL
+);
+
+CREATE INDEX report_reporter ON report(reporter);

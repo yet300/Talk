@@ -43,6 +43,9 @@ sealed interface TalkEvent {
     /** A top-level comment on a URL (kind 1111). */
     data class UrlComment(override val event: Event, val url: String) : TalkEvent
 
+    /** A NIP-56 report of a profile ([eventId] null) or of a post. */
+    data class Report(override val event: Event, val pubkey: String, val eventId: String?, val type: String) : TalkEvent
+
     data class Contacts(override val event: Event, val pubkeys: List<String>) : TalkEvent
 
     data class Bookmarks(override val event: Event, val eventIds: List<String>) : TalkEvent
@@ -74,6 +77,7 @@ sealed interface TalkEvent {
             Kinds.EXTERNAL_REACTION -> event.tags.firstValue("i")?.takeIf { event.content != "-" }?.let { UrlLike(event, it) }
             // Only comments on the URL itself; replies to other comments are not shown.
             Kinds.COMMENT -> event.tags.firstValue("I")?.takeIf { it == event.tags.firstValue("i") }?.let { UrlComment(event, it) }
+            Kinds.REPORT -> parseReport(event)
             Kinds.METADATA -> Metadata.parse(event)?.let { Profile(event, it) }
             Kinds.DELETION -> Deletion(event, event.tags.values("e"))
             Kinds.CONTACTS -> Contacts(event, event.contactPubkeys())
@@ -82,4 +86,13 @@ sealed interface TalkEvent {
             else -> null
         }
     }
+}
+
+/** NIP-56: the type is the third value of the `e` tag for a post, of the `p` tag for a profile. */
+private fun parseReport(event: Event): TalkEvent.Report? {
+    val post = event.tags.withName("e").firstOrNull()
+    val profile = event.tags.withName("p").firstOrNull() ?: return null
+    val pubkey = profile.getOrNull(1) ?: return null
+    val type = (post?.getOrNull(2) ?: profile.getOrNull(2))?.takeIf(String::isNotEmpty) ?: "other"
+    return TalkEvent.Report(event, pubkey, post?.getOrNull(1), type)
 }

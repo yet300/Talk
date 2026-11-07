@@ -16,6 +16,9 @@ interface SocialRemoteSource {
     suspend fun activity(pubkey: String, until: Long?, limit: Int): List<TalkEvent>
 
     /** NIP-45 counts; null when no relay supports them. */
+    /** NIP-56 reports made by [authors], newest first. */
+    suspend fun reports(authors: Collection<String>, limit: Int): List<TalkEvent.Report>
+
     suspend fun countFollowers(pubkey: String): Long?
 
     suspend fun countPosts(pubkey: String): Long?

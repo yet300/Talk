@@ -48,6 +48,8 @@ object TalkIcons {
     val Video = MR.images.ic_video
     val Clock = MR.images.ic_clock
     val Link = MR.images.ic_link
+    val Report = MR.images.ic_report
+    val EyeOff = MR.images.ic_eye_off
 }
 
 /**

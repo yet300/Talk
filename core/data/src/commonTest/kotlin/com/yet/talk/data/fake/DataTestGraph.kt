@@ -47,6 +47,7 @@ internal interface DataTestGraph {
     val profiles: ProfileRepository
     val github: GitHubRepository
     val videos: VideoRepository
+    val moderation: com.yet.talk.domain.repository.ModerationRepository
     val syncDao: SyncDao
 
     @DependencyGraph.Factory

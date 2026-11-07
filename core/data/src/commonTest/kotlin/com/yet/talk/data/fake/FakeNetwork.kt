@@ -53,6 +53,8 @@ class FakeNetwork {
         override suspend fun activity(pubkey: String, until: Long?, limit: Int) = emptyList<TalkEvent>()
         override suspend fun countFollowers(pubkey: String): Long? = null
         override suspend fun countPosts(pubkey: String): Long? = null
+        override suspend fun reports(authors: Collection<String>, limit: Int) =
+            parsed().filterIsInstance<TalkEvent.Report>().filter { it.event.pubkey in authors }
     }
 
     val publisher = PublishRemoteSource { event ->

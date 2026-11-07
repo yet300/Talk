@@ -13,14 +13,18 @@ import com.yet.talk.web.ui.components.DropdownMenu
 import com.yet.talk.web.ui.components.IconButton
 import com.yet.talk.web.ui.components.LocalToaster
 import com.yet.talk.web.ui.components.MenuItem
+import com.yet.talk.web.ui.components.moderation.ReportMenu
+import com.yet.talk.domain.model.moderation.ReportTarget
 import com.yet.talk.web.ui.theme.TalkIcons
 import com.yet.talk.web.ui.theme.stringResource
 import org.jetbrains.compose.web.dom.Div
 
-/** More actions (decided: a dropdown on the web): Quote, Copy link; Edit and Delete on your own post. */
+/** More actions (decided: a dropdown on the web): Quote, Copy link; Edit and Delete on your own post, Report on others'. */
 @Composable
 fun MoreActions(post: Post, model: PostComponent.Model, component: PostComponent, onDelete: () -> Unit) {
     var open by remember { mutableStateOf(false) }
+    var reporting by remember { mutableStateOf(false) }
+    val report = stringResource(MR.strings.action_report)
     val quote = stringResource(MR.strings.action_quote)
     val copy = stringResource(MR.strings.post_copy_link)
     val edit = stringResource(MR.strings.action_edit)
@@ -40,10 +44,13 @@ fun MoreActions(post: Post, model: PostComponent.Model, component: PostComponent
                     if (model.isMine) {
                         add(MenuItem(edit) { component.onEdit() })
                         add(MenuItem(delete, destructive = true, onClick = onDelete))
+                    } else {
+                        add(MenuItem(report) { reporting = true })
                     }
                 },
                 onDismiss = { open = false },
             )
         }
+        if (reporting) ReportMenu(ReportTarget.Post(post.id, post.author.id), onDismiss = { reporting = false })
     }
 }

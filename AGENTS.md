@@ -38,7 +38,7 @@ Clean Architecture, SOLID, KISS, YAGNI. In practice:
 | `:core:database` | `core/database` | SQLDelight cache (`TalkDatabase`), DAO interfaces + implementations, `SqlDriverFactory` per platform |
 | `:core:data` | `core/data` | Repository implementations, `Session` + KSafe key vault, `EventIngestor`, `FeedPaging` (Paging 3 + `RemoteMediator`), optimistic `Publisher` |
 | `:core:resources` | `core/resources` | moko-resources (`MR`, package `com.yet.talk.resources`): strings, plurals, light/dark colours, icons; `TalkTokens` (spacing, radii, sizes, type scale) |
-| `:feature:root` | `feature/root` | Root `ChildStack`: Splash, Auth, Main, and Compose, Settings, Revisions above it; `RootStore` swaps Auth/Main on sign-in and exposes the theme |
+| `:feature:root` | `feature/root` | Root `ChildStack`: Splash, Auth, Main, and Compose, Settings, Revisions above it; `RootStore` swaps Auth/Main on sign-in and exposes the theme; `moderation/ModerationComponent` (network, hidden posts, NIP-56 Report) for every screen |
 | `:feature:auth` | `feature/auth` | Sign in with a local key (create or import an `nsec`) |
 | `:feature:post` | `feature/post` | `component/post` (post, reply thread, actions), `component/revisions`, and `component/cards` (`PostCardsComponent`: GitHub and YouTube cards, quotes, Retry; exposed by the root for every post card) |
 | `:feature:compose` | `feature/compose` | Editor for `ComposeMode` New / Reply / Quote / Edit, image upload, draft kept by StateKeeper |

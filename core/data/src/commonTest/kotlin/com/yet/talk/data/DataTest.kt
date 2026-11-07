@@ -5,6 +5,8 @@ import com.yet.talk.api.schema.PostRef
 import com.yet.talk.api.schema.TalkEvents
 import com.yet.talk.api.schema.TalkSchema
 import com.yet.talk.domain.model.video.VideoList
+import com.yet.talk.domain.model.moderation.ReportReason
+import com.yet.talk.domain.model.moderation.ReportTarget
 import com.yet.talk.domain.model.video.VideoStats
 import com.yet.talk.data.fake.TestData
 import com.yet.talk.domain.model.error.DomainError
@@ -179,6 +181,28 @@ class DataTest {
         data.videos.setLiked("VMj-3S1tku0", false).getOrThrow()
         assertEquals(Kinds.DELETION, data.network.published.last().kind)
         assertEquals(1L, data.videos.observeStats("VMj-3S1tku0").first().likes)
+    }
+
+    @Test
+    fun postsReportedByYourNetworkAreHiddenAndStrangersAreOutsideIt() = dataTest { data ->
+        val me = data.accounts.importKey(data.accounts.generateKey().getOrThrow()).getOrThrow().userId
+        data.follows.setFollowing(UserId(bob.publicKey()), true).getOrThrow()
+        val stranger = LocalKeySigner(SecretKey.generate())
+        data.network.events += bob.sign(TalkEvents.report(stranger.publicKey(), "a".repeat(64), "spam", 5))
+        data.network.events += stranger.sign(TalkEvents.report(bob.publicKey(), "b".repeat(64), "spam", 5)) // not in your network
+
+        data.moderation.refresh().getOrThrow()
+        var moderation = data.moderation.moderation.first()
+        assertEquals(setOf(PostId("a".repeat(64))), moderation.hiddenPosts)
+        assertTrue(moderation.isInNetwork(UserId(bob.publicKey())) && moderation.isInNetwork(me))
+        assertTrue(!moderation.isInNetwork(UserId(stranger.publicKey())))
+
+        data.moderation.report(ReportTarget.Post(PostId("c".repeat(64)), UserId(stranger.publicKey())), ReportReason.Nudity).getOrThrow()
+        moderation = data.moderation.moderation.first()
+        assertTrue(PostId("c".repeat(64)) in moderation.hiddenPosts, "your own report hides the post for you")
+        val report = data.network.published.last()
+        assertEquals(Kinds.REPORT, report.kind)
+        assertEquals(listOf("e", "c".repeat(64), "nudity"), report.tags.first())
     }
 
     @Test

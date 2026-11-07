@@ -181,3 +181,9 @@ iframe.t-player{border:0;display:block}
 .t-video-row{display:flex;gap:var(--space-md);overflow-x:auto;padding:var(--space-sm) var(--space-lg) var(--space-lg);scrollbar-width:none;scroll-snap-type:x mandatory;scroll-padding-inline:var(--space-lg)}
 .t-video-row::-webkit-scrollbar{display:none}
 .t-video-row .t-video-card{flex:0 0 72%;scroll-snap-align:start}
+/* Moderation (decision 18): blurred images outside the network, Show, the report note */
+.t-banner-img > img.t-blur,.x-avatar img.t-blur{filter:blur(8px);transform:scale(1.1)}
+.t-banner-show{z-index:1;background:var(--bg)}
+.t-menu-note{margin:0;padding:var(--space-md) var(--space-lg);max-width:280px}
+.t-profile-more{position:relative;margin-left:auto;margin-right:var(--space-sm)}
+.x-profile-top .t-profile-more + .t-follow{margin-left:0}

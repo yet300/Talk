@@ -40,4 +40,11 @@ class ProfileRulesTest {
         assertNull(ProfileImageHosts.shownOrNull("https://nostr.build/i/x.gif"))
         assertNull(ProfileImageHosts.shownOrNull(null))
     }
+
+    @Test
+    fun gifsHaveAStillFrame() {
+        assertEquals("https://media.giphy.com/media/abc/giphy_s.gif", ProfileImageHosts.still("https://media.giphy.com/media/abc/giphy.gif"))
+        assertEquals("https://media.giphy.com/media/abc/giphy_s.gif", ProfileImageHosts.still("https://i.giphy.com/abc.gif"))
+        assertEquals("https://images.unsplash.com/photo-1", ProfileImageHosts.still("https://images.unsplash.com/photo-1"))
+    }
 }

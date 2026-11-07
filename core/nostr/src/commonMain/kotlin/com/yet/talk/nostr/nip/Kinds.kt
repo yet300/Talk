@@ -13,6 +13,8 @@ object Kinds {
     const val EXTERNAL_REACTION = 17
     /** NIP-22 comment. */
     const val COMMENT = 1111
+    /** NIP-56 report. */
+    const val REPORT = 1984
     const val RELAY_LIST = 10002
     const val BOOKMARKS = 10003
     const val BLOSSOM_AUTH = 24242

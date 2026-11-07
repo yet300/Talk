@@ -42,5 +42,6 @@ internal class TestData(factory: SqlDriverFactory, scope: CoroutineScope, io: Co
     val profiles = graph.profiles
     val github = graph.github
     val videos = graph.videos
+    val moderation = graph.moderation
     val syncDao = graph.syncDao
 }

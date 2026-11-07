@@ -315,6 +315,13 @@ Decisions in these passes:
 17. **Phone navigation shows only on its four tabs** (2026-11-07). Every page above them (a post, a profile, a
     video, your profile, Bookmarks, Settings, Revisions, the editors) has Back in its top bar instead; Back on
     your profile and on Bookmarks returns Home.
+18. **Moderation** (2026-11-07): the network is the viewer and the people they follow. Outside it, avatars and
+    banners are blurred (avatars everywhere; Show on a profile's banner reveals both) and GIPHY GIF avatars
+    show their still frame (`giphy_s.gif`). Posts reported (NIP-56) by the network or by the viewer are hidden
+    behind "Hidden because people you follow reported it" with Show, in cards and replies. Report is in More
+    actions on someone else's post and in … on someone else's profile: a menu with the public-report note and
+    Nudity, Spam, Illegal, Impersonation, Other, then the "Reported. Your report is public." toast. The
+    viewer's own report hides the post for them at once. Reported profiles are not hidden.
 
 ### Build order
 
