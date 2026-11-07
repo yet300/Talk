@@ -31,11 +31,12 @@ import dev.icerock.moko.resources.ImageResource
 
 /**
  * A glass top bar (design pass 4): content scrolls under it edge to edge, the status bar included; controls float in
- * round glass buttons.
+ * round glass buttons. With [glass] false the bar is clear (Profile over its banner) and only the buttons are glass.
  */
 @Composable
 fun GlassTopBar(
     modifier: Modifier = Modifier,
+    glass: Boolean = true,
     leading: @Composable RowScope.() -> Unit = {},
     title: @Composable RowScope.() -> Unit = {},
     trailing: @Composable RowScope.() -> Unit = {},
@@ -43,7 +44,7 @@ fun GlassTopBar(
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .hazeGlass(input = HazeInput.Backdrop(LocalGlassSource.current), style = barGlass())
+            .then(if (glass) Modifier.hazeGlass(input = HazeInput.Backdrop(LocalGlassSource.current), style = barGlass()) else Modifier)
             .windowInsetsPadding(WindowInsets.statusBars),
     ) {
         Row(

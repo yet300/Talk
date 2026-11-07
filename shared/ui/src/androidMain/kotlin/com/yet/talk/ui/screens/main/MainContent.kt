@@ -30,6 +30,7 @@ import com.yet.talk.ui.components.glass.PhoneTabs
 import com.yet.talk.ui.components.glass.label
 import com.yet.talk.ui.screens.main.component.HomeHeader
 import com.yet.talk.ui.screens.post.PostScreen
+import com.yet.talk.ui.screens.profile.ProfileScreen
 import com.yet.talk.ui.screens.tab.home.HomeContent
 import com.yet.talk.ui.theme.TalkIcons
 import com.yet.talk.ui.theme.sizes
@@ -86,6 +87,7 @@ private fun TabsContent(tabs: TabsComponent, onOpenSettings: () -> Unit) {
 private fun TabScreen(child: TabsComponent.Child) {
     when (child) {
         is TabsComponent.Child.Home -> HomeContent(child.component)
+        is TabsComponent.Child.Profile -> ProfileScreen(child.component)
         else -> Placeholder(child.tab.label())
     }
 }
@@ -95,7 +97,7 @@ private fun DetailsContent(details: DetailsComponent) {
     val stack by details.stack.subscribeAsState()
     when (val page = stack.active.instance) {
         is DetailsComponent.Child.Post -> PostScreen(page.component)
-        is DetailsComponent.Child.Profile -> DetailPlaceholder(stringResource(MR.strings.tab_profile), details::onBack)
+        is DetailsComponent.Child.Profile -> ProfileScreen(page.component)
         is DetailsComponent.Child.Video -> DetailPlaceholder(stringResource(MR.strings.tab_videos), details::onBack)
     }
 }
