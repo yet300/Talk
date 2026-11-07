@@ -50,6 +50,14 @@ CREATE TABLE blocked (
     PRIMARY KEY (owner, pubkey)
 );
 
+-- Contacts the viewer verified in person (safety code or QR), kept on this device only.
+CREATE TABLE verified_contact (
+    owner TEXT NOT NULL,
+    pubkey TEXT NOT NULL,
+    verified_at INTEGER NOT NULL,
+    PRIMARY KEY (owner, pubkey)
+);
+
 CREATE TABLE mute_list (
     owner TEXT NOT NULL PRIMARY KEY,
     created_at INTEGER NOT NULL,
@@ -155,3 +163,20 @@ ORDER BY c.last_at DESC;
 selectMessages:
 SELECT id, chat_id, author, created_at, rumor_enc, publish_state, kind, reply_to, expires_at, removed
 FROM chat_message WHERE chat_id = ? AND removed IN (0, 3) ORDER BY created_at, id;
+
+setVerified:
+INSERT OR REPLACE INTO verified_contact(owner, pubkey, verified_at) VALUES (?, ?, ?);
+
+unsetVerified:
+DELETE FROM verified_contact WHERE owner = ? AND pubkey = ?;
+
+selectVerified:
+SELECT pubkey, verified_at FROM verified_contact WHERE owner = ?;
+
+-- Erase chats from this device (Security): every chat, message, reaction and verification.
+eraseChats {
+    DELETE FROM chat_reaction;
+    DELETE FROM chat_message;
+    DELETE FROM chat;
+    DELETE FROM verified_contact;
+}

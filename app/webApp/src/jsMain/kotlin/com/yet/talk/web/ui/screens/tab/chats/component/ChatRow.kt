@@ -41,6 +41,9 @@ fun ChatRow(chat: Chat, selected: Boolean, onClick: () -> Unit) {
         Span({ classes("t-row-text") }) {
             Span({ classes("t-chat-row-name") }) {
                 Span({ classes("x-name", "t-ellipsis") }) { Text(name) }
+                if (chat.isVerified) {
+                    Span({ classes("t-on-blue-plain", "t-inline") }) { TalkIcon(TalkIcons.Check, stringResource(MR.strings.chat_verified), size = 18f) }
+                }
                 if (chat.disappearing != null) {
                     Span({ classes("t-muted", "t-inline") }) { TalkIcon(TalkIcons.Timer, stringResource(MR.strings.chat_disappearing_on), size = 16f) }
                 }

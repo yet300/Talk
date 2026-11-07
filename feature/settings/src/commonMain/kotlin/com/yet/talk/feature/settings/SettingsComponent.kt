@@ -3,12 +3,13 @@ package com.yet.talk.feature.settings
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.Value
 import com.yet.talk.domain.model.account.Account
+import com.yet.talk.domain.model.account.AppLock
 import com.yet.talk.domain.model.error.DomainError
 import com.yet.talk.domain.model.relay.Relay
 import com.yet.talk.domain.model.settings.ThemeMode
 import com.yet.talk.domain.model.user.User
 
-/** Identity, relays and sign-out. */
+/** Identity, relays, Security (app lock, erase chats, erase everything) and sign-out. */
 interface SettingsComponent {
     val model: Value<Model>
 
@@ -31,6 +32,17 @@ interface SettingsComponent {
 
     fun onSignOut()
 
+    /** Turns the passcode lock on (web); [confirm] must repeat [passcode]. */
+    fun onSetPasscode(passcode: String, confirm: String)
+
+    fun onRemovePasscode()
+
+    /** Erase chats from this device (after the UI's confirmation). */
+    fun onEraseChats()
+
+    /** Erase everything: the account key too, as Sign out does (after the UI's backup warning). */
+    fun onEraseEverything()
+
     fun onErrorShown()
 
     data class Model(
@@ -41,6 +53,7 @@ interface SettingsComponent {
         val relays: List<Relay>,
         val relayInput: String,
         val exportedKey: String?,
+        val lock: AppLock,
         val isWorking: Boolean,
         val error: DomainError?,
     )

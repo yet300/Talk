@@ -28,6 +28,8 @@ import com.yet.talk.feature.root.store.RootStoreFactory
 import com.yet.talk.feature.settings.SettingsComponent
 import com.yet.talk.feature.post.component.cards.PostCardsComponent
 import com.yet.talk.feature.root.moderation.ModerationComponent
+import com.yet.talk.feature.root.store.RootStore
+import com.yet.talk.feature.auth.lock.LockComponent
 import com.yet.talk.feature.editprofile.EditProfileComponent
 import com.yet.talk.feature.tab.main.MainComponent
 import com.yet.talk.feature.tab.main.component.tabs.TabsComponent
@@ -84,11 +86,13 @@ internal class DefaultRootComponent(
 
     init {
         coroutineScope().launch {
-            store.states.map { it.signedIn }.filterNotNull().distinctUntilChanged().collect { signedIn ->
-                val atAuthOrSplash = configStack.value.active.configuration.let { it == Config.Splash || it == Config.Auth }
+            store.states.map { it.access }.filterNotNull().distinctUntilChanged().collect { access ->
+                val beforeMain = configStack.value.active.configuration.let { it == Config.Splash || it == Config.Auth || it == Config.Lock }
                 when {
-                    !signedIn -> navigation.replaceAll(Config.Auth)
-                    atAuthOrSplash -> navigation.replaceAll(Config.Main, *pendingDeepLink?.above.orEmpty().toTypedArray())
+                    access == RootStore.Access.SignedOut -> navigation.replaceAll(Config.Auth)
+                    // Locked: nothing of the account shows until the passcode opens it.
+                    access == RootStore.Access.Locked -> navigation.replaceAll(Config.Lock)
+                    beforeMain -> navigation.replaceAll(Config.Main, *pendingDeepLink?.above.orEmpty().toTypedArray())
                 }
             }
         }
@@ -109,6 +113,7 @@ internal class DefaultRootComponent(
         when (config) {
             Config.Splash -> RootComponent.Child.Splash
             Config.Auth -> RootComponent.Child.Auth(factories.auth(context))
+            Config.Lock -> RootComponent.Child.Lock(factories.lock(context))
             Config.Main -> {
                 val link = pendingDeepLink
                 pendingDeepLink = null
@@ -191,6 +196,9 @@ internal class DefaultRootComponent(
         }
 
         @Serializable
+        data object Lock : Config
+
+        @Serializable
         data object Main : Config
 
         @Serializable
@@ -242,6 +250,7 @@ internal class DefaultRootComponent(
 @Inject
 internal class DestinationFactories(
     val auth: AuthComponent.Factory,
+    val lock: LockComponent.Factory,
     val main: MainComponent.Factory,
     val revisions: RevisionsComponent.Factory,
     val compose: ComposeComponent.Factory,

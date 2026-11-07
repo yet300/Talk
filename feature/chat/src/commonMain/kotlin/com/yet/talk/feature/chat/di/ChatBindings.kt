@@ -5,6 +5,8 @@ import com.yet.talk.feature.chat.component.conversation.DefaultConversationCompo
 import com.yet.talk.feature.chat.component.info.ChatInfoComponent
 import com.yet.talk.feature.chat.component.info.DefaultChatInfoComponentFactory
 import com.yet.talk.feature.chat.component.newchat.DefaultNewChatComponentFactory
+import com.yet.talk.feature.chat.component.verify.DefaultVerifyComponentFactory
+import com.yet.talk.feature.chat.component.verify.VerifyComponent
 import com.yet.talk.feature.chat.component.newchat.NewChatComponent
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.BindingContainer
@@ -19,6 +21,9 @@ abstract class ChatBindings {
 
     @Binds
     internal abstract val DefaultChatInfoComponentFactory.bindChatInfoComponentFactory: ChatInfoComponent.Factory
+
+    @Binds
+    internal abstract val DefaultVerifyComponentFactory.bindVerifyComponentFactory: VerifyComponent.Factory
 
     @Binds
     internal abstract val DefaultNewChatComponentFactory.bindNewChatComponentFactory: NewChatComponent.Factory

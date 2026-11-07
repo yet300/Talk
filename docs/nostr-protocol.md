@@ -188,8 +188,19 @@ no Talk label: the label would mark them on relays, and the inner events are nev
   private part is in the older NIP-04 format is not rewritten. Blocked people's chats and requests are hidden,
   and their posts sit behind a "Hidden because you blocked its author" row.
 - **Mute** (a chat) is local: it leaves the chat out of the unread count.
-- **On the device:** messages are stored NIP-44 encrypted with a random 32-byte key kept in KSafe
-  (`chat_storage_key`), deleted on sign-out.
+- **Verify a contact** (on this device only): the safety code is SHA-256 of
+  `talk-safety-code-v1:<smaller pubkey>:<larger pubkey>`, shown as four groups of five
+  digits (each group: five digest bytes, big-endian, modulo 100000), the same on both devices. The QR code holds
+  `talk-verify:1:<smaller pubkey>:<larger pubkey>:<the 20 digits>`; scanning the other device's code verifies them.
+- **On the device:** the chat storage key is random and stored NIP-44-sealed under HMAC-SHA256(account key,
+  `talk-chat-storage-key-v1`), so whatever locks the account key locks the chats. Erase chats removes the chats,
+  their verifications and that key, and resets the sync cursor.
+- **App lock (web):** the account key is stored only as a NIP-49 `ncryptsec` (scrypt log_n 16, XChaCha20-Poly1305,
+  key-security byte 0x02) under a passcode of at least 6 characters; until it is entered there is no key in memory,
+  no viewer and no sync. A forgotten passcode means erasing the account here and signing in with the `nsec` backup.
+  Android and iOS will use the device lock instead.
+- **On the device:** messages are stored NIP-44 encrypted with a random 32-byte key kept in KSafe (sealed, see
+  below), deleted on sign-out.
 - **No forward secrecy** (NIP-17 has none): someone who later gets your key can read the wraps relays kept.
 
 ## Feeds

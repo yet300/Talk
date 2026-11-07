@@ -15,6 +15,7 @@ clearUserData {
     DELETE FROM video_comment;
     DELETE FROM report;
     DELETE FROM chat_reaction;
+    DELETE FROM verified_contact;
     DELETE FROM blocked;
     DELETE FROM mute_list;
     DELETE FROM chat_message;

@@ -8,6 +8,7 @@ import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
 import com.yet.talk.domain.repository.AccountRepository
 import com.yet.talk.domain.repository.PreferencesRepository
 import dev.zacsweers.metro.Inject
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
 @Inject
@@ -27,7 +28,15 @@ internal class RootStoreFactory(
 
     private inner class ExecutorImpl : CoroutineExecutor<Nothing, RootStore.Action, RootStore.State, RootStore.Msg, Nothing>() {
         override fun executeAction(action: RootStore.Action) {
-            scope.launch { accounts.account.collect { dispatch(RootStore.Msg.AccountChanged(it != null)) } }
+            scope.launch {
+                combine(accounts.account, accounts.lock) { account, lock ->
+                    when {
+                        lock.locked -> RootStore.Access.Locked
+                        account != null -> RootStore.Access.SignedIn
+                        else -> RootStore.Access.SignedOut
+                    }
+                }.collect { dispatch(RootStore.Msg.AccessChanged(it)) }
+            }
             scope.launch { preferences.theme.collect { dispatch(RootStore.Msg.ThemeChanged(it)) } }
         }
     }
@@ -35,7 +44,7 @@ internal class RootStoreFactory(
     private object ReducerImpl : Reducer<RootStore.State, RootStore.Msg> {
         override fun RootStore.State.reduce(msg: RootStore.Msg): RootStore.State =
             when (msg) {
-                is RootStore.Msg.AccountChanged -> copy(signedIn = msg.signedIn)
+                is RootStore.Msg.AccessChanged -> copy(access = msg.access)
                 is RootStore.Msg.ThemeChanged -> copy(theme = msg.theme)
             }
     }

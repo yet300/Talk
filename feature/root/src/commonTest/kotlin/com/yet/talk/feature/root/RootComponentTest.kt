@@ -32,6 +32,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
+import com.yet.talk.domain.model.account.AppLock
+import com.yet.talk.feature.auth.lock.LockComponent
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -46,6 +48,13 @@ class RootComponentTest {
         override suspend fun importKey(secretKey: String) = error("unused")
         override suspend fun exportSecretKey() = error("unused")
         override suspend fun signOut() = Unit
+        override val lock = MutableStateFlow(AppLock())
+        override suspend fun unlock(passcode: String) = Result.success(Unit).also {
+            lock.value = lock.value.copy(locked = false)
+            account.value = Account(UserId("me"), "npub1me")
+        }
+        override suspend fun setPasscode(passcode: String) = error("unused")
+        override suspend fun removePasscode() = error("unused")
     }
 
     private object Preferences : PreferencesRepository {
@@ -82,6 +91,7 @@ class RootComponentTest {
     private val root by lazy {
         val factories = DestinationFactories(
             auth = { _ -> PreviewAuthComponent() },
+            lock = { _ -> FakeLock },
             main = { _, link, output -> FakeMain(link, output).also { main = it } },
             revisions = { _, _, _ -> PreviewRevisionsComponent() },
             compose = { _, _, _ -> PreviewComposeComponent() },
@@ -125,6 +135,24 @@ class RootComponentTest {
         accounts.account.value = null
         assertIs<RootComponent.Child.Auth>(active)
         assertEquals(1, root.stack.value.items.size, "nothing from the signed-in session stays behind")
+    }
+
+    private object FakeLock : LockComponent {
+        override val model: Value<LockComponent.Model> = MutableValue(LockComponent.Model("", false, null))
+        override fun onPasscodeChanged(passcode: String) = Unit
+        override fun onUnlock() = Unit
+        override fun onForgot() = Unit
+        override fun onErrorShown() = Unit
+    }
+
+    @Test
+    fun aLockedAppShowsOnlyTheLockScreenUntilUnlocked() = kotlinx.coroutines.test.runTest {
+        accounts.lock.value = AppLock(passcodeSupported = true, enabled = true, locked = true)
+        assertIs<RootComponent.Child.Lock>(active)
+        assertEquals(1, root.stack.value.items.size)
+
+        accounts.unlock("passcode")
+        assertIs<RootComponent.Child.Main>(active)
     }
 
     @Test

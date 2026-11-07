@@ -16,15 +16,23 @@ import org.jetbrains.compose.web.dom.Text
  * dialog offers Show private key and Copy before the red Sign out.
  */
 @Composable
-fun SignOutDialog(exportedKey: String?, onShowKey: () -> Unit, onConfirm: () -> Unit, onDismiss: () -> Unit) {
+fun SignOutDialog(
+    exportedKey: String?,
+    onShowKey: () -> Unit,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit,
+    title: String = stringResource(MR.strings.settings_sign_out_title),
+    body: String = stringResource(MR.strings.settings_sign_out_body),
+    confirm: String = stringResource(MR.strings.settings_sign_out),
+) {
     val toaster = LocalToaster.current
     val copied = stringResource(MR.strings.action_copied)
     val showKey = stringResource(MR.strings.settings_show_key)
     val copy = stringResource(MR.strings.action_copy)
     ConfirmDialog(
-        title = stringResource(MR.strings.settings_sign_out_title),
-        body = stringResource(MR.strings.settings_sign_out_body),
-        confirm = stringResource(MR.strings.settings_sign_out),
+        title = title,
+        body = body,
+        confirm = confirm,
         onConfirm = onConfirm,
         onDismiss = onDismiss,
         extra = {

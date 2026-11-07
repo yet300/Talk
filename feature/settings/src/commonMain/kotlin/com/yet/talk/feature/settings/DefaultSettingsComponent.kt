@@ -39,6 +39,14 @@ internal class DefaultSettingsComponent(
 
     override fun onSignOut() = store.accept(SettingsStore.Intent.SignOut)
 
+    override fun onSetPasscode(passcode: String, confirm: String) = store.accept(SettingsStore.Intent.SetPasscode(passcode, confirm))
+
+    override fun onRemovePasscode() = store.accept(SettingsStore.Intent.RemovePasscode)
+
+    override fun onEraseChats() = store.accept(SettingsStore.Intent.EraseChats)
+
+    override fun onEraseEverything() = store.accept(SettingsStore.Intent.SignOut)
+
     override fun onErrorShown() = store.accept(SettingsStore.Intent.DismissError)
 }
 

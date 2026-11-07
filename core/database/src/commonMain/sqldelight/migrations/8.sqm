@@ -1,0 +1,7 @@
+-- Version 8 → 9: verified contacts (Chats, trust and security).
+CREATE TABLE verified_contact (
+    owner TEXT NOT NULL,
+    pubkey TEXT NOT NULL,
+    verified_at INTEGER NOT NULL,
+    PRIMARY KEY (owner, pubkey)
+);

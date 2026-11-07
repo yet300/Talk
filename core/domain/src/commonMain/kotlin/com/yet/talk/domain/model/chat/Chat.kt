@@ -38,7 +38,15 @@ data class Chat(
     val isMuted: Boolean,
     /** Disappearing messages for what you send, or null when off. */
     val disappearing: Duration?,
+    /** A one-to-one chat with someone you verified in person. */
+    val isVerified: Boolean = false,
 )
+
+/**
+ * The safety code of you and one contact: the same on both devices, from both public keys. Compared aloud or by
+ * scanning [qrPayload] in person.
+ */
+data class SafetyCode(val groups: List<String>, val qrPayload: String)
 
 data class ChatMessage(
     val id: String,

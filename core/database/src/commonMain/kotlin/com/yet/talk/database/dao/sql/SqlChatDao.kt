@@ -10,6 +10,7 @@ import com.yet.talk.database.model.ChatReactionRecord
 import com.yet.talk.database.model.ChatRecord
 import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 
 @Inject
@@ -81,6 +82,14 @@ internal class SqlChatDao(private val holder: DatabaseHolder, private val dispat
     override suspend fun settings(chatId: String): Pair<String?, Long?>? = withContext(dispatchers.io) {
         holder.get().chatQueries.selectChat(chatId) { name, expire -> name to expire }.awaitAsOneOrNull()
     }
+
+    override fun observeVerified(owner: String): Flow<Map<String, Long>> =
+        holder.observeList(dispatchers.io) { chatQueries.selectVerified(owner) { pubkey, at -> pubkey to at } }.map { it.toMap() }
+
+    override suspend fun setVerified(owner: String, pubkey: String, at: Long?) =
+        if (at == null) io { chatQueries.unsetVerified(owner, pubkey) } else io { chatQueries.setVerified(owner, pubkey, at) }
+
+    override suspend fun eraseChats() = io { chatQueries.eraseChats() }
 
     override fun observeBlocked(owner: String): Flow<List<String>> =
         holder.observeList(dispatchers.io) { chatQueries.selectBlocked(owner) }

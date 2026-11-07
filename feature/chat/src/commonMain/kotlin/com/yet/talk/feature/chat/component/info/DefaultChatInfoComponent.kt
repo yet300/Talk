@@ -18,7 +18,7 @@ import kotlinx.coroutines.launch
 
 internal class DefaultChatInfoComponent(
     componentContext: ComponentContext,
-    chatId: ChatId,
+    private val chatId: ChatId,
     private val output: (ChatInfoComponent.Output) -> Unit,
     storeFactory: ChatInfoStoreFactory,
 ) : ChatInfoComponent, ComponentContext by componentContext {
@@ -40,6 +40,7 @@ internal class DefaultChatInfoComponent(
             disappearing = Disappearing.of(state.chat?.disappearing),
             isMuted = state.chat?.isMuted == true,
             isBlocked = state.id.members.any { it in state.blocked },
+            isVerified = state.chat?.isVerified == true,
             error = state.error,
         )
     }
@@ -53,6 +54,11 @@ internal class DefaultChatInfoComponent(
     override fun onLeave() = store.accept(Intent.Leave)
 
     override fun onOpenMember(id: UserId) = output(ChatInfoComponent.Output.OpenProfile(id))
+
+    override fun onVerify() {
+        val person = chatId.members.singleOrNull() ?: return
+        output(ChatInfoComponent.Output.Verify(person))
+    }
 
     override fun onBack() = output(ChatInfoComponent.Output.Back)
 

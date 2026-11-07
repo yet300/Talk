@@ -13,6 +13,7 @@ import com.yet.talk.domain.model.user.UserStats
 import com.yet.talk.domain.repository.ChatRepository
 import com.yet.talk.domain.repository.ModerationRepository
 import com.yet.talk.domain.model.chat.Disappearing
+import com.yet.talk.domain.model.chat.SafetyCode
 import com.yet.talk.domain.model.media.ImageFile
 import com.yet.talk.domain.model.moderation.Moderation
 import com.yet.talk.domain.model.moderation.ReportReason
@@ -72,6 +73,11 @@ class ConversationStoreTest {
         override suspend fun setDisappearing(id: ChatId, disappearing: Disappearing) = Unit
         override suspend fun setMuted(id: ChatId, muted: Boolean) = Unit
         override suspend fun leave(id: ChatId) = Unit
+        override suspend fun safetyCode(person: UserId) = Result.success(SafetyCode(listOf("00000"), "x"))
+        override fun verified(): Flow<Map<UserId, Instant>> = flowOf(emptyMap())
+        override suspend fun setVerified(person: UserId, verified: Boolean) = Unit
+        override suspend fun verifyScanned(person: UserId, payload: String) = Result.success(false)
+        override suspend fun eraseAll() = Unit
         override suspend fun retry(messageId: String) = Result.success(Unit)
         override suspend fun markRead(id: ChatId) { read++ }
         override suspend fun accept(id: ChatId) { accepted = true }

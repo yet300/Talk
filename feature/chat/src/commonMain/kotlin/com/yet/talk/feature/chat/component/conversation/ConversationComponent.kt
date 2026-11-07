@@ -64,6 +64,8 @@ interface ConversationComponent {
         /** A group's name, if it has one. */
         val name: String?,
         val isGroup: Boolean,
+        /** A one-to-one chat whose person you verified in person. */
+        val isVerified: Boolean,
         val messages: List<ChatMessage>,
         val text: String,
         val replyingTo: ChatMessage?,

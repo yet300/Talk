@@ -30,6 +30,7 @@ kotlin {
             // Markdown: marked renders GFM, DOMPurify sanitizes the HTML before it reaches the DOM.
             implementation(npm("marked", libs.versions.marked.get()))
             implementation(npm("dompurify", libs.versions.dompurify.get()))
+            implementation(npm("qrcode-generator", libs.versions.qrcode.generator.get()))
             implementation(libs.androidx.paging.common)
         }
         all {

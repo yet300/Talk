@@ -7,6 +7,7 @@ import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandlerOwner
 import com.yet.talk.domain.model.settings.ThemeMode
 import com.yet.talk.feature.auth.AuthComponent
+import com.yet.talk.feature.auth.lock.LockComponent
 import com.yet.talk.feature.compose.ComposeComponent
 import com.yet.talk.feature.post.component.revisions.RevisionsComponent
 import com.yet.talk.feature.settings.SettingsComponent
@@ -52,6 +53,9 @@ interface RootComponent : BackHandlerOwner, WebNavigationOwner {
         data object Splash : Child()
 
         class Auth(val component: AuthComponent) : Child()
+
+        /** The app lock's screen ("Talk is locked"). */
+        class Lock(val component: LockComponent) : Child()
 
         class Main(val component: MainComponent) : Child()
 

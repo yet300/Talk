@@ -41,6 +41,7 @@ internal class DefaultConversationComponent(
             members = state.members,
             name = state.chat?.name,
             isGroup = state.id.isGroup,
+            isVerified = state.chat?.isVerified == true,
             messages = state.messages,
             text = state.text,
             replyingTo = state.replyingTo,

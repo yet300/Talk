@@ -8,7 +8,7 @@ import com.yet.talk.api.source.media.MediaRemoteSource
 import com.yet.talk.api.source.relay.RelaySelection
 import com.yet.talk.api.source.social.SocialRemoteSource
 import com.yet.talk.data.mapper.userOf
-import com.yet.talk.data.session.KeyVault
+import com.yet.talk.data.session.ChatKeyring
 import com.yet.talk.data.session.Session
 import com.yet.talk.data.sync.EventIngestor
 import com.yet.talk.data.sync.remote
@@ -26,6 +26,7 @@ import com.yet.talk.domain.model.chat.ChatId
 import com.yet.talk.domain.model.chat.ChatImage
 import com.yet.talk.domain.model.chat.ChatMessage
 import com.yet.talk.domain.model.chat.Disappearing
+import com.yet.talk.domain.model.chat.SafetyCode
 import com.yet.talk.domain.model.error.DomainError
 import com.yet.talk.domain.model.media.ImageFile
 import com.yet.talk.domain.model.post.PublishState
@@ -78,7 +79,7 @@ internal class ChatRepositoryImpl(
     private val socialRemote: SocialRemoteSource,
     private val selection: RelaySelection,
     private val ingestor: EventIngestor,
-    private val vault: KeyVault,
+    private val keyring: ChatKeyring,
     private val clock: Clock,
     scope: CoroutineScope,
 ) : ChatRepository {
@@ -151,14 +152,14 @@ internal class ChatRepositoryImpl(
     }
 
     override fun chats(): Flow<List<Chat>> = session.viewer.flatMapLatest { viewer ->
-        chats.observeChats(viewer).flatMapLatest { records ->
+        combine(chats.observeChats(viewer), chats.observeVerified(viewer)) { records, verified -> records to verified }.flatMapLatest { (records, verified) ->
             val memberIds = records.flatMap { it.members }.distinct()
             if (memberIds.isEmpty()) {
-                flowOf(records.map { it.toChat(emptyMap(), viewer) })
+                flowOf(records.map { it.toChat(emptyMap(), viewer, verified) })
             } else {
                 combine(memberIds.map { pubkey -> profiles.observe(pubkey).map { pubkey to userOf(pubkey, it) } }) { users ->
                     val byId = users.toMap()
-                    records.map { it.toChat(byId, viewer) }
+                    records.map { it.toChat(byId, viewer, verified) }
                 }
             }
         }
@@ -333,6 +334,37 @@ internal class ChatRepositoryImpl(
         if (!delivered) throw DomainError.NoRelayAccepted
     }
 
+    override suspend fun safetyCode(person: UserId): Result<SafetyCode> = runCatching {
+        SafetyCodes.of(session.requireSigner().publicKey(), person.value)
+    }
+
+    override fun verified(): Flow<Map<UserId, Instant>> = session.viewer.flatMapLatest { viewer ->
+        chats.observeVerified(viewer).map { all -> all.entries.associate { (pubkey, at) -> UserId(pubkey) to Instant.fromEpochSeconds(at) } }
+    }
+
+    override suspend fun setVerified(person: UserId, verified: Boolean) {
+        val me = session.requireSigner().publicKey()
+        chats.setVerified(me, person.value, if (verified) now() else null)
+    }
+
+    override suspend fun verifyScanned(person: UserId, payload: String): Result<Boolean> = runCatching {
+        val matches = SafetyCodes.of(session.requireSigner().publicKey(), person.value).qrPayload == payload.trim()
+        if (matches) setVerified(person, true)
+        matches
+    }
+
+    override suspend fun eraseAll() {
+        val viewer = session.viewer.first()
+        chats.eraseChats()
+        keyring.erase()
+        cacheLock.withLock {
+            rumors.clear()
+            images.clear()
+        }
+        // Relays may still hold the wraps: they come back on the next start while they are kept there.
+        if (viewer.isNotEmpty()) syncState.reset(cursorKey(viewer))
+    }
+
     override suspend fun markRead(id: ChatId) = chats.markRead(id.value, now())
 
     override suspend fun accept(id: ChatId) = chats.accept(id.value)
@@ -343,7 +375,7 @@ internal class ChatRepositoryImpl(
         ChatMessageRecord(this.id, id.value, pubkey, createdAt, encrypt(this), state, kind.toLong(), message.replyTo, message.expiresAt)
     }
 
-    private suspend fun ChatRecord.toChat(users: Map<String, User>, viewer: String): Chat {
+    private suspend fun ChatRecord.toChat(users: Map<String, User>, viewer: String, verified: Map<String, Long>): Chat {
         val last = lastRumorEnc?.takeIf(String::isNotEmpty)?.let { runCatching { decryptStored(it) }.getOrNull() }
         return Chat(
             id = ChatId(id),
@@ -358,6 +390,7 @@ internal class ChatRepositoryImpl(
             isRequest = isRequest,
             isMuted = muted,
             disappearing = expireSeconds?.seconds,
+            isVerified = members.size == 1 && members.single() in verified,
         )
     }
 
@@ -417,7 +450,7 @@ internal class ChatRepositoryImpl(
         return rumor
     }
 
-    private suspend fun storageKey(): ByteArray = vault.chatKey().hexToByteArray()
+    private suspend fun storageKey(): ByteArray = keyring.key()
 
     private fun String.toPublishState() = when (this) {
         PublishStates.PENDING -> PublishState.Pending

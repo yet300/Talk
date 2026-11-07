@@ -39,6 +39,9 @@ kotlin {
         }
         jsMain.dependencies {
             implementation(npm("@noble/curves", libs.versions.noble.curves.get()))
+            // NIP-49 (the web's app lock): scrypt and XChaCha20-Poly1305
+            implementation(npm("@noble/hashes", libs.versions.noble.hashes.get()))
+            implementation(npm("@noble/ciphers", libs.versions.noble.ciphers.get()))
             implementation(libs.cryptography.provider.webcrypto)
         }
 

@@ -19,6 +19,7 @@ import com.yet.talk.web.ui.root.component.RailSelection
 import com.yet.talk.web.ui.root.component.ShellWidth
 import com.yet.talk.web.ui.root.component.WebShell
 import com.yet.talk.web.ui.screens.auth.AuthContent
+import com.yet.talk.web.ui.screens.lock.LockContent
 import com.yet.talk.web.ui.screens.compose.ComposeContent
 import com.yet.talk.web.ui.screens.main.MainContent
 import com.yet.talk.web.ui.screens.revisions.RevisionsContent
@@ -61,6 +62,7 @@ private fun Destination(child: RootComponent.Child, main: MainComponent?, railAc
     when (child) {
         RootComponent.Child.Splash -> Splash()
         is RootComponent.Child.Auth -> AuthContent(child.component)
+        is RootComponent.Child.Lock -> LockContent(child.component)
         is RootComponent.Child.Main -> MainContent(child.component, railActions)
         is RootComponent.Child.Compose -> Shell(main, RailSelection.None, railActions, ShellWidth.Wide) {
             ComposeContent(child.component)

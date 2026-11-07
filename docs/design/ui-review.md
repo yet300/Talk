@@ -408,5 +408,11 @@ Decisions in this pass (on the designer's notes):
    messages with the viewer, chat info with the encryption explainer. Block also hides that person's posts.
 4. Trust and security: verify a contact (safety code, QR), Settings' Security section, app lock (NIP-49 on the
    web), erase chats, erase everything.
+   Built (2026-11-07): `VerifyComponent` (safety code as four groups of five digits rather than the canvas's sample
+   words, decision 25; a QR code from `qrcode-generator`; Scan where the browser has `BarcodeDetector`), verified
+   checks on rows, headers and chat info; Settings' Security (App lock Off · Passcode, Erase chats, Erase
+   everything with the Sign out key step); the lock screen (`LockComponent`, root child `Lock`). Not built: Hide
+   chats in screenshots and the device lock, which come with the Android and iOS apps; the "If her key changes"
+   line (on Nostr the key is the account, so there is no key change to warn about).
 5. Location channels: bitchat-compatible kinds 20000 and 20001, a throwaway key per area, nicknames, presence
    at region, province and city only, teleport, the location step, optional proof of work (NIP-13).

@@ -47,7 +47,10 @@ fun ChatInfoContent(component: ChatInfoComponent) {
     TopBar(title = stringResource(MR.strings.chat_info), onBack = component::onBack)
     Div({ classes("t-info-head") }) {
         ChatAvatar(model.members)
-        H2({ classes("t-h1", "t-flush") }) { Text(title) }
+        H2({ classes("t-h1", "t-flush", "t-info-title") }) {
+            Text(title)
+            if (model.isVerified) Span({ classes("t-on-blue-plain") }) { TalkIcon(TalkIcons.Check, stringResource(MR.strings.chat_verified), size = 22f) }
+        }
     }
     model.error?.let { ErrorRow(it, onDismiss = component::onErrorShown) }
 
@@ -90,6 +93,11 @@ fun ChatInfoContent(component: ChatInfoComponent) {
         })
     }
 
+    if (!model.isGroup) {
+        InfoAction(TalkIcons.Shield, stringResource(MR.strings.chat_verify), note = if (model.isVerified) stringResource(MR.strings.chat_verified) else null) {
+            component.onVerify()
+        }
+    }
     InfoAction(TalkIcons.Lock, stringResource(MR.strings.chat_encryption_row)) { explainer = true }
     if (model.isGroup) {
         InfoAction(TalkIcons.Back, stringResource(MR.strings.chat_leave), danger = true) { confirm = Confirm.Leave }
@@ -131,7 +139,7 @@ fun ChatInfoContent(component: ChatInfoComponent) {
 private enum class Confirm { Block, Leave }
 
 @Composable
-private fun InfoAction(icon: ImageResource, label: String, danger: Boolean = false, onClick: () -> Unit) {
+private fun InfoAction(icon: ImageResource, label: String, danger: Boolean = false, note: String? = null, onClick: () -> Unit) {
     Button({
         classes("t-row", "t-row-button")
         if (danger) classes("t-danger")
@@ -140,6 +148,7 @@ private fun InfoAction(icon: ImageResource, label: String, danger: Boolean = fal
     }) {
         TalkIcon(icon)
         Span({ classes("t-row-text", "x-name") }) { Text(label) }
+        if (note != null) Span({ classes("t-on-blue-plain", "t-caption") }) { Text(note) }
     }
 }
 

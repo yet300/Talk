@@ -25,10 +25,10 @@ internal actual fun secureRandomBytes(size: Int): ByteArray {
 }
 
 // Kotlin/JS ByteArray is an Int8Array: reinterpret the same memory, then copy so nothing is shared.
-private fun ByteArray.toUint8Array(): Uint8Array {
+internal fun ByteArray.toUint8Array(): Uint8Array {
     val view = unsafeCast<Int8Array>()
     return Uint8Array(view.buffer, view.byteOffset, view.length).asDynamic().slice().unsafeCast<Uint8Array>()
 }
 
-private fun Uint8Array.toByteArray(): ByteArray =
+internal fun Uint8Array.toByteArray(): ByteArray =
     Int8Array(buffer, byteOffset, length).unsafeCast<ByteArray>().copyOf()

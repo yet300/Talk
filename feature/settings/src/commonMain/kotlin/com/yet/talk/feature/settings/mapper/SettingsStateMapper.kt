@@ -11,6 +11,7 @@ internal val stateToModel: (SettingsStore.State) -> SettingsComponent.Model = { 
         relays = state.relays,
         relayInput = state.relayInput,
         exportedKey = state.exportedKey,
+        lock = state.lock,
         isWorking = state.isWorking,
         error = state.error,
     )

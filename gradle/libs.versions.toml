@@ -50,6 +50,10 @@ secp256k1 = "0.24.0"
 cryptography = "0.6.0"
 kotlincrypto-hash = "0.8.0"
 noble-curves = "2.4.0"
+noble-hashes = "2.4.0"
+noble-ciphers = "2.4.0"
+# QR codes for Verify on the web (npm)
+qrcode-generator = "2.0.4"
 
 mokoResources = "0.27.1"
 mokoGraphics = "0.10.2"

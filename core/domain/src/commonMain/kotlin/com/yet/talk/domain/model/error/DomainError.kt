@@ -41,6 +41,12 @@ sealed class DomainError(message: String) : Exception(message) {
 
     data class TooManyMembers(val max: Int) : Validation("A group can have at most $max other people")
 
+    data object WrongPasscode : DomainError("Wrong passcode")
+
+    data class PasscodeTooShort(val min: Int) : Validation("A passcode has at least $min characters")
+
+    data object PasscodesDontMatch : Validation("The passcodes don't match")
+
     /** The mute list's private part was written in a way Talk cannot read (NIP-04), so it is not rewritten. */
     data object UnreadableMuteList : DomainError("Your mute list can't be changed here")
 

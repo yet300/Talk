@@ -16,6 +16,7 @@ import com.yet.talk.web.ui.components.TopBar
 import com.yet.talk.web.ui.screens.chat.ChatInfoContent
 import com.yet.talk.web.ui.screens.chat.ConversationContent
 import com.yet.talk.web.ui.screens.chat.NewChatContent
+import com.yet.talk.web.ui.screens.chat.VerifyContent
 import com.yet.talk.web.ui.screens.tab.chats.component.ChatRow
 import com.yet.talk.web.ui.theme.TalkIcons
 import com.yet.talk.web.ui.theme.stringResource
@@ -52,6 +53,7 @@ private fun Pane(pane: ChatsComponent.Pane) {
         is ChatsComponent.Pane.Conversation -> ConversationContent(pane.component)
         is ChatsComponent.Pane.NewChat -> NewChatContent(pane.component)
         is ChatsComponent.Pane.Info -> ChatInfoContent(pane.component)
+        is ChatsComponent.Pane.Verify -> VerifyContent(pane.component)
     }
 }
 
@@ -88,6 +90,7 @@ private fun ChatList(component: ChatsComponent, open: ChatsComponent.Pane?) {
     val selected = when (open) {
         is ChatsComponent.Pane.Conversation -> open.id
         is ChatsComponent.Pane.Info -> open.id
+        is ChatsComponent.Pane.Verify -> open.id
         else -> null
     }
     model.chats.forEach { chat -> ChatRow(chat, selected = chat.id == selected, onClick = { component.onOpenChat(chat.id) }) }

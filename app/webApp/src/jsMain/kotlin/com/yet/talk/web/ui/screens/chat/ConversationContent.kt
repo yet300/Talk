@@ -63,7 +63,12 @@ fun ConversationContent(component: ConversationComponent) {
             }) {
                 ChatAvatar(model.members, small = true)
                 Span({ classes("t-convo-who-text") }) {
-                    Span({ classes("x-name", "t-ellipsis", "t-block") }) { Text(title) }
+                    Span({ classes("t-chat-row-name") }) {
+                        Span({ classes("x-name", "t-ellipsis") }) { Text(title) }
+                        if (model.isVerified) {
+                            Span({ classes("t-on-blue-plain", "t-inline") }) { TalkIcon(TalkIcons.Check, stringResource(MR.strings.chat_verified), size = 18f) }
+                        }
+                    }
                     Span({ classes("t-caption", "t-ellipsis", "t-block") }) {
                         if (model.disappearing != null) TalkIcon(TalkIcons.Timer, size = 14f, attrs = { classes("t-inline-icon") })
                         Text(

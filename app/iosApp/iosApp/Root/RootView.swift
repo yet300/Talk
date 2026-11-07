@@ -24,6 +24,7 @@ struct RootView: View {
         let strings = MR.strings.shared
         switch child {
         case is RootComponentChild.Auth: return strings.auth_title.text
+        case is RootComponentChild.Lock: return strings.lock_title.text
         case is RootComponentChild.Main: return strings.tab_home.text
         case is RootComponentChild.Revisions: return strings.revisions_title.text
         case is RootComponentChild.Compose: return strings.compose_new.text

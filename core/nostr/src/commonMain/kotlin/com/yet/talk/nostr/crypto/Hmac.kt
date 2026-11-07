@@ -43,3 +43,6 @@ internal object Hmac {
         return diff == 0
     }
 }
+
+/** HMAC-SHA256, for deriving a purpose-specific key from a secret (a PRF, as in HKDF-Expand). */
+fun hmacSha256(key: ByteArray, data: ByteArray): ByteArray = Hmac.sha256(key, data)

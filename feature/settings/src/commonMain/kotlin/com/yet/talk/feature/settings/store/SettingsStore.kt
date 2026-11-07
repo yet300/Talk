@@ -2,6 +2,7 @@ package com.yet.talk.feature.settings.store
 
 import com.arkivanov.mvikotlin.core.store.Store
 import com.yet.talk.domain.model.account.Account
+import com.yet.talk.domain.model.account.AppLock
 import com.yet.talk.domain.model.error.DomainError
 import com.yet.talk.domain.model.relay.Relay
 import com.yet.talk.domain.model.settings.ThemeMode
@@ -16,6 +17,7 @@ internal interface SettingsStore : Store<SettingsStore.Intent, SettingsStore.Sta
         val relays: List<Relay> = emptyList(),
         val relayInput: String = "",
         val exportedKey: String? = null,
+        val lock: AppLock = AppLock(),
         val theme: ThemeMode = ThemeMode.System,
         val isWorking: Boolean = false,
         val error: DomainError? = null,
@@ -36,6 +38,12 @@ internal interface SettingsStore : Store<SettingsStore.Intent, SettingsStore.Sta
 
         data object SignOut : Intent
 
+        data class SetPasscode(val passcode: String, val confirm: String) : Intent
+
+        data object RemovePasscode : Intent
+
+        data object EraseChats : Intent
+
         data object DismissError : Intent
     }
 
@@ -51,6 +59,8 @@ internal interface SettingsStore : Store<SettingsStore.Intent, SettingsStore.Sta
         data class MeChanged(val me: User?) : Msg
 
         data class ThemeChanged(val theme: ThemeMode) : Msg
+
+        data class LockChanged(val lock: AppLock) : Msg
 
         data class RelayInputChanged(val url: String) : Msg
 

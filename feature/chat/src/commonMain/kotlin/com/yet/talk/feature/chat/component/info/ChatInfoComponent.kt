@@ -10,7 +10,7 @@ import com.yet.talk.domain.model.user.UserId
 
 /**
  * Chat info (`ChatInfo`): the person or the group's members, disappearing messages, mute, block (a person), leave
- * (a group); Report and the encryption explainer are drawn by the UI. Verify comes in a later step.
+ * (a group), Verify (a person); Report and the encryption explainer are drawn by the UI.
  */
 interface ChatInfoComponent {
     val model: Value<Model>
@@ -27,6 +27,9 @@ interface ChatInfoComponent {
 
     fun onOpenMember(id: UserId)
 
+    /** Verify the person of a one-to-one chat. */
+    fun onVerify()
+
     fun onBack()
 
     fun onErrorShown()
@@ -39,6 +42,8 @@ interface ChatInfoComponent {
         val disappearing: Disappearing,
         val isMuted: Boolean,
         val isBlocked: Boolean,
+        /** A one-to-one chat whose person you verified. */
+        val isVerified: Boolean,
         val error: DomainError?,
     )
 
@@ -49,6 +54,8 @@ interface ChatInfoComponent {
         data object Closed : Output
 
         data class OpenProfile(val id: UserId) : Output
+
+        data class Verify(val person: UserId) : Output
     }
 
     fun interface Factory {

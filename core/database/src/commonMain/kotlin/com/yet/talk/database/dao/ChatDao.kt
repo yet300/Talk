@@ -48,6 +48,14 @@ interface ChatDao {
     /** The chat's encrypted name and disappearing setting, when it exists. */
     suspend fun settings(chatId: String): Pair<String?, Long?>?
 
+    /** Verified contacts of [owner] and when they were verified. */
+    fun observeVerified(owner: String): Flow<Map<String, Long>>
+
+    suspend fun setVerified(owner: String, pubkey: String, at: Long?)
+
+    /** Removes every chat, message, reaction and verification from this device. */
+    suspend fun eraseChats()
+
     fun observeBlocked(owner: String): Flow<List<String>>
 
     suspend fun setBlocked(owner: String, pubkeys: Collection<String>)

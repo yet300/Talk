@@ -4,6 +4,9 @@ import com.yet.talk.domain.model.chat.Chat
 import com.yet.talk.domain.model.chat.ChatId
 import com.yet.talk.domain.model.chat.ChatMessage
 import com.yet.talk.domain.model.chat.Disappearing
+import com.yet.talk.domain.model.chat.SafetyCode
+import com.yet.talk.domain.model.user.UserId
+import kotlin.time.Instant
 import com.yet.talk.domain.model.media.ImageFile
 import kotlinx.coroutines.flow.Flow
 
@@ -59,6 +62,20 @@ interface ChatRepository {
 
     /** Leaves a group on this device: it is hidden; its members can still message it. */
     suspend fun leave(id: ChatId)
+
+    /** Your safety code with [person]. */
+    suspend fun safetyCode(person: UserId): Result<SafetyCode>
+
+    /** When you verified each contact, on this device. */
+    fun verified(): Flow<Map<UserId, Instant>>
+
+    suspend fun setVerified(person: UserId, verified: Boolean)
+
+    /** Marks [person] verified when a scanned code is theirs; false when it does not match. */
+    suspend fun verifyScanned(person: UserId, payload: String): Result<Boolean>
+
+    /** Erase chats from this device: every chat, message and verification, and the key they were stored with. */
+    suspend fun eraseAll()
 
     suspend fun markRead(id: ChatId)
 

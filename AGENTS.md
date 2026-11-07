@@ -38,13 +38,13 @@ Clean Architecture, SOLID, KISS, YAGNI. In practice:
 | `:core:database` | `core/database` | SQLDelight cache (`TalkDatabase`), DAO interfaces + implementations, `SqlDriverFactory` per platform |
 | `:core:data` | `core/data` | Repository implementations, `Session` + KSafe key vault, `EventIngestor`, `FeedPaging` (Paging 3 + `RemoteMediator`), optimistic `Publisher` |
 | `:core:resources` | `core/resources` | moko-resources (`MR`, package `com.yet.talk.resources`): strings, plurals, light/dark colours, icons; `TalkTokens` (spacing, radii, sizes, type scale) |
-| `:feature:root` | `feature/root` | Root `ChildStack`: Splash, Auth, Main, and Compose, Settings, Revisions above it; `RootStore` swaps Auth/Main on sign-in and exposes the theme; `moderation/ModerationComponent` (network, hidden posts, NIP-56 Report) for every screen |
-| `:feature:auth` | `feature/auth` | Sign in with a local key (create or import an `nsec`) |
+| `:feature:root` | `feature/root` | Root `ChildStack`: Splash, Auth, Lock, Main, and Compose, Settings, Revisions above it; `RootStore` swaps Auth / Lock / Main (signed out, locked, signed in) and exposes the theme; `moderation/ModerationComponent` (network, hidden posts, NIP-56 Report) for every screen |
+| `:feature:auth` | `feature/auth` | Sign in with a local key (create or import an `nsec`); `lock/LockComponent`, the app lock's screen |
 | `:feature:post` | `feature/post` | `component/post` (post, reply thread, actions), `component/revisions`, and `component/cards` (`PostCardsComponent`: GitHub and YouTube cards, quotes, Retry; exposed by the root for every post card) |
 | `:feature:compose` | `feature/compose` | Editor for `ComposeMode` New / Reply / Quote / Edit, image upload, draft kept by StateKeeper |
 | `:feature:profile` | `feature/profile` | A profile (or your own, with `userId = null`): Posts / Replies (and Bookmarks on your own), follow, Edit profile |
 | `:feature:editprofile` | `feature/editprofile` | Profile editor: text fields, NIP-05 check, avatar and banner links from allowed sites (`ProfileImageHosts`), GitHub linking by gist (NIP-39) |
-| `:feature:settings` | `feature/settings` | Account, key export, relays (`RelayRules`), sign out |
+| `:feature:settings` | `feature/settings` | Account, key export, relays (`RelayRules`), Security (app lock, erase chats, erase everything), sign out |
 | `:feature:tab:main` | `feature/tab/main` | `MainComponent`: list-detail `childPanels` — `component/tabs` (Home, Search, Activity, Chats, Videos, Bookmarks, Profile; `Me` carries the unread chat count) in the main panel, `component/details` (a stack of posts, profiles and videos) in the details panel; `isReading` for the Duo replies pose |
 | `:feature:tab:home` | `feature/tab/home` | Home timeline: Following / Popular (trending) / Latest |
 | `:feature:tab:search` | `feature/tab/search` | Local search on every keystroke, NIP-50 relays after a 350 ms pause |
@@ -52,7 +52,7 @@ Clean Architecture, SOLID, KISS, YAGNI. In practice:
 | `:feature:tab:bookmarks` | `feature/tab/bookmarks` | Your NIP-51 bookmarks |
 | `:feature:tab:videos` | `feature/tab/videos` | Videos: the HackerTube catalog (For you, Browse with category, level and type), Liked, Watch later, History |
 | `:feature:tab:chats` | `feature/tab/chats` | Chats: the list (Chats · Requests) and a slot for the open conversation or New chat; opening it publishes your inbox relays |
-| `:feature:chat` | `feature/chat` | `component/conversation` (messages with replies, reactions and images; composer; message actions; Accept / Delete / Block for a request), `component/info` (disappearing messages, mute, block, leave) and `component/newchat` (pick one person or up to 10 for a group; someone without inbox relays can't be picked) |
+| `:feature:chat` | `feature/chat` | `component/conversation` (messages with replies, reactions and images; composer; message actions; Accept / Delete / Block for a request), `component/info` (disappearing messages, mute, block, leave), `component/verify` (safety code, QR, verified) and `component/newchat` (pick one person or up to 10 for a group; someone without inbox relays can't be picked) |
 | `:feature:video` | `feature/video` | A video page: player, details, Like (NIP-25 kind 17), Watch later, Share, comments (NIP-22), related |
 
 Dependency graph:
@@ -116,7 +116,9 @@ excerpts are derived from the markdown (`PostSummaries`), as in KarpathyTalk.
   AES-GCM for files (`AesGcm`, cryptography-kotlin: JDK on Android, WebCrypto, CryptoKit on iOS) live in `core:nostr`;
   `ChatRumor` parses what a wrap holds (`core:api`); `ChatRepositoryImpl` syncs wraps while signed in and stores messages encrypted with the KSafe key
   `chat_storage_key` (`KeyVault.chatKey()`). See the protocol doc.
-- **Keys:** `KSafeKeyVault` is the only place the secret key is persisted. `SecretKey.toString()` is redacted.
+- **Keys:** `KSafeKeyVault` is the only place the secret key is persisted: plain (KSafe-encrypted) or, with the web's
+  app lock, only as a NIP-49 `ncryptsec` (`Nip49`, `@noble/hashes` scrypt + `@noble/ciphers`; JS only). `ChatKeyring` seals
+  the chat storage key under the account key. `SecretKey.toString()` is redacted.
   Android backups are off (`allowBackup="false"`).
 
 ## Web UI (`app/webApp`, Compose HTML)

@@ -2,6 +2,7 @@ package com.yet.talk.data
 
 import com.yet.talk.api.schema.TalkEvents
 import com.yet.talk.data.fake.TestData
+import com.yet.talk.data.repository.SafetyCodes
 import com.yet.talk.domain.model.chat.ChatId
 import com.yet.talk.domain.model.chat.Disappearing
 import com.yet.talk.domain.model.error.DomainError
@@ -172,5 +173,40 @@ class ChatDataTest {
         data.clock.seconds += 1
         data.moderation.unblock(UserId(bob.publicKey())).getOrThrow()
         assertEquals(1, data.chats.chats().first().size)
+    }
+
+    @Test
+    fun safetyCodesMatchOnBothSidesAndAScanVerifies() = chatTest { data ->
+        data.inbox(bob)
+        data.incoming(bob, 1_000) { TalkEvents.chatMessage(listOf(it), "hi", 1_000) }
+        data.signIn()
+        val bobId = UserId(bob.publicKey())
+        val chat = data.chats.chats().first { it.isNotEmpty() }.single()
+        assertFalse(chat.isVerified)
+
+        val mine = data.chats.safetyCode(bobId).getOrThrow()
+        assertEquals(SafetyCodes.of(bob.publicKey(), me.value), mine, "Bob's phone shows the same code")
+        assertEquals(4, mine.groups.size)
+        assertTrue(mine.groups.all { it.length == 5 && it.all(Char::isDigit) })
+
+        assertEquals(false, data.chats.verifyScanned(bobId, SafetyCodes.of(carol.publicKey(), me.value).qrPayload).getOrThrow())
+        assertEquals(true, data.chats.verifyScanned(bobId, mine.qrPayload).getOrThrow())
+        assertTrue(data.chats.chats().first().single().isVerified)
+        data.chats.setVerified(bobId, false)
+        assertFalse(data.chats.chats().first().single().isVerified)
+    }
+
+    @Test
+    fun erasingChatsRemovesThemAndTheirKey() = chatTest { data ->
+        data.inbox(bob)
+        data.incoming(bob, 1_000) { TalkEvents.chatMessage(listOf(it), "secret", 1_000) }
+        data.signIn()
+        data.chats.chats().first { it.isNotEmpty() }
+        val sealed = assertNotNull(data.vault.sealedChat)
+        assertFalse("secret" in sealed)
+
+        data.chats.eraseAll()
+        assertTrue(data.chats.chats().first().isEmpty())
+        assertEquals(null, data.vault.sealedChat)
     }
 }

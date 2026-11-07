@@ -8,6 +8,7 @@ import com.arkivanov.mvikotlin.extensions.coroutines.CoroutineExecutor
 import com.yet.talk.domain.model.error.DomainError
 import com.yet.talk.domain.model.relay.Relay
 import com.yet.talk.domain.repository.AccountRepository
+import com.yet.talk.domain.repository.ChatRepository
 import com.yet.talk.domain.repository.PreferencesRepository
 import com.yet.talk.domain.repository.ProfileRepository
 import kotlinx.coroutines.flow.collectLatest
@@ -23,6 +24,7 @@ internal class SettingsStoreFactory(
     private val relays: RelayRepository,
     private val profiles: ProfileRepository,
     private val preferences: PreferencesRepository,
+    private val chats: ChatRepository,
 ) {
     fun create(): SettingsStore =
         object : SettingsStore, Store<SettingsStore.Intent, SettingsStore.State, Nothing> by storeFactory.create(
@@ -40,6 +42,7 @@ internal class SettingsStoreFactory(
             scope.launch { accounts.account.collect { dispatch(SettingsStore.Msg.AccountChanged(it)) } }
             scope.launch { relays.relays.collect { dispatch(SettingsStore.Msg.RelaysChanged(it)) } }
             scope.launch { preferences.theme.collect { dispatch(SettingsStore.Msg.ThemeChanged(it)) } }
+            scope.launch { accounts.lock.collect { dispatch(SettingsStore.Msg.LockChanged(it)) } }
             scope.launch {
                 accounts.account.collectLatest { account ->
                     dispatch(SettingsStore.Msg.MeChanged(null))
@@ -61,6 +64,21 @@ internal class SettingsStoreFactory(
                 SettingsStore.Intent.HideKey -> dispatch(SettingsStore.Msg.KeyExported(null))
                 is SettingsStore.Intent.SelectTheme -> scope.launch { preferences.setTheme(intent.theme) }
                 SettingsStore.Intent.SignOut -> scope.launch { accounts.signOut() }
+                is SettingsStore.Intent.SetPasscode -> if (intent.passcode != intent.confirm) {
+                    dispatch(SettingsStore.Msg.Failed(DomainError.PasscodesDontMatch))
+                } else {
+                    // scrypt takes a moment: show it working.
+                    dispatch(SettingsStore.Msg.Working(true))
+                    scope.launch {
+                        val error = accounts.setPasscode(intent.passcode).exceptionOrNull()
+                        dispatch(SettingsStore.Msg.Working(false))
+                        if (error != null) dispatch(SettingsStore.Msg.Failed(error as? DomainError))
+                    }
+                }
+                SettingsStore.Intent.RemovePasscode -> scope.launch {
+                    accounts.removePasscode().onFailure { dispatch(SettingsStore.Msg.Failed(it as? DomainError)) }
+                }
+                SettingsStore.Intent.EraseChats -> scope.launch { chats.eraseAll() }
                 SettingsStore.Intent.DismissError -> dispatch(SettingsStore.Msg.Failed(null))
             }
         }
@@ -91,6 +109,7 @@ internal class SettingsStoreFactory(
                 is SettingsStore.Msg.RelaysChanged -> copy(relays = msg.relays)
                 is SettingsStore.Msg.MeChanged -> copy(me = msg.me)
                 is SettingsStore.Msg.ThemeChanged -> copy(theme = msg.theme)
+                is SettingsStore.Msg.LockChanged -> copy(lock = msg.lock)
                 is SettingsStore.Msg.RelayInputChanged -> copy(relayInput = msg.url)
                 is SettingsStore.Msg.KeyExported -> copy(exportedKey = msg.key)
                 is SettingsStore.Msg.Working -> copy(isWorking = msg.working)

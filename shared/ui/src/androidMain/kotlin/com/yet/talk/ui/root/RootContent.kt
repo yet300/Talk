@@ -37,6 +37,7 @@ fun RootContent(component: RootComponent, modifier: Modifier = Modifier) {
         when (child.instance) {
             RootComponent.Child.Splash -> Placeholder(stringResource(MR.strings.app_name))
             is RootComponent.Child.Auth -> Placeholder(stringResource(MR.strings.auth_title))
+            is RootComponent.Child.Lock -> Placeholder(stringResource(MR.strings.lock_title))
             is RootComponent.Child.Main -> Placeholder(stringResource(MR.strings.tab_home))
             is RootComponent.Child.Revisions -> Placeholder(stringResource(MR.strings.revisions_title))
             is RootComponent.Child.Compose -> Placeholder(stringResource(MR.strings.compose_new))

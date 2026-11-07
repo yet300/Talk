@@ -1,26 +1,46 @@
 package com.yet.talk.data.session
 
-import com.yet.talk.nostr.key.secureRandomHex
 import dev.zacsweers.metro.Inject
 import eu.anifantakis.lib.ksafe.KSafe
 
 @Inject
 internal class KSafeKeyVault(private val ksafe: Lazy<KSafe>) : KeyVault {
     // KSafe encrypts by default (Keystore / Keychain / WebCrypto); it is opened on first use.
-    override suspend fun read(): String? = ksafe.value.get(KEY, "").ifEmpty { null }
+    override suspend fun read(): String? = get(KEY)
 
-    override suspend fun write(secretKeyHex: String) = ksafe.value.put(KEY, secretKeyHex)
-
-    override suspend fun clear() {
-        ksafe.value.delete(KEY)
-        ksafe.value.delete(CHAT_KEY)
+    override suspend fun write(secretKeyHex: String) {
+        ksafe.value.put(KEY, secretKeyHex)
+        ksafe.value.delete(LOCKED_KEY)
     }
 
-    override suspend fun chatKey(): String =
-        ksafe.value.get(CHAT_KEY, "").ifEmpty { secureRandomHex(32).also { ksafe.value.put(CHAT_KEY, it) } }
+    override suspend fun readLocked(): String? = get(LOCKED_KEY)
+
+    override suspend fun writeLocked(ncryptsec: String) {
+        ksafe.value.put(LOCKED_KEY, ncryptsec)
+        ksafe.value.delete(KEY)
+    }
+
+    override suspend fun clear() {
+        listOf(KEY, LOCKED_KEY, CHAT_KEY, LEGACY_CHAT_KEY).forEach { ksafe.value.delete(it) }
+    }
+
+    override suspend fun sealedChatKey(): String? = get(CHAT_KEY)
+
+    override suspend fun writeSealedChatKey(sealed: String) = ksafe.value.put(CHAT_KEY, sealed)
+
+    override suspend fun takeLegacyChatKey(): String? = get(LEGACY_CHAT_KEY)?.also { ksafe.value.delete(LEGACY_CHAT_KEY) }
+
+    override suspend fun clearChatKey() {
+        ksafe.value.delete(CHAT_KEY)
+        ksafe.value.delete(LEGACY_CHAT_KEY)
+    }
+
+    private suspend fun get(key: String): String? = ksafe.value.get(key, "").ifEmpty { null }
 
     private companion object {
         const val KEY = "nostr_secret_key"
-        const val CHAT_KEY = "chat_storage_key"
+        const val LOCKED_KEY = "nostr_secret_key_ncryptsec"
+        const val CHAT_KEY = "chat_storage_key_sealed"
+        const val LEGACY_CHAT_KEY = "chat_storage_key"
     }
 }

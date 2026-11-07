@@ -45,6 +45,8 @@ object TalkIcons {
     val Mute = MR.images.ic_mute
     val Block = MR.images.ic_block
     val Users = MR.images.ic_users
+    val Shield = MR.images.ic_shield
+    val Qr = MR.images.ic_qr
     val Image = MR.images.ic_image
     val Trash = MR.images.ic_trash
 }

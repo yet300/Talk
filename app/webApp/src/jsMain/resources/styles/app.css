@@ -318,3 +318,19 @@ iframe.t-player{border:0;display:block}
 .t-chip{all:unset;box-sizing:border-box;cursor:pointer;display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:2px 10px 2px 2px;border-radius:var(--radius-pill);border:1px solid var(--border);font-weight:500}
 .t-chip:focus-visible{box-shadow:var(--focus-ring)}
 .t-header-action{margin-left:auto}
+/* Trust and security (step 4): Verify, the lock screen, Security in Settings. */
+.t-verify{display:flex;flex-direction:column;gap:var(--space-lg);padding:var(--space-lg)}
+.t-words{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--space-sm);font-family:var(--mono);font-size:15px;line-height:20px}
+.t-words span{background:var(--surface);border-radius:var(--radius-control);padding:var(--space-sm);text-align:center}
+.t-code{grid-template-columns:repeat(2,minmax(0,1fr));font-size:20px;line-height:28px;letter-spacing:.08em}
+.t-verify-qr{display:flex;flex-direction:column;align-items:center;gap:var(--space-sm)}
+.t-qr-svg{width:200px;height:200px;border-radius:var(--radius-menu);display:block}
+.t-scan-video{width:240px;max-width:100%;aspect-ratio:1;object-fit:cover;border-radius:var(--radius-card);background:var(--surface)}
+.t-verified-box{border:0;border-radius:var(--radius-card)}
+.t-verify-alert{border-radius:var(--radius-card)}
+.t-info-title{display:inline-flex;align-items:center;gap:var(--space-xs)}
+.t-lock{align-items:center;text-align:center;gap:var(--space-lg)}
+.t-lock .t-field{width:100%;text-align:left}
+.t-lock .x-btn{width:100%}
+.t-row-flat{border-bottom:0;padding-bottom:0}
+.t-security-row{padding:var(--space-md) var(--space-lg);border-bottom:1px solid var(--border)}
