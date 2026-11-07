@@ -1,0 +1,40 @@
+name: Update video catalog
+
+# The HackerTube catalog (https://hackertube.org, data ODC-By 1.0) is compiled into the app as Kotlin sources in
+# core:data, so Android, iOS and the web ship the same data. This refreshes it weekly and commits any change.
+on:
+  schedule:
+    - cron: '0 6 * * 0'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update-video-catalog:
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Fetch and convert the catalog
+        run: python3 scripts/update_video_catalog.py
+
+      - name: Check for changes
+        id: git-check
+        run: |
+          git diff --exit-code -- core/data/src/commonMain/kotlin/com/yet/talk/data/video/catalog || echo "changes=true" >> "$GITHUB_OUTPUT"
+
+      - name: Commit and push changes
+        if: steps.git-check.outputs.changes == 'true'
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add core/data/src/commonMain/kotlin/com/yet/talk/data/video/catalog
+          git commit -m "Update the video catalog from HackerTube - $(date -u)"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
