@@ -11,6 +11,8 @@ internal interface NewChatStore : Store<NewChatStore.Intent, NewChatStore.State,
     data class State(
         val query: String = "",
         val people: List<User> = emptyList(),
+        val picked: List<User> = emptyList(),
+        val groupName: String = "",
         val isSearching: Boolean = false,
         val checking: UserId? = null,
         val cannotReceive: Set<UserId> = emptySet(),
@@ -21,6 +23,10 @@ internal interface NewChatStore : Store<NewChatStore.Intent, NewChatStore.State,
         data class ChangeQuery(val query: String) : Intent
 
         data class Pick(val user: User) : Intent
+
+        data class ChangeGroupName(val name: String) : Intent
+
+        data object Start : Intent
 
         data object DismissError : Intent
     }
@@ -35,6 +41,10 @@ internal interface NewChatStore : Store<NewChatStore.Intent, NewChatStore.State,
         data class Checking(val id: UserId?) : Msg
 
         data class CannotReceive(val id: UserId) : Msg
+
+        data class Picked(val picked: List<User>) : Msg
+
+        data class GroupNameChanged(val name: String) : Msg
 
         data class Failed(val error: DomainError?) : Msg
     }

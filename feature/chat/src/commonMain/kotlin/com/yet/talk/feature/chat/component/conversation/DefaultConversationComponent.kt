@@ -9,16 +9,19 @@ import com.arkivanov.mvikotlin.core.instancekeeper.getStore
 import com.arkivanov.mvikotlin.extensions.coroutines.labels
 import com.yet.talk.domain.model.chat.ChatId
 import com.yet.talk.domain.model.chat.ChatMessage
+import com.yet.talk.domain.model.media.ImageFile
 import com.yet.talk.domain.model.user.UserId
+import com.yet.talk.domain.repository.ChatRepository
 import com.yet.talk.domain.rule.ContentRules
 import com.yet.talk.feature.chat.component.conversation.store.ConversationStore
+import com.yet.talk.feature.chat.component.conversation.store.ConversationStore.Intent
 import com.yet.talk.feature.chat.component.conversation.store.ConversationStoreFactory
 import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.launch
 
 internal class DefaultConversationComponent(
     componentContext: ComponentContext,
-    chatId: ChatId,
+    private val chatId: ChatId,
     private val output: (ConversationComponent.Output) -> Unit,
     storeFactory: ConversationStoreFactory,
 ) : ConversationComponent, ComponentContext by componentContext {
@@ -27,7 +30,7 @@ internal class DefaultConversationComponent(
 
     init {
         coroutineScope().launch {
-            store.labels.collect { if (it == ConversationStore.Label.Deleted) output(ConversationComponent.Output.Deleted) }
+            store.labels.collect { if (it == ConversationStore.Label.Closed) output(ConversationComponent.Output.Closed) }
         }
     }
 
@@ -36,30 +39,53 @@ internal class DefaultConversationComponent(
         ConversationComponent.Model(
             id = state.id,
             members = state.members,
+            name = state.chat?.name,
+            isGroup = state.id.isGroup,
             messages = state.messages,
             text = state.text,
+            replyingTo = state.replyingTo,
+            isUploading = state.isUploading,
+            images = state.images,
             canSend = state.text.isNotBlank() && state.text.length <= ContentRules.MAX_REPLY_LENGTH && state.canReceive != false && !isRequest,
             canReceive = state.canReceive,
             isRequest = isRequest,
+            disappearing = state.chat?.disappearing,
+            reactions = ChatRepository.REACTIONS,
             error = state.error,
         )
     }
 
-    override fun onTextChanged(text: String) = store.accept(ConversationStore.Intent.ChangeText(text))
+    override fun onTextChanged(text: String) = store.accept(Intent.ChangeText(text))
 
-    override fun onSend() = store.accept(ConversationStore.Intent.Send)
+    override fun onSend() = store.accept(Intent.Send)
 
-    override fun onRetry(message: ChatMessage) = store.accept(ConversationStore.Intent.Retry(message))
+    override fun onRetry(message: ChatMessage) = store.accept(Intent.Retry(message))
 
-    override fun onAccept() = store.accept(ConversationStore.Intent.Accept)
+    override fun onReply(message: ChatMessage?) = store.accept(Intent.Reply(message))
 
-    override fun onDelete() = store.accept(ConversationStore.Intent.Delete)
+    override fun onReact(message: ChatMessage, emoji: String) = store.accept(Intent.React(message, emoji))
+
+    override fun onDeleteForEveryone(message: ChatMessage) = store.accept(Intent.DeleteForEveryone(message))
+
+    override fun onDeleteForMe(message: ChatMessage) = store.accept(Intent.DeleteForMe(message))
+
+    override fun onSendImage(file: ImageFile) = store.accept(Intent.SendImage(file))
+
+    override fun onShowImage(message: ChatMessage) = store.accept(Intent.LoadImage(message))
+
+    override fun onAccept() = store.accept(Intent.Accept)
+
+    override fun onDelete() = store.accept(Intent.Delete)
+
+    override fun onBlock() = store.accept(Intent.Block)
+
+    override fun onOpenInfo() = output(ConversationComponent.Output.OpenInfo(chatId))
 
     override fun onOpenMember(id: UserId) = output(ConversationComponent.Output.OpenProfile(id))
 
     override fun onBack() = output(ConversationComponent.Output.Back)
 
-    override fun onErrorShown() = store.accept(ConversationStore.Intent.DismissError)
+    override fun onErrorShown() = store.accept(Intent.DismissError)
 }
 
 @Inject

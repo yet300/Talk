@@ -103,10 +103,17 @@ class FakeNetwork {
         override fun wraps(pubkey: String, since: Long?, relays: Collection<String>) = kotlinx.coroutines.flow.flow {
             events.filter { it.kind == Kinds.GIFT_WRAP && listOf("p", pubkey) in it.tags && (since == null || it.createdAt >= since) }.forEach { emit(it) }
         }
+
+        override suspend fun muteList(pubkey: String) = events.filter { it.kind == Kinds.MUTE_LIST && it.pubkey == pubkey }.maxByOrNull { it.createdAt }
     }
+
+    /** Uploaded blobs by URL. */
+    val blobs = mutableMapOf<String, ByteArray>()
 
     val media = object : MediaRemoteSource {
         override suspend fun upload(bytes: ByteArray, mimeType: String, signer: Signer, createdAt: Long) =
-            BlobDescriptor("https://blossom/x", "hash", bytes.size.toLong(), mimeType)
+            BlobDescriptor("https://blossom/x", "hash", bytes.size.toLong(), mimeType).also { blobs[it.url] = bytes }
+
+        override suspend fun download(url: String) = blobs[url] ?: error("no blob at $url")
     }
 }

@@ -27,4 +27,9 @@ internal class RelayChatRemoteSource(private val relays: RelayClient, private va
 
     override fun wraps(pubkey: String, since: Long?, relays: Collection<String>): Flow<Event> =
         this.relays.subscribe(listOf(Filter(kinds = listOf(Kinds.GIFT_WRAP), tags = mapOf('p' to listOf(pubkey)), since = since)), relays)
+
+    override suspend fun muteList(pubkey: String): Event? =
+        relays.query(listOf(Filter(kinds = listOf(Kinds.MUTE_LIST), authors = listOf(pubkey))), (selection.readRelays() + selection.writeRelays()).distinct())
+            .filter { it.pubkey == pubkey }
+            .maxByOrNull { it.createdAt }
 }

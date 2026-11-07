@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.runtime.compositionLocalOf
 import com.yet.talk.domain.model.moderation.Moderation
+import com.yet.talk.domain.model.moderation.HiddenReason
 import com.yet.talk.domain.model.moderation.ReportReason
 import com.yet.talk.domain.model.moderation.ReportTarget
 import com.yet.talk.feature.root.moderation.ModerationComponent
@@ -63,10 +64,10 @@ fun ReportMenu(target: ReportTarget, onDismiss: () -> Unit) {
 
 /** A post the viewer's network reported (`PostCard`, hidden): the row, with Show to reveal it. */
 @Composable
-fun HiddenRow(onShow: () -> Unit) {
+fun HiddenRow(reason: HiddenReason, onShow: () -> Unit) {
     Div({ classes("t-part", "t-hidden-row"); onClick { it.stopPropagation() } }) {
         TalkIcon(TalkIcons.EyeOff, size = 18f)
-        Span({ classes("t-grow") }) { Text(stringResource(MR.strings.moderation_hidden)) }
+        Span({ classes("t-grow") }) { Text(stringResource(if (reason == HiddenReason.Blocked) MR.strings.moderation_hidden_blocked else MR.strings.moderation_hidden)) }
         Button({
             classes("t-text-btn")
             type(ButtonType.Button)

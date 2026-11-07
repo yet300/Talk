@@ -14,6 +14,7 @@ kotlin {
             implementation(libs.ktor.client.core)
             implementation(libs.ktor.client.websockets)
             implementation(libs.kotlincrypto.sha2)
+            implementation(libs.cryptography.core)
         }
 
         // libsecp256k1 has no JS build: Android and iOS share one actual, JS uses @noble/curves.
@@ -27,19 +28,25 @@ kotlin {
             dependsOn(secp256k1Main)
             dependencies {
                 implementation(libs.secp256k1.kmp.jniAndroid)
+                implementation(libs.cryptography.provider.jdk)
             }
         }
         iosMain {
             dependsOn(secp256k1Main)
+            dependencies {
+                implementation(libs.cryptography.provider.cryptokit)
+            }
         }
         jsMain.dependencies {
             implementation(npm("@noble/curves", libs.versions.noble.curves.get()))
+            implementation(libs.cryptography.provider.webcrypto)
         }
 
         getByName("androidHostTest").dependencies {
             implementation(libs.kotlin.testJunit)
             implementation(libs.secp256k1.kmp.jniJvm)
             implementation(libs.ktor.client.okhttp)
+            implementation(libs.cryptography.provider.jdk)
         }
     }
 }

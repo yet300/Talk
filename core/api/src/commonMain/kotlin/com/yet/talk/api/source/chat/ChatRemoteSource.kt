@@ -14,6 +14,9 @@ interface ChatRemoteSource {
     /** Gift wraps addressed to [pubkey] since [since], stored then live, from [relays] (which may ask for AUTH). */
     fun wraps(pubkey: String, since: Long?, relays: Collection<String>): Flow<Event>
 
+    /** The newest mute list (NIP-51 kind 10000) of [pubkey] on its relays, if any. */
+    suspend fun muteList(pubkey: String): Event?
+
     companion object {
         /**
          * Inbox relays for someone who has none yet: auth.nostr1.com serves wraps only to their recipient

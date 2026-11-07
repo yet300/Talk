@@ -56,7 +56,8 @@ fun Replies(model: PostComponent.Model, component: PostComponent, idSuffix: Stri
 private fun ReplyCard(reply: ThreadReply, component: PostComponent) {
     val post = reply.post
     var revealed by remember(post.id) { mutableStateOf(false) }
-    if (post.id in LocalModeration.current.hiddenPosts && !revealed) return HiddenRow(onShow = { revealed = true })
+    val hidden = LocalModeration.current.hiddenReason(post.id, post.author.id)
+    if (hidden != null && !revealed) return HiddenRow(hidden, onShow = { revealed = true })
     Article({ classes("x-post"); onClick { component.onOpenPost(post.id) } }) {
         Avatar(post.author, onClick = { component.onOpenAuthor(post.author.id) })
         Div({ classes("x-post-body") }) {

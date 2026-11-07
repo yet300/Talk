@@ -12,6 +12,7 @@ import com.arkivanov.decompose.value.operator.map
 import com.arkivanov.mvikotlin.core.instancekeeper.getStore
 import com.yet.talk.domain.model.chat.ChatId
 import com.yet.talk.feature.chat.component.conversation.ConversationComponent
+import com.yet.talk.feature.chat.component.info.ChatInfoComponent
 import com.yet.talk.feature.chat.component.newchat.NewChatComponent
 import com.yet.talk.feature.tab.chats.store.ChatsStore
 import com.yet.talk.feature.tab.chats.store.ChatsStoreFactory
@@ -24,6 +25,7 @@ internal class DefaultChatsComponent(
     storeFactory: ChatsStoreFactory,
     private val conversationFactory: ConversationComponent.Factory,
     private val newChatFactory: NewChatComponent.Factory,
+    private val infoFactory: ChatInfoComponent.Factory,
 ) : ChatsComponent, ComponentContext by componentContext {
 
     private val store = instanceKeeper.getStore { storeFactory.create() }
@@ -61,8 +63,19 @@ internal class DefaultChatsComponent(
             ChatId(config.id),
             conversationFactory(context, ChatId(config.id)) { event ->
                 when (event) {
-                    ConversationComponent.Output.Back, ConversationComponent.Output.Deleted -> navigation.dismiss()
+                    ConversationComponent.Output.Back, ConversationComponent.Output.Closed -> navigation.dismiss()
+                    is ConversationComponent.Output.OpenInfo -> navigation.activate(Config.Info(event.id.value))
                     is ConversationComponent.Output.OpenProfile -> output(ChatsComponent.Output.OpenProfile(event.id))
+                }
+            },
+        )
+        is Config.Info -> ChatsComponent.Pane.Info(
+            ChatId(config.id),
+            infoFactory(context, ChatId(config.id)) { event ->
+                when (event) {
+                    ChatInfoComponent.Output.Back -> navigation.activate(Config.Conversation(config.id))
+                    ChatInfoComponent.Output.Closed -> navigation.dismiss()
+                    is ChatInfoComponent.Output.OpenProfile -> output(ChatsComponent.Output.OpenProfile(event.id))
                 }
             },
         )
@@ -82,6 +95,9 @@ internal class DefaultChatsComponent(
         data class Conversation(val id: String) : Config
 
         @Serializable
+        data class Info(val id: String) : Config
+
+        @Serializable
         data object NewChat : Config
     }
 }
@@ -91,7 +107,8 @@ internal class DefaultChatsComponentFactory(
     private val storeFactory: ChatsStoreFactory,
     private val conversationFactory: ConversationComponent.Factory,
     private val newChatFactory: NewChatComponent.Factory,
+    private val infoFactory: ChatInfoComponent.Factory,
 ) : ChatsComponent.Factory {
     override fun invoke(componentContext: ComponentContext, output: (ChatsComponent.Output) -> Unit): ChatsComponent =
-        DefaultChatsComponent(componentContext, output, storeFactory, conversationFactory, newChatFactory)
+        DefaultChatsComponent(componentContext, output, storeFactory, conversationFactory, newChatFactory, infoFactory)
 }

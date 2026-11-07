@@ -8,6 +8,7 @@ import com.arkivanov.decompose.value.operator.map
 import com.arkivanov.mvikotlin.core.instancekeeper.getStore
 import com.arkivanov.mvikotlin.extensions.coroutines.labels
 import com.yet.talk.domain.model.user.User
+import com.yet.talk.domain.repository.ChatRepository
 import com.yet.talk.feature.chat.component.newchat.store.NewChatStore
 import com.yet.talk.feature.chat.component.newchat.store.NewChatStoreFactory
 import dev.zacsweers.metro.Inject
@@ -28,12 +29,27 @@ internal class DefaultNewChatComponent(
     }
 
     override val model: Value<NewChatComponent.Model> = store.asValue().map {
-        NewChatComponent.Model(it.query, it.people, it.isSearching, it.checking, it.cannotReceive, it.error)
+        NewChatComponent.Model(
+            query = it.query,
+            people = it.people,
+            picked = it.picked,
+            groupName = it.groupName,
+            canStart = it.picked.isNotEmpty(),
+            isFull = it.picked.size >= ChatRepository.MAX_GROUP_MEMBERS,
+            isSearching = it.isSearching,
+            checking = it.checking,
+            cannotReceive = it.cannotReceive,
+            error = it.error,
+        )
     }
 
     override fun onQueryChanged(query: String) = store.accept(NewChatStore.Intent.ChangeQuery(query))
 
     override fun onPick(user: User) = store.accept(NewChatStore.Intent.Pick(user))
+
+    override fun onGroupNameChanged(name: String) = store.accept(NewChatStore.Intent.ChangeGroupName(name))
+
+    override fun onStart() = store.accept(NewChatStore.Intent.Start)
 
     override fun onBack() = output(NewChatComponent.Output.Back)
 

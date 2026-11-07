@@ -11,10 +11,21 @@ data class Moderation(
     val me: UserId? = null,
     val following: Set<UserId> = emptySet(),
     val hiddenPosts: Set<PostId> = emptySet(),
+    /** People the viewer blocked (private entries of their NIP-51 mute list): their posts and chats are hidden. */
+    val blocked: Set<UserId> = emptySet(),
 ) {
     /** True until the viewer is known, so nothing blurs while signing in. */
     fun isInNetwork(id: UserId): Boolean = me == null || id == me || id in following
+
+    /** Why a post is hidden behind a row, if it is. */
+    fun hiddenReason(post: PostId, author: UserId): HiddenReason? = when {
+        author in blocked -> HiddenReason.Blocked
+        post in hiddenPosts -> HiddenReason.Reported
+        else -> null
+    }
 }
+
+enum class HiddenReason { Reported, Blocked }
 
 /** NIP-56 report types Talk offers (`Report` sheet). */
 enum class ReportReason(val nip56: String) {

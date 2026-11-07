@@ -6,9 +6,11 @@ import com.yet.talk.nostr.nip.Kinds
 import com.yet.talk.nostr.signer.Signer
 import dev.zacsweers.metro.Inject
 import io.ktor.client.HttpClient
+import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.put
 import io.ktor.client.request.setBody
+import io.ktor.client.statement.bodyAsBytes
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
@@ -40,6 +42,12 @@ internal class BlossomClient(private val http: HttpClient) : MediaRemoteSource {
         val blob = json.decodeFromString(BlobDescriptor.serializer(), response.bodyAsText())
         check(blob.sha256.equals(hash, ignoreCase = true)) { "Blossom returned a different blob" }
         return blob
+    }
+
+    override suspend fun download(url: String): ByteArray {
+        val response = http.get(url)
+        check(response.status.isSuccess()) { "Blossom download failed: ${response.status}" }
+        return response.bodyAsBytes()
     }
 
     private companion object {

@@ -24,6 +24,8 @@ fun DomainError.toStringDesc(): StringDesc = when (this) {
     DomainError.InvalidKey -> StringDesc.Resource(MR.strings.error_invalid_key)
     DomainError.InvalidRelayUrl -> StringDesc.Resource(MR.strings.error_invalid_relay)
     DomainError.CannotReceiveChats -> StringDesc.Resource(MR.strings.chat_cannot_receive)
+    is DomainError.TooManyMembers -> StringDesc.ResourceFormatted(MR.strings.chat_too_many_members, max)
+    DomainError.UnreadableMuteList -> StringDesc.Resource(MR.strings.error_mute_list_unreadable)
     DomainError.NotSignedIn -> StringDesc.Resource(MR.strings.error_not_signed_in)
     DomainError.NotFound -> StringDesc.Resource(MR.strings.error_not_found)
     DomainError.NoRelayAccepted -> StringDesc.Resource(MR.strings.error_no_relay_accepted)

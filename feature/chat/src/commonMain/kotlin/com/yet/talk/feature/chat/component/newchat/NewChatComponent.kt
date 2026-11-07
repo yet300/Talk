@@ -7,14 +7,22 @@ import com.yet.talk.domain.model.error.DomainError
 import com.yet.talk.domain.model.user.User
 import com.yet.talk.domain.model.user.UserId
 
-/** New chat: search people by name, NIP-05 or npub and pick one. Groups come later. */
+/**
+ * New chat (`NewChat`): search people by name, NIP-05 or npub and pick one for a chat, or several (up to
+ * [com.yet.talk.domain.repository.ChatRepository.MAX_GROUP_MEMBERS]) for a group with an optional name.
+ */
 interface NewChatComponent {
     val model: Value<Model>
 
     fun onQueryChanged(query: String)
 
-    /** Opens the chat with [user], unless they cannot receive chats yet. */
+    /** Adds [user] to the picks, or removes them; someone who cannot receive chats yet is not added. */
     fun onPick(user: User)
+
+    fun onGroupNameChanged(name: String)
+
+    /** Opens the chat with the one person picked, or starts the group. */
+    fun onStart()
 
     fun onBack()
 
@@ -23,6 +31,11 @@ interface NewChatComponent {
     data class Model(
         val query: String,
         val people: List<User>,
+        val picked: List<User>,
+        /** Shown from two people picked. */
+        val groupName: String,
+        val canStart: Boolean,
+        val isFull: Boolean,
         val isSearching: Boolean,
         /** The person being checked for inbox relays. */
         val checking: UserId?,

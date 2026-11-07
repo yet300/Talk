@@ -48,7 +48,8 @@ fun PostCard(
 ) {
     val summary = post.summary
     var revealed by remember(post.id) { mutableStateOf(false) }
-    if (post.id in LocalModeration.current.hiddenPosts && !revealed) return HiddenRow(onShow = { revealed = true })
+    val hidden = LocalModeration.current.hiddenReason(post.id, post.author.id)
+    if (hidden != null && !revealed) return HiddenRow(hidden, onShow = { revealed = true })
     Article({
         classes("t-part", "x-post", "t-post-wrap")
         if (selected) classes("t-selected")

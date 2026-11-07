@@ -164,7 +164,30 @@ no Talk label: the label would mark them on relays, and the inner events are nev
   Others' kind 10050 are read from their relays and from `wss://purplepag.es`.
 - **NIP-42:** a relay that sends `AUTH` gets a kind 22242 event with `["relay", <url>]` and `["challenge", <c>]`,
   signed by the session key; subscriptions closed with `auth-required` are sent again once it says OK.
+- **Groups:** up to 10 other people; every message is wrapped once per member. The chat is its set of
+  members; a group's name travels as a `["subject", <name>]` tag on every message (the newest one wins). Leaving
+  a group only hides it on this device.
+- **Replies:** `["e", <message id>, "", "reply"]` on the kind 14.
+- **Reactions:** a kind 7 rumor (`content` = the emoji, `["e", <message id>]`, `["k", "14"]`, every member as a `p`),
+  wrapped like a message. One per person and message; the newest replaces the previous one.
+- **Delete for everyone:** a kind 5 rumor with `["e", <message id>]` and every member as a `p`, wrapped like a
+  message, published before the message is removed here. It counts only for the author's own messages in that
+  chat. Other apps may ignore it. Delete for me only removes it on this device. Removed messages keep their row
+  (content wiped), so syncing does not bring them back.
+- **Images:** a kind 15 rumor (`content` = the Blossom URL) with `file-type`, `encryption-algorithm` `aes-gcm`,
+  `decryption-key` and `decryption-nonce` (hex), `x` (SHA-256 of the ciphertext), `ox` (of the original) and
+  `size`. The file is encrypted with a fresh AES-256-GCM key before upload (uploaded as
+  `application/octet-stream`), and a download is decrypted only when its hash matches `x`.
+- **Disappearing messages:** an `["expiration", <unix time>]` tag (NIP-40) on the rumor and on its wraps, set from
+  the chat's setting (1 hour, 1 day, 1 week). Every device turns an expired message into "This message expired"
+  and wipes its content; a message that arrives already expired is dropped. Copies other apps keep can't be recalled.
 - **Requests:** a chat with nobody you follow, that you have neither written in nor accepted, is a request.
+- **Block:** a private `["p", <pubkey>]` entry in the viewer's NIP-51 mute list (kind 10000): the private entries
+  are a JSON array of tags in `content`, NIP-44-encrypted to yourself, so nobody else learns whom you blocked.
+  Talk rewrites the list from its newest copy on relays and keeps every entry it does not change; a list whose
+  private part is in the older NIP-04 format is not rewritten. Blocked people's chats and requests are hidden,
+  and their posts sit behind a "Hidden because you blocked its author" row.
+- **Mute** (a chat) is local: it leaves the chat out of the unread count.
 - **On the device:** messages are stored NIP-44 encrypted with a random 32-byte key kept in KSafe
   (`chat_storage_key`), deleted on sign-out.
 - **No forward secrecy** (NIP-17 has none): someone who later gets your key can read the wraps relays kept.

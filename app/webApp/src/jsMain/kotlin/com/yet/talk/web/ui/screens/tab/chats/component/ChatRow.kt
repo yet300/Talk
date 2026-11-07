@@ -4,7 +4,10 @@ import androidx.compose.runtime.Composable
 import com.yet.talk.domain.model.chat.Chat
 import com.yet.talk.domain.model.post.PublishState
 import com.yet.talk.resources.*
-import com.yet.talk.web.ui.components.Avatar
+import com.yet.talk.web.ui.screens.chat.component.ChatAvatar
+import com.yet.talk.web.ui.screens.chat.component.chatTitle
+import com.yet.talk.web.ui.theme.TalkIcon
+import com.yet.talk.web.ui.theme.TalkIcons
 import com.yet.talk.web.ui.theme.stringResource
 import com.yet.talk.web.ui.theme.text
 import org.jetbrains.compose.web.dom.A
@@ -14,11 +17,12 @@ import org.jetbrains.compose.web.dom.Text
 /** A chat in the list (`ChatList` row): avatar, name, last message, time, the unread dot. */
 @Composable
 fun ChatRow(chat: Chat, selected: Boolean, onClick: () -> Unit) {
-    val name = chat.members.joinToString(", ") { it.displayLabel }
-    val preview = chat.lastMessage?.let { message ->
+    val name = chatTitle(chat.name, chat.members)
+    val last = if (chat.lastIsImage) stringResource(MR.strings.chat_photo) else chat.lastMessage
+    val preview = last?.let { message ->
         when {
             chat.lastState == PublishState.Failed -> stringResource(MR.strings.post_failed)
-            chat.lastState != null -> stringResource(MR.strings.chats_you, message)
+            chat.lastIsMine -> stringResource(MR.strings.chats_you, message)
             else -> message
         }
     }.orEmpty()
@@ -33,17 +37,15 @@ fun ChatRow(chat: Chat, selected: Boolean, onClick: () -> Unit) {
         attr("aria-label", label)
         onClick { it.preventDefault(); onClick() }
     }) {
-        // A group gets two stacked avatars.
-        if (chat.members.size > 1) {
-            Span({ classes("t-av-stack"); attr("aria-hidden", "true") }) {
-                Avatar(chat.members[0])
-                Avatar(chat.members[1])
-            }
-        } else {
-            Avatar(chat.members.firstOrNull())
-        }
+        ChatAvatar(chat.members)
         Span({ classes("t-row-text") }) {
-            Span({ classes("x-name", "t-ellipsis", "t-block") }) { Text(name) }
+            Span({ classes("t-chat-row-name") }) {
+                Span({ classes("x-name", "t-ellipsis") }) { Text(name) }
+                if (chat.disappearing != null) {
+                    Span({ classes("t-muted", "t-inline") }) { TalkIcon(TalkIcons.Timer, stringResource(MR.strings.chat_disappearing_on), size = 16f) }
+                }
+                if (chat.isMuted) Span({ classes("t-muted", "t-inline") }) { TalkIcon(TalkIcons.Mute, stringResource(MR.strings.chat_muted), size = 16f) }
+            }
             Span({ classes("t-ellipsis", "t-block", if (unread) "t-preview-unread" else "t-muted") }) { Text(preview) }
         }
         Span({ classes("t-chat-row-end") }) {

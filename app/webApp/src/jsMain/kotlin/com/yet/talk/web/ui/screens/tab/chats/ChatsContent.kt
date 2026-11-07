@@ -13,6 +13,7 @@ import com.yet.talk.web.ui.components.IconButton
 import com.yet.talk.web.ui.components.Tabs
 import com.yet.talk.web.ui.components.TalkButton
 import com.yet.talk.web.ui.components.TopBar
+import com.yet.talk.web.ui.screens.chat.ChatInfoContent
 import com.yet.talk.web.ui.screens.chat.ConversationContent
 import com.yet.talk.web.ui.screens.chat.NewChatContent
 import com.yet.talk.web.ui.screens.tab.chats.component.ChatRow
@@ -50,6 +51,7 @@ private fun Pane(pane: ChatsComponent.Pane) {
     when (pane) {
         is ChatsComponent.Pane.Conversation -> ConversationContent(pane.component)
         is ChatsComponent.Pane.NewChat -> NewChatContent(pane.component)
+        is ChatsComponent.Pane.Info -> ChatInfoContent(pane.component)
     }
 }
 
@@ -82,6 +84,11 @@ private fun ChatList(component: ChatsComponent, open: ChatsComponent.Pane?) {
             EmptyState(title = stringResource(MR.strings.chats_requests_empty_title), body = stringResource(MR.strings.chats_requests_empty_body))
         }
     }
-    val selected = (open as? ChatsComponent.Pane.Conversation)?.id
+    if (model.tab == ChatsComponent.Tab.Requests) P({ classes("t-caption", "t-chats-note") }) { Text(stringResource(MR.strings.chats_blocked_note)) }
+    val selected = when (open) {
+        is ChatsComponent.Pane.Conversation -> open.id
+        is ChatsComponent.Pane.Info -> open.id
+        else -> null
+    }
     model.chats.forEach { chat -> ChatRow(chat, selected = chat.id == selected, onClick = { component.onOpenChat(chat.id) }) }
 }

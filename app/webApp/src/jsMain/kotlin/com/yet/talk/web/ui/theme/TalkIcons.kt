@@ -53,6 +53,11 @@ object TalkIcons {
     val Chat = MR.images.ic_chat
     val Send = MR.images.ic_send
     val Info = MR.images.ic_info
+    val Timer = MR.images.ic_timer
+    val Lock = MR.images.ic_lock
+    val Mute = MR.images.ic_mute
+    val Block = MR.images.ic_block
+    val Users = MR.images.ic_users
 }
 
 /**

@@ -39,6 +39,11 @@ sealed class DomainError(message: String) : Exception(message) {
     /** A chat member has no inbox relays (kind 10050), so they cannot receive private chats yet. */
     data object CannotReceiveChats : DomainError("This person can't receive chats yet")
 
+    data class TooManyMembers(val max: Int) : Validation("A group can have at most $max other people")
+
+    /** The mute list's private part was written in a way Talk cannot read (NIP-04), so it is not rewritten. */
+    data object UnreadableMuteList : DomainError("Your mute list can't be changed here")
+
     data object NotSignedIn : DomainError("Sign in to do this")
 
     data object NotFound : DomainError("Not found")

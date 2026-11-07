@@ -8,10 +8,11 @@ import com.yet.talk.domain.model.chat.ChatId
 import com.yet.talk.domain.model.error.DomainError
 import com.yet.talk.domain.model.user.UserId
 import com.yet.talk.feature.chat.component.conversation.ConversationComponent
+import com.yet.talk.feature.chat.component.info.ChatInfoComponent
 import com.yet.talk.feature.chat.component.newchat.NewChatComponent
 
 /**
- * The Chats tab: the list (Chats · Requests) and, in [pane], the open conversation or New chat. Wide screens show
+ * The Chats tab: the list (Chats · Requests) and, in [pane], the open conversation, its info, or New chat. Wide screens show
  * both side by side; a phone shows the pane over the list. Opening Chats publishes your inbox relays if you have none.
  */
 interface ChatsComponent {
@@ -42,6 +43,8 @@ interface ChatsComponent {
         class Conversation(val id: ChatId, val component: ConversationComponent) : Pane()
 
         class NewChat(val component: NewChatComponent) : Pane()
+
+        class Info(val id: ChatId, val component: ChatInfoComponent) : Pane()
     }
 
     sealed interface Output {

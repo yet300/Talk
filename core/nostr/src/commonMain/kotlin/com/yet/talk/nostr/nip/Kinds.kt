@@ -17,6 +17,8 @@ object Kinds {
     const val SEAL = 13
     /** NIP-17 chat message (a rumor, never published unwrapped). */
     const val CHAT_MESSAGE = 14
+    const val CHAT_FILE = 15
+    const val MUTE_LIST = 10000
     /** NIP-59 gift wrap, signed by a throwaway key. */
     const val GIFT_WRAP = 1059
     /** NIP-17 relays to receive chats on. */

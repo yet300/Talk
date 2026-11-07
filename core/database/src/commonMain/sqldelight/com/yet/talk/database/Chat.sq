@@ -6,7 +6,15 @@ CREATE TABLE chat (
     -- 1 once the viewer wrote in it or accepted it: no longer a request.
     accepted INTEGER NOT NULL DEFAULT 0,
     last_read_at INTEGER NOT NULL DEFAULT 0,
-    last_at INTEGER NOT NULL DEFAULT 0
+    last_at INTEGER NOT NULL DEFAULT 0,
+    -- A group's name (NIP-17 subject), encrypted at rest like the messages.
+    name_enc TEXT,
+    -- Muted: left out of the unread badge.
+    muted INTEGER NOT NULL DEFAULT 0,
+    -- Left (a group) or hidden: kept so new messages do not bring it back.
+    hidden INTEGER NOT NULL DEFAULT 0,
+    -- Disappearing messages for what the viewer sends: seconds, or NULL when off.
+    expire_seconds INTEGER
 );
 
 CREATE TABLE chat_message (
@@ -15,10 +23,38 @@ CREATE TABLE chat_message (
     author TEXT NOT NULL,
     created_at INTEGER NOT NULL,
     rumor_enc TEXT NOT NULL,
-    publish_state TEXT NOT NULL
+    publish_state TEXT NOT NULL,
+    kind INTEGER NOT NULL DEFAULT 14,
+    reply_to TEXT,
+    expires_at INTEGER,
+    -- 0 shown, 1 deleted for me, 2 deleted by its author, 3 expired. The row stays (content wiped) so syncing
+    -- does not bring the message back.
+    removed INTEGER NOT NULL DEFAULT 0
 );
 
 CREATE INDEX chat_message_chat ON chat_message(chat_id, created_at);
+
+-- Reactions inside chats (kind 7 rumors): one per member and message, the newest wins.
+CREATE TABLE chat_reaction (
+    message_id TEXT NOT NULL,
+    author TEXT NOT NULL,
+    emoji TEXT NOT NULL,
+    created_at INTEGER NOT NULL,
+    PRIMARY KEY (message_id, author)
+);
+
+-- People the viewer blocked (the p entries of their NIP-51 mute list), and that list as last seen.
+CREATE TABLE blocked (
+    owner TEXT NOT NULL,
+    pubkey TEXT NOT NULL,
+    PRIMARY KEY (owner, pubkey)
+);
+
+CREATE TABLE mute_list (
+    owner TEXT NOT NULL PRIMARY KEY,
+    created_at INTEGER NOT NULL,
+    event_json TEXT NOT NULL
+);
 
 insertChatIfAbsent:
 INSERT OR IGNORE INTO chat(id, members, accepted, last_at) VALUES (?, ?, ?, ?);
@@ -27,13 +63,65 @@ touchChat:
 UPDATE chat SET last_at = MAX(last_at, :at), accepted = MAX(accepted, :accepted) WHERE id = :id;
 
 insertMessage:
-INSERT OR IGNORE INTO chat_message(id, chat_id, author, created_at, rumor_enc, publish_state) VALUES (?, ?, ?, ?, ?, ?);
+INSERT OR IGNORE INTO chat_message(id, chat_id, author, created_at, rumor_enc, publish_state, kind, reply_to, expires_at)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+removeMessage:
+UPDATE chat_message SET removed = :removed, rumor_enc = '' WHERE id = :id;
+
+expireMessages:
+UPDATE chat_message SET removed = 3, rumor_enc = '' WHERE expires_at IS NOT NULL AND expires_at <= :now AND removed = 0;
+
+deleteOlderReaction:
+DELETE FROM chat_reaction WHERE message_id = :message AND author = :author AND created_at < :at;
+
+insertReaction:
+INSERT OR IGNORE INTO chat_reaction(message_id, author, emoji, created_at) VALUES (?, ?, ?, ?);
+
+selectReactions:
+SELECT r.message_id, r.author, r.emoji FROM chat_reaction r
+JOIN chat_message m ON m.id = r.message_id
+WHERE m.chat_id = ? AND m.removed = 0;
+
+setName:
+UPDATE chat SET name_enc = :name WHERE id = :id;
+
+setMuted:
+UPDATE chat SET muted = :muted WHERE id = :id;
+
+setHidden:
+UPDATE chat SET hidden = :hidden WHERE id = :id;
+
+setExpire:
+UPDATE chat SET expire_seconds = :seconds WHERE id = :id;
+
+selectChat:
+SELECT name_enc, expire_seconds FROM chat WHERE id = ?;
+
+replaceBlocked {
+    DELETE FROM blocked WHERE owner = :owner;
+}
+
+insertBlocked:
+INSERT OR IGNORE INTO blocked(owner, pubkey) VALUES (?, ?);
+
+selectBlocked:
+SELECT pubkey FROM blocked WHERE owner = ?;
+
+upsertMuteList {
+    DELETE FROM mute_list WHERE owner = :owner AND created_at < :createdAt;
+    INSERT OR IGNORE INTO mute_list(owner, created_at, event_json) VALUES (:owner, :createdAt, :eventJson);
+}
+
+selectMuteList:
+SELECT event_json FROM mute_list WHERE owner = ?;
 
 setMessageState:
 UPDATE chat_message SET publish_state = :state WHERE id = :id;
 
 selectMessage:
-SELECT * FROM chat_message WHERE id = ?;
+SELECT id, chat_id, author, created_at, rumor_enc, publish_state, kind, reply_to, expires_at, removed
+FROM chat_message WHERE id = ?;
 
 markRead:
 UPDATE chat SET last_read_at = :at WHERE id = :id;
@@ -42,21 +130,28 @@ accept:
 UPDATE chat SET accepted = 1 WHERE id = :id;
 
 deleteChat {
+    DELETE FROM chat_reaction WHERE message_id IN (SELECT id FROM chat_message WHERE chat_id = :id);
     DELETE FROM chat_message WHERE chat_id = :id;
     DELETE FROM chat WHERE id = :id;
 }
 
--- Every chat with its last message and unread count. A request: not accepted, and no member is followed.
+-- Every chat with its last message and unread count, left groups and chats with someone blocked left out.
+-- A request: not accepted, and no member is followed.
 selectChats:
-SELECT c.id, c.members, c.last_at,
+SELECT c.id, c.members, c.last_at, c.name_enc, c.muted, c.expire_seconds,
     (c.accepted = 0 AND NOT EXISTS (
         SELECT 1 FROM follow f WHERE f.follower = :viewer AND instr(',' || c.members || ',', ',' || f.followee || ',') > 0
     )) AS is_request,
-    (SELECT COUNT(*) FROM chat_message m WHERE m.chat_id = c.id AND m.author != :viewer AND m.created_at > c.last_read_at) AS unread,
-    (SELECT m.rumor_enc FROM chat_message m WHERE m.chat_id = c.id ORDER BY m.created_at DESC, m.id DESC LIMIT 1) AS last_rumor,
-    (SELECT m.publish_state FROM chat_message m WHERE m.chat_id = c.id ORDER BY m.created_at DESC, m.id DESC LIMIT 1) AS last_state
+    (SELECT COUNT(*) FROM chat_message m WHERE m.chat_id = c.id AND m.author != :viewer AND m.removed = 0 AND m.created_at > c.last_read_at) AS unread,
+    (SELECT NULLIF(m.rumor_enc, '') FROM chat_message m WHERE m.chat_id = c.id AND m.removed = 0 ORDER BY m.created_at DESC, m.id DESC LIMIT 1) AS last_rumor,
+    (SELECT NULLIF(m.publish_state, '') FROM chat_message m WHERE m.chat_id = c.id AND m.removed = 0 ORDER BY m.created_at DESC, m.id DESC LIMIT 1) AS last_state
 FROM chat c
+WHERE c.hidden = 0 AND NOT EXISTS (
+    SELECT 1 FROM blocked b WHERE b.owner = :viewer AND instr(',' || c.members || ',', ',' || b.pubkey || ',') > 0
+)
 ORDER BY c.last_at DESC;
 
+-- Shown messages and expired placeholders.
 selectMessages:
-SELECT * FROM chat_message WHERE chat_id = ? ORDER BY created_at, id;
+SELECT id, chat_id, author, created_at, rumor_enc, publish_state, kind, reply_to, expires_at, removed
+FROM chat_message WHERE chat_id = ? AND removed IN (0, 3) ORDER BY created_at, id;

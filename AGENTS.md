@@ -52,7 +52,7 @@ Clean Architecture, SOLID, KISS, YAGNI. In practice:
 | `:feature:tab:bookmarks` | `feature/tab/bookmarks` | Your NIP-51 bookmarks |
 | `:feature:tab:videos` | `feature/tab/videos` | Videos: the HackerTube catalog (For you, Browse with category, level and type), Liked, Watch later, History |
 | `:feature:tab:chats` | `feature/tab/chats` | Chats: the list (Chats · Requests) and a slot for the open conversation or New chat; opening it publishes your inbox relays |
-| `:feature:chat` | `feature/chat` | `component/conversation` (messages, composer, Accept / Delete for a request, Retry) and `component/newchat` (people search; someone without inbox relays can't be picked) |
+| `:feature:chat` | `feature/chat` | `component/conversation` (messages with replies, reactions and images; composer; message actions; Accept / Delete / Block for a request), `component/info` (disappearing messages, mute, block, leave) and `component/newchat` (pick one person or up to 10 for a group; someone without inbox relays can't be picked) |
 | `:feature:video` | `feature/video` | A video page: player, details, Like (NIP-25 kind 17), Watch later, Share, comments (NIP-22), related |
 
 Dependency graph:
@@ -94,6 +94,8 @@ excerpts are derived from the markdown (`PostSummaries`), as in KarpathyTalk.
 - **iOS resources:** `SharedLogic` is a static framework, so the Xcode build phase also runs
   `:sharedLogic:copyFrameworkResourcesToApp` (moko copies `Talk.core:resources.bundle` into the app). In Swift,
   qualify `SharedLogic.ColorResource` / `SharedLogic.ImageResource`: Xcode's asset symbols use the same names.
+- **SQLDelight async:** grouped statements (`name { …; … }`) return a lazy `QueryResult.AsyncValue`: `.await()` it, or
+  nothing runs (`SqlChatDao.io` does).
 - **Web:** SQLite WASM (`@sqlite.org/sqlite-wasm`, an npm dependency of `:webApp`) in a module worker, persisted in
   OPFS (SAH pool, no COOP/COEP needed; falls back to the plain OPFS VFS, then memory). The worker lives in
   `core/database/src/jsMain/resources/sqlite/talk-sqlite.worker.mjs`; the `copySqliteWasm` task of `:webApp` serves
@@ -110,8 +112,9 @@ excerpts are derived from the markdown (`PostSummaries`), as in KarpathyTalk.
   ships the same data. `scripts/update_video_catalog.py` regenerates them; `.github/workflows/update-video-catalog.yml`
   runs it weekly and commits changes. The first Videos screen loads it into SQLite in one statement (`json_each`,
   `SqlVideoDao.loadCatalog`), again whenever `VIDEO_CATALOG_VERSION` changes. Do not edit the generated files.
-- **Chats:** NIP-44 v2 (`Nip44`: HKDF, ChaCha20, HMAC in `crypto/`), NIP-59 (`Nip59`), NIP-42 (`RelayAuthenticator`) live in
-  `core:nostr`; `ChatRepositoryImpl` syncs wraps while signed in and stores messages encrypted with the KSafe key
+- **Chats:** NIP-44 v2 (`Nip44`: HKDF, ChaCha20, HMAC in `crypto/`), NIP-59 (`Nip59`), NIP-42 (`RelayAuthenticator`) and
+  AES-GCM for files (`AesGcm`, cryptography-kotlin: JDK on Android, WebCrypto, CryptoKit on iOS) live in `core:nostr`;
+  `ChatRumor` parses what a wrap holds (`core:api`); `ChatRepositoryImpl` syncs wraps while signed in and stores messages encrypted with the KSafe key
   `chat_storage_key` (`KeyVault.chatKey()`). See the protocol doc.
 - **Keys:** `KSafeKeyVault` is the only place the secret key is persisted. `SecretKey.toString()` is redacted.
   Android backups are off (`allowBackup="false"`).

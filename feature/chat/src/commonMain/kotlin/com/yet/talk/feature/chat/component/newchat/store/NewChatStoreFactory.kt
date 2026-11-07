@@ -43,6 +43,8 @@ internal class NewChatStoreFactory(
             when (intent) {
                 is Intent.ChangeQuery -> changeQuery(intent.query)
                 is Intent.Pick -> pick(intent)
+                is Intent.ChangeGroupName -> dispatch(Msg.GroupNameChanged(intent.name))
+                Intent.Start -> start()
                 Intent.DismissError -> dispatch(Msg.Failed(null))
             }
         }
@@ -70,15 +72,28 @@ internal class NewChatStoreFactory(
         }
 
         private fun pick(intent: Intent.Pick) {
-            val id = intent.user.id
-            if (state().checking != null || id in state().cannotReceive) return
-            dispatch(Msg.Checking(id))
+            val user = intent.user
+            val state = state()
+            if (state.picked.any { it.id == user.id }) return dispatch(Msg.Picked(state.picked.filterNot { it.id == user.id }))
+            if (state.checking != null || user.id in state.cannotReceive || state.picked.size >= ChatRepository.MAX_GROUP_MEMBERS) return
+            dispatch(Msg.Checking(user.id))
             scope.launch {
-                val chatId = ChatId.of(listOf(id))
-                chats.canReceive(chatId)
-                    .onSuccess { if (it) publish(Label.Open(chatId)) else dispatch(Msg.CannotReceive(id)) }
+                chats.canReceive(ChatId.of(listOf(user.id)))
+                    .onSuccess { if (it) dispatch(Msg.Picked(state().picked + user)) else dispatch(Msg.CannotReceive(user.id)) }
                     .onFailure { dispatch(Msg.Failed(it as? DomainError)) }
                 dispatch(Msg.Checking(null))
+            }
+        }
+
+        private fun start() {
+            val state = state()
+            if (state.picked.isEmpty()) return
+            val id = ChatId.of(state.picked.map { it.id })
+            if (!id.isGroup) return publish(Label.Open(id))
+            scope.launch {
+                chats.createGroup(id, state.groupName)
+                    .onSuccess { publish(Label.Open(id)) }
+                    .onFailure { dispatch(Msg.Failed(it as? DomainError)) }
             }
         }
     }
@@ -90,6 +105,8 @@ internal class NewChatStoreFactory(
             is Msg.Searching -> copy(isSearching = msg.searching)
             is Msg.Checking -> copy(checking = msg.id)
             is Msg.CannotReceive -> copy(cannotReceive = cannotReceive + msg.id)
+            is Msg.Picked -> copy(picked = msg.picked)
+            is Msg.GroupNameChanged -> copy(groupName = msg.name)
             is Msg.Failed -> copy(error = msg.error)
         }
     }

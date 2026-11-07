@@ -47,6 +47,7 @@ sqlite-wasm = "3.54.1-build1"
 ksafe = "3.3.0"
 ktor = "3.6.1"
 secp256k1 = "0.24.0"
+cryptography = "0.6.0"
 kotlincrypto-hash = "0.8.0"
 noble-curves = "2.4.0"
 
@@ -129,6 +130,10 @@ secp256k1-kmp-jniAndroid = { module = "fr.acinq.secp256k1:secp256k1-kmp-jni-andr
 # Desktop JNI build, for Android host (JVM) unit tests only
 secp256k1-kmp-jniJvm = { module = "fr.acinq.secp256k1:secp256k1-kmp-jni-jvm", version.ref = "secp256k1" }
 kotlincrypto-sha2 = { module = "org.kotlincrypto.hash:sha2", version.ref = "kotlincrypto-hash" }
+cryptography-core = { module = "dev.whyoleg.cryptography:cryptography-core", version.ref = "cryptography" }
+cryptography-provider-jdk = { module = "dev.whyoleg.cryptography:cryptography-provider-jdk", version.ref = "cryptography" }
+cryptography-provider-webcrypto = { module = "dev.whyoleg.cryptography:cryptography-provider-webcrypto", version.ref = "cryptography" }
+cryptography-provider-cryptokit = { module = "dev.whyoleg.cryptography:cryptography-provider-cryptokit", version.ref = "cryptography" }
 
 ksafe = { module = "eu.anifantakis:ksafe", version.ref = "ksafe" }
 kermit = { module = "co.touchlab:kermit", version.ref = "kermit" }

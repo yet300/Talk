@@ -402,6 +402,10 @@ Decisions in this pass (on the designer's notes):
    the badge on the rail and the capsule. Not yet: the Location channels row and chat info (later steps).
 3. Chats in full: groups up to 10, replies, reactions, delete for everyone / for me, encrypted images (kind 15,
    AES-GCM on Blossom), disappearing messages (NIP-40), mute and block (NIP-51 kind 10000), report, leave.
+   Built (2026-11-07): `ChatRumor` and the chat builders in `core:api`; `AesGcm` (cryptography-kotlin: JDK, WebCrypto,
+   CryptoKit) in `core:nostr`; migration 7 (reactions, removals, chat settings, blocks); `ChatInfoComponent`, group
+   picking in New chat; on the web the message menu (hover on the web, a sheet on a phone), reply bar, image
+   messages with the viewer, chat info with the encryption explainer. Block also hides that person's posts.
 4. Trust and security: verify a contact (safety code, QR), Settings' Security section, app lock (NIP-49 on the
    web), erase chats, erase everything.
 5. Location channels: bitchat-compatible kinds 20000 and 20001, a throwaway key per area, nicknames, presence

@@ -7,23 +7,16 @@ import com.yet.talk.domain.model.media.ImageFile
 import com.yet.talk.feature.compose.ComposeComponent
 import com.yet.talk.feature.compose.ComposeMode
 import com.yet.talk.resources.*
+import com.yet.talk.web.ui.components.AddImageButton
 import com.yet.talk.web.ui.components.IconButton
 import com.yet.talk.web.ui.components.TalkButton
 import com.yet.talk.web.ui.components.Tabs
 import com.yet.talk.web.ui.theme.TalkIcon
 import com.yet.talk.web.ui.theme.TalkIcons
 import com.yet.talk.web.ui.theme.stringResource
-import org.jetbrains.compose.web.attributes.InputType
 import org.jetbrains.compose.web.dom.Div
-import org.jetbrains.compose.web.dom.Input
-import org.jetbrains.compose.web.dom.Label
 import org.jetbrains.compose.web.dom.Span
 import org.jetbrains.compose.web.dom.Text
-import org.khronos.webgl.ArrayBuffer
-import org.khronos.webgl.Int8Array
-import org.w3c.dom.HTMLInputElement
-import org.w3c.files.FileReader
-import org.w3c.files.get
 
 /** Close · Edit/Split/Preview · (counter, add image) · Publish. */
 @Composable
@@ -63,30 +56,9 @@ fun EditorBar(model: ComposeComponent.Model, component: ComposeComponent) {
     }
 }
 
-/** An icon button over a hidden file input; the image goes to Blossom and its markdown into the text. */
+/** The image goes to Blossom and its markdown into the text. */
 @Composable
-private fun AddImage(onAttach: (ImageFile) -> Unit) {
-    val label = stringResource(MR.strings.compose_add_image)
-    Label(forId = "compose-image", attrs = { classes("t-icon-btn"); attr("aria-label", label); attr("title", label) }) {
-        TalkIcon(TalkIcons.Image)
-    }
-    Input(InputType.File) {
-        id("compose-image")
-        classes("t-file")
-        attr("accept", "image/png,image/jpeg,image/gif,image/webp")
-        onChange { event ->
-            val input = event.target as HTMLInputElement
-            val file = input.files?.get(0) ?: return@onChange
-            val reader = FileReader()
-            reader.onload = {
-                val bytes = Int8Array(reader.result as ArrayBuffer).unsafeCast<ByteArray>()
-                onAttach(ImageFile(bytes, file.type))
-            }
-            reader.readAsArrayBuffer(file)
-            input.value = ""
-        }
-    }
-}
+private fun AddImage(onAttach: (ImageFile) -> Unit) = AddImageButton("compose-image", stringResource(MR.strings.compose_add_image), onAttach)
 
 private val ComposeComponent.View.label
     get() = when (this) {
