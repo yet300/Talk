@@ -34,6 +34,10 @@ import com.yet.talk.feature.editprofile.EditProfileComponent
 import com.yet.talk.feature.tab.main.MainComponent
 import com.yet.talk.feature.tab.main.component.tabs.TabsComponent
 import dev.zacsweers.metro.Inject
+import com.arkivanov.decompose.value.MutableValue
+import com.yet.talk.domain.model.network.NetworkStatus
+import com.yet.talk.domain.repository.NetworkRepository
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
@@ -47,7 +51,11 @@ internal class DefaultRootComponent(
     deepLink: String?,
     cards: PostCardsComponent,
     override val moderation: ModerationComponent,
+    networkStatus: Flow<NetworkStatus>,
 ) : RootComponent, ComponentContext by componentContext {
+
+    private val networkValue = MutableValue(NetworkStatus())
+    override val network: Value<NetworkStatus> = networkValue
 
     private val store = instanceKeeper.getStore { storeFactory.create() }
     private val navigation = StackNavigation<Config>()
@@ -85,6 +93,7 @@ internal class DefaultRootComponent(
         )
 
     init {
+        coroutineScope().launch { networkStatus.collect { networkValue.value = it } }
         coroutineScope().launch {
             store.states.map { it.access }.filterNotNull().distinctUntilChanged().collect { access ->
                 val beforeMain = configStack.value.active.configuration.let { it == Config.Splash || it == Config.Auth || it == Config.Lock }
@@ -264,7 +273,8 @@ internal class DefaultRootComponentFactory(
     private val factories: DestinationFactories,
     private val postCards: PostCardsComponent,
     private val moderation: ModerationComponent,
+    private val network: NetworkRepository,
 ) : RootComponent.Factory {
     override fun invoke(componentContext: ComponentContext, deepLink: String?): RootComponent =
-        DefaultRootComponent(componentContext, storeFactory, factories, deepLink, postCards, moderation)
+        DefaultRootComponent(componentContext, storeFactory, factories, deepLink, postCards, moderation, network.status)
 }

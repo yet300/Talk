@@ -3,6 +3,7 @@ package com.yet.talk.data.di
 import com.yet.talk.api.source.relay.RelaySelection
 import com.yet.talk.data.relay.DataRelaySelection
 import com.yet.talk.data.repository.AccountRepositoryImpl
+import com.yet.talk.data.repository.NetworkRepositoryImpl
 import com.yet.talk.data.repository.ActivityRepositoryImpl
 import com.yet.talk.data.repository.BookmarkRepositoryImpl
 import com.yet.talk.data.repository.FollowRepositoryImpl
@@ -33,6 +34,7 @@ import com.yet.talk.domain.repository.VideoRepository
 import com.yet.talk.domain.repository.ModerationRepository
 import com.yet.talk.domain.repository.ChatRepository
 import com.yet.talk.domain.repository.ChannelRepository
+import com.yet.talk.domain.repository.NetworkRepository
 import com.yet.talk.data.channel.ChannelRepositoryImpl
 import com.yet.talk.data.repository.ChatRepositoryImpl
 import com.yet.talk.data.session.SessionRelayAuthenticator
@@ -87,6 +89,9 @@ abstract class DataBindings {
 
     @Binds
     internal abstract val ChannelRepositoryImpl.bindChannelRepository: ChannelRepository
+
+    @Binds
+    internal abstract val NetworkRepositoryImpl.bindNetworkRepository: NetworkRepository
 
     @Binds
     internal abstract val TrendingRepositoryImpl.bindTrendingRepository: TrendingRepository

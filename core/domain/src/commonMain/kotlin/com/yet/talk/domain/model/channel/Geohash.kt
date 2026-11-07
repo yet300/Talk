@@ -30,8 +30,10 @@ object Geohash {
         return out.toString()
     }
 
-    /** The centre of [geohash] as latitude and longitude. */
-    fun center(geohash: String): Pair<Double, Double> {
+    /** The cell a geohash names: south, west, north, east. */
+    data class Bounds(val south: Double, val west: Double, val north: Double, val east: Double)
+
+    fun bounds(geohash: String): Bounds {
         var latRange = -90.0 to 90.0
         var lonRange = -180.0 to 180.0
         var even = true
@@ -50,8 +52,12 @@ object Geohash {
                 even = !even
             }
         }
-        return (latRange.first + latRange.second) / 2 to (lonRange.first + lonRange.second) / 2
+        return Bounds(latRange.first, lonRange.first, latRange.second, lonRange.second)
     }
+
+    /** The centre of [geohash] as latitude and longitude. */
+    fun center(geohash: String): Pair<Double, Double> =
+        bounds(geohash).let { (south, west, north, east) -> (south + north) / 2 to (west + east) / 2 }
 
     /** A code Talk can open: base 32 at one of the [ChannelLevel] precisions. */
     fun isValid(geohash: String): Boolean =

@@ -11,6 +11,7 @@ import com.yet.talk.data.mapper.userOf
 import com.yet.talk.data.session.ChatKeyring
 import com.yet.talk.data.session.Session
 import com.yet.talk.data.sync.EventIngestor
+import com.yet.talk.data.sync.Outbox
 import com.yet.talk.data.sync.remote
 import com.yet.talk.database.dao.ChatDao
 import com.yet.talk.database.dao.ProfileDao
@@ -80,6 +81,7 @@ internal class ChatRepositoryImpl(
     private val selection: RelaySelection,
     private val ingestor: EventIngestor,
     private val keyring: ChatKeyring,
+    private val outbox: Outbox,
     private val clock: Clock,
     scope: CoroutineScope,
 ) : ChatRepository {
@@ -327,10 +329,11 @@ internal class ChatRepositoryImpl(
         if (!inboxes.keys.containsAll(members)) throw DomainError.CannotReceiveChats
         val expiration = ChatRumor.parse(rumor)?.expiresAt?.let { listOf(listOf("expiration", it.toString())) }.orEmpty()
         var delivered = false
+        // Through the outbox: an inbox relay that refuses for now gets the same wrap again later.
         members.forEach { member ->
-            if (remoteSource.publish(Nip59.wrap(rumor, signer, member, now(), expiration), inboxes.getValue(member))) delivered = true
+            if (outbox.publish(Nip59.wrap(rumor, signer, member, now(), expiration), inboxes.getValue(member)).isAccepted) delivered = true
         }
-        remoteSource.publish(Nip59.wrap(rumor, signer, me, now(), expiration), inboxes[me] ?: ChatRemoteSource.DEFAULT_INBOX)
+        outbox.publish(Nip59.wrap(rumor, signer, me, now(), expiration), inboxes[me] ?: ChatRemoteSource.DEFAULT_INBOX)
         if (!delivered) throw DomainError.NoRelayAccepted
     }
 

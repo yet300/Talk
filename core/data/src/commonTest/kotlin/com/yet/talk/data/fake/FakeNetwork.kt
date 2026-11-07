@@ -59,13 +59,24 @@ class FakeNetwork {
             parsed().filterIsInstance<TalkEvent.Report>().filter { it.event.pubkey in authors }
     }
 
-    val publisher = PublishRemoteSource { event ->
-        published += event
-        if (accept) {
-            events += event
-            PublishResult(setOf("wss://fake"), emptyMap(), emptySet())
-        } else {
-            PublishResult(emptySet(), mapOf("wss://fake" to "blocked"), emptySet())
+    /** The write relays, and how some of them answer: a reason refuses, "" never answers; others accept. */
+    var writeRelays = listOf("wss://fake")
+    val refusing = mutableMapOf<String, String>()
+    /** Every publish: the event id and the relays it went to. */
+    val publishedTo = mutableListOf<Pair<String, Set<String>>>()
+
+    val publisher = object : PublishRemoteSource {
+        override suspend fun writeRelays() = writeRelays
+
+        override suspend fun publish(event: Event, relays: Collection<String>): PublishResult {
+            published += event
+            publishedTo += event.id to relays.toSet()
+            if (!accept) return PublishResult(emptySet(), relays.associateWith { "blocked" }, emptySet())
+            val noAnswer = relays.filter { refusing[it] == "" }.toSet()
+            val rejected = relays.filter { refusing[it]?.isNotEmpty() == true }.associateWith { refusing.getValue(it) }
+            val accepted = relays.toSet() - noAnswer - rejected.keys
+            if (accepted.isNotEmpty()) events += event
+            return PublishResult(accepted, rejected, noAnswer)
         }
     }
 
@@ -125,6 +136,10 @@ class FakeNetwork {
             return accept
         }
     }
+
+    /** The device's connection and the relays' states. */
+    val online = kotlinx.coroutines.flow.MutableStateFlow(true)
+    val relayStatuses = kotlinx.coroutines.flow.MutableStateFlow(emptyMap<String, com.yet.talk.nostr.relay.RelayStatus>())
 
     /** Uploaded blobs by URL. */
     val blobs = mutableMapOf<String, ByteArray>()

@@ -6,6 +6,8 @@ import com.yet.talk.database.driver.webSqlDriverFactory
 import dev.zacsweers.metro.AppScope
 import com.yet.talk.domain.repository.LocationSource
 import com.yet.talk.location.BrowserLocationSource
+import com.yet.talk.domain.repository.ConnectivitySource
+import com.yet.talk.network.BrowserConnectivity
 import dev.zacsweers.metro.DependencyGraph
 import dev.zacsweers.metro.Provides
 import dev.zacsweers.metro.SingleIn
@@ -20,6 +22,9 @@ internal interface JsAppGraph : AppGraph, RepositoriesGraph {
     @SingleIn(AppScope::class)
     @Provides
     fun locationSource(): LocationSource = BrowserLocationSource()
+
+    @Provides
+    fun connectivity(): ConnectivitySource = BrowserConnectivity()
 
     @Provides
     fun httpClient(): HttpClient = relayHttpClient(Js)

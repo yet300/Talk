@@ -429,7 +429,8 @@
     <string name="level_block">Block</string>
     <string name="channels_people_unknown">? people</string>
     <string name="channels_teleport">Teleport</string>
-    <string name="channels_teleport_caption">Open any area by its code</string>
+    <string name="channels_teleport_caption">Open any area by its code or from a map</string>
+    <string name="channels_map">Map: tap to pick an area</string>
     <string name="channels_nickname_here">Your nickname here: %1$s</string>
     <string name="channels_nickname_caption">You appear with a new identity in each place</string>
     <string name="action_change">Change</string>
@@ -454,4 +455,11 @@
     <string name="channels_message_as">Message #%1$s as %2$s</string>
     <string name="channels_block_warning">People here can tell you’re within about a block.</string>
     <string name="channels_room_title">#%1$s · %2$s</string>
+    <!-- Network status -->
+    <string name="network_offline">Offline. Showing what’s saved here.</string>
+    <string name="network_unreachable">Can’t reach your relays. Showing what’s saved here.</string>
+    <string name="relay_connected">Connected</string>
+    <string name="relay_connecting">Connecting…</string>
+    <string name="relay_unreachable">Can’t connect</string>
+    <string name="relay_not_used">Not used yet</string>
 </resources>

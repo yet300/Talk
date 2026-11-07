@@ -1,7 +1,6 @@
 package com.yet.talk.data.sync
 
 import com.yet.talk.api.schema.TalkEvent
-import com.yet.talk.api.source.publish.PublishRemoteSource
 import com.yet.talk.data.session.Session
 import com.yet.talk.database.dao.PostDao
 import com.yet.talk.database.model.PublishStates
@@ -15,7 +14,7 @@ import kotlin.time.Clock
 @Inject
 internal class Publisher(
     private val session: Session,
-    private val publishRemote: PublishRemoteSource,
+    private val outbox: Outbox,
     private val ingestor: EventIngestor,
     private val posts: PostDao,
     private val clock: Clock,
@@ -26,9 +25,12 @@ internal class Publisher(
 
     suspend fun sign(build: (createdAt: Long) -> EventTemplate): Event = session.requireSigner().sign(build(now()))
 
-    /** Fails with [DomainError.NoRelayAccepted] when no relay confirms. */
+    /**
+     * Fails with [DomainError.NoRelayAccepted] when no relay confirms. Relays that refused for a passing reason get
+     * it again later from the [Outbox]; publishing an event again (Retry) goes only to them.
+     */
     suspend fun publish(event: Event) {
-        if (!publishRemote.publish(event).isAccepted) throw DomainError.NoRelayAccepted
+        if (!outbox.publish(event).isAccepted) throw DomainError.NoRelayAccepted
     }
 
     /** Optimistic write: shown at once, then marked published or failed. */

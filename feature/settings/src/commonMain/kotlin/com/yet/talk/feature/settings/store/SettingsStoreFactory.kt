@@ -9,6 +9,7 @@ import com.yet.talk.domain.model.error.DomainError
 import com.yet.talk.domain.model.relay.Relay
 import com.yet.talk.domain.repository.AccountRepository
 import com.yet.talk.domain.repository.ChatRepository
+import com.yet.talk.domain.repository.NetworkRepository
 import com.yet.talk.domain.repository.PreferencesRepository
 import com.yet.talk.domain.repository.ProfileRepository
 import kotlinx.coroutines.flow.collectLatest
@@ -25,6 +26,7 @@ internal class SettingsStoreFactory(
     private val profiles: ProfileRepository,
     private val preferences: PreferencesRepository,
     private val chats: ChatRepository,
+    private val network: NetworkRepository,
 ) {
     fun create(): SettingsStore =
         object : SettingsStore, Store<SettingsStore.Intent, SettingsStore.State, Nothing> by storeFactory.create(
@@ -43,6 +45,7 @@ internal class SettingsStoreFactory(
             scope.launch { relays.relays.collect { dispatch(SettingsStore.Msg.RelaysChanged(it)) } }
             scope.launch { preferences.theme.collect { dispatch(SettingsStore.Msg.ThemeChanged(it)) } }
             scope.launch { accounts.lock.collect { dispatch(SettingsStore.Msg.LockChanged(it)) } }
+            scope.launch { network.status.collect { dispatch(SettingsStore.Msg.RelayStatesChanged(it.relays)) } }
             scope.launch {
                 accounts.account.collectLatest { account ->
                     dispatch(SettingsStore.Msg.MeChanged(null))
@@ -110,6 +113,7 @@ internal class SettingsStoreFactory(
                 is SettingsStore.Msg.MeChanged -> copy(me = msg.me)
                 is SettingsStore.Msg.ThemeChanged -> copy(theme = msg.theme)
                 is SettingsStore.Msg.LockChanged -> copy(lock = msg.lock)
+                is SettingsStore.Msg.RelayStatesChanged -> copy(relayStates = msg.states)
                 is SettingsStore.Msg.RelayInputChanged -> copy(relayInput = msg.url)
                 is SettingsStore.Msg.KeyExported -> copy(exportedKey = msg.key)
                 is SettingsStore.Msg.Working -> copy(isWorking = msg.working)

@@ -3,6 +3,7 @@ package com.yet.talk.feature.settings.store
 import com.arkivanov.mvikotlin.core.store.Store
 import com.yet.talk.domain.model.account.Account
 import com.yet.talk.domain.model.account.AppLock
+import com.yet.talk.domain.model.network.RelayState
 import com.yet.talk.domain.model.error.DomainError
 import com.yet.talk.domain.model.relay.Relay
 import com.yet.talk.domain.model.settings.ThemeMode
@@ -15,6 +16,7 @@ internal interface SettingsStore : Store<SettingsStore.Intent, SettingsStore.Sta
         /** The signed-in user's profile, for the Identity row. */
         val me: User? = null,
         val relays: List<Relay> = emptyList(),
+        val relayStates: Map<String, RelayState> = emptyMap(),
         val relayInput: String = "",
         val exportedKey: String? = null,
         val lock: AppLock = AppLock(),
@@ -61,6 +63,8 @@ internal interface SettingsStore : Store<SettingsStore.Intent, SettingsStore.Sta
         data class ThemeChanged(val theme: ThemeMode) : Msg
 
         data class LockChanged(val lock: AppLock) : Msg
+
+        data class RelayStatesChanged(val states: Map<String, RelayState>) : Msg
 
         data class RelayInputChanged(val url: String) : Msg
 

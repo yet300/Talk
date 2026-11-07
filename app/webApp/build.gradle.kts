@@ -31,6 +31,7 @@ kotlin {
             implementation(npm("marked", libs.versions.marked.get()))
             implementation(npm("dompurify", libs.versions.dompurify.get()))
             implementation(npm("qrcode-generator", libs.versions.qrcode.generator.get()))
+            implementation(npm("leaflet", libs.versions.leaflet.get()))
             implementation(libs.androidx.paging.common)
         }
         all {

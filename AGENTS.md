@@ -81,7 +81,8 @@ excerpts are derived from the markdown (`PostSummaries`), as in KarpathyTalk.
   synchronously, which the web worker driver rejects), and `FeedRemoteMediator` fetches older
   pages from relays. Its cursor (the oldest event relays returned) and end flag live in `sync_state`.
   The web collects `PagingData` with a `PagingDataPresenter` (`app/webApp/.../paging`); iOS will do the same in Swift-facing Kotlin.
-- Writes are optimistic (`Publisher.storeAndPublish`): stored as pending, then published or failed. Deletions
+- Writes are optimistic (`Publisher.storeAndPublish`): stored as pending, then published or failed. Every publish goes
+  through `Outbox`, which keeps the relays still owed an event and retries only those (see the protocol doc). Deletions
   and unlikes are published first, because tombstones cannot be undone.
 - Replaceable lists (contacts, bookmarks, relays) are synced from relays before they are changed
   (`RemoteSync.ensureListsSynced`), and each new version gets a strictly newer `created_at`.
@@ -102,12 +103,18 @@ excerpts are derived from the markdown (`PostSummaries`), as in KarpathyTalk.
   `core/database/src/jsMain/resources/sqlite/talk-sqlite.worker.mjs`; the `copySqliteWasm` task of `:webApp` serves
   it and the WASM build at `/sqlite/` (`<base href="/">` keeps that path absolute under routes like `/post/<id>`).
   It answers statements without result
-  columns with `db.changes()`, because `WebWorkerDriver` reads the changed-row count from `values[0][0]`. The schema is
+  columns with `db.changes()`, because `WebWorkerDriver` reads the changed-row count from `values[0][0]`. Every tab
+  starts a worker; they elect an owner with a Web Lock, the owner opens OPFS and runs every tab's statements (one
+  transaction at a time), the others forward theirs over a BroadcastChannel, and `CrossTabSqlDriver` tells the
+  other tabs which tables changed. The schema is
   created and migrated by `PRAGMA user_version`. DAO and repository tests skip on JS (Node has no Web Worker/OPFS).
 - **Web routing:** Decompose `withWebHistory`; the root and `MainComponent` are `WebNavigationOwner`s (paths:
   `/signin`, `/post/<id>`, `/post/<id>/revisions`, `/user/<id>`, `/settings`, `/compose`, tabs `/search`,
   `/activity`, `/chats`, `/videos`, `/bookmarks`, `/me`, `/video/<id>`, `/settings/profile` for the profile editor). A shared link is the root factory's `deepLink`, opened above Main after sign-in.
   The dev server falls back to `index.html` (`webpack.config.d/devServer.js`).
+- **Network status:** `NetworkRepository` combines `ConnectivitySource` (browser `online`/`offline` on the web,
+  assumed online on Android and iOS for now), the pool's relay states and the outbox's waiting count; the web shows
+  `NetworkBar` on every screen and the state of each relay in Settings.
 - **Video catalog:** the HackerTube catalog (ODC-By 1.0) is committed as Kotlin sources in `core:data`
   (`data/video/catalog/VideoCatalogPart*.kt`, string chunks under the JVM's 64 KB constant limit), so every platform
   ships the same data. `scripts/update_video_catalog.py` regenerates them; `.github/workflows/update-video-catalog.yml`

@@ -10,6 +10,7 @@ import com.yet.talk.domain.model.channel.GeoPoint
 import com.yet.talk.domain.model.channel.Geohash
 import com.yet.talk.nostr.key.SecretKey
 import com.yet.talk.nostr.nip.Kinds
+import com.yet.talk.nostr.nip.Nip13
 import com.yet.talk.nostr.signer.LocalKeySigner
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
@@ -37,6 +38,10 @@ class ChannelDataTest {
         assertTrue(Geohash.isValid("u4pru"))
         assertFalse(Geohash.isValid("u4pra"), "a is not in the alphabet")
         assertFalse(Geohash.isValid("u4p"), "no level has 3 characters")
+        // The map outlines the cell: it holds the point, and its centre encodes back to the code.
+        val cell = Geohash.bounds("u4pru")
+        assertTrue(here.latitude in cell.south..cell.north && here.longitude in cell.west..cell.east)
+        assertTrue(cell.north - cell.south < 0.05 && cell.east - cell.west < 0.05)
     }
 
     @OptIn(ExperimentalStdlibApi::class)
@@ -82,7 +87,8 @@ class ChannelDataTest {
         assertEquals(3, room.people, "amber and I wrote, the visitor announced")
 
         val sent = data.network.published.single { it.kind == Kinds.GEOHASH_MESSAGE }
-        assertEquals(listOf(listOf("g", "u4pru"), listOf("n", "quiet-heron")), sent.tags)
+        assertEquals(listOf(listOf("g", "u4pru"), listOf("n", "quiet-heron")), sent.tags.dropLast(1))
+        assertTrue(Nip13.difficulty(sent.id) >= 12, "mined, as bitchat clients that filter by work expect")
         assertNotEquals(data.vault.stored, sent.pubkey, "never the account key")
         assertEquals(GeoRelays.nearest("u4pru"), data.network.channelRelays.last().toList())
     }

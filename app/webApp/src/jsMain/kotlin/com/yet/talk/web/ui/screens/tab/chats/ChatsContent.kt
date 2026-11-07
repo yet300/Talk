@@ -10,6 +10,7 @@ import com.yet.talk.web.ui.components.ButtonStyle
 import com.yet.talk.web.ui.components.EmptyState
 import com.yet.talk.web.ui.components.ErrorRow
 import com.yet.talk.web.ui.components.IconButton
+import com.yet.talk.web.ui.components.NetworkBar
 import com.yet.talk.web.ui.components.Tabs
 import com.yet.talk.web.ui.components.TalkButton
 import com.yet.talk.web.ui.components.TopBar
@@ -39,7 +40,10 @@ fun ChatsContent(component: ChatsComponent) {
         if (open != null) Pane(open) else ChatList(component, open)
         return
     }
-    Div({ classes("t-part", "t-chat-col") }) { ChatList(component, open) }
+    Div({ classes("t-part", "t-chat-col") }) {
+        NetworkBar()
+        ChatList(component, open)
+    }
     Div({ classes("t-chat-main") }) {
         if (open != null) {
             Pane(open)

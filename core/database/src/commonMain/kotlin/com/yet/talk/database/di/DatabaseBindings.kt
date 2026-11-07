@@ -7,6 +7,8 @@ import com.yet.talk.database.dao.GitHubCardDao
 import com.yet.talk.database.dao.VideoDao
 import com.yet.talk.database.dao.ReportDao
 import com.yet.talk.database.dao.ChatDao
+import com.yet.talk.database.dao.OutboxDao
+import com.yet.talk.database.dao.sql.SqlOutboxDao
 import com.yet.talk.database.dao.MaintenanceDao
 import com.yet.talk.database.dao.PostDao
 import com.yet.talk.database.dao.ProfileDao
@@ -82,6 +84,9 @@ abstract class DatabaseBindings {
 
     @Binds
     internal abstract val SqlChatDao.bindChatDao: ChatDao
+
+    @Binds
+    internal abstract val SqlOutboxDao.bindOutboxDao: OutboxDao
 
     @Binds
     internal abstract val SqlMaintenanceDao.bindMaintenanceDao: MaintenanceDao

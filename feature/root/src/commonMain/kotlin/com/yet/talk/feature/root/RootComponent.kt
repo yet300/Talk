@@ -6,6 +6,7 @@ import com.arkivanov.decompose.router.webhistory.WebNavigationOwner
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandlerOwner
 import com.yet.talk.domain.model.settings.ThemeMode
+import com.yet.talk.domain.model.network.NetworkStatus
 import com.yet.talk.feature.auth.AuthComponent
 import com.yet.talk.feature.auth.lock.LockComponent
 import com.yet.talk.feature.compose.ComposeComponent
@@ -35,6 +36,9 @@ interface RootComponent : BackHandlerOwner, WebNavigationOwner {
 
     /** The theme chosen in Settings; the platform UI applies it ([ThemeMode.System] follows the device). */
     val theme: Value<ThemeMode>
+
+    /** Offline, your relays' states and what waits to be sent: the offline indicator on every screen. */
+    val network: Value<NetworkStatus>
 
     /** Pops the top destination (the platform's back gesture is handled by the stack itself). */
     fun onBack()

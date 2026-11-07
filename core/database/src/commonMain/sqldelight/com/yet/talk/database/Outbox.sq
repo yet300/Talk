@@ -1,0 +1,29 @@
+-- Events some relays have not taken yet: one row per (event, relay) still owed, retried with backoff, so a
+-- retry goes only to the relays that refused or did not answer.
+CREATE TABLE outbox (
+    event_id TEXT NOT NULL,
+    relay TEXT NOT NULL,
+    event_json TEXT NOT NULL,
+    attempts INTEGER NOT NULL DEFAULT 0,
+    next_at INTEGER NOT NULL,
+    PRIMARY KEY (event_id, relay)
+);
+
+CREATE INDEX outbox_due ON outbox(next_at);
+
+upsert {
+    UPDATE outbox SET attempts = :attempts, next_at = :nextAt WHERE event_id = :eventId AND relay = :relay;
+    INSERT OR IGNORE INTO outbox(event_id, relay, event_json, attempts, next_at) VALUES (:eventId, :relay, :eventJson, :attempts, :nextAt);
+}
+
+remove:
+DELETE FROM outbox WHERE event_id = ? AND relay = ?;
+
+relaysFor:
+SELECT relay, attempts FROM outbox WHERE event_id = ?;
+
+due:
+SELECT event_id, relay, event_json, attempts FROM outbox WHERE next_at <= ? ORDER BY next_at LIMIT 100;
+
+countPending:
+SELECT COUNT(DISTINCT event_id) FROM outbox;

@@ -18,6 +18,7 @@ import com.yet.talk.web.ui.root.component.RailActions
 import com.yet.talk.web.ui.root.component.RailSelection
 import com.yet.talk.web.ui.root.component.ShellWidth
 import com.yet.talk.web.ui.root.component.WebShell
+import com.yet.talk.web.ui.components.LocalNetwork
 import com.yet.talk.web.ui.screens.auth.AuthContent
 import com.yet.talk.web.ui.screens.lock.LockContent
 import com.yet.talk.web.ui.screens.compose.ComposeContent
@@ -44,7 +45,9 @@ fun RootContent(component: RootComponent) {
     )
     val child = stack.active.instance
     val moderation by component.moderation.model.subscribeAsState()
+    val network by component.network.subscribeAsState()
     CompositionLocalProvider(
+        LocalNetwork provides network,
         LocalPostCards provides component.postCards,
         LocalModeration provides moderation,
         LocalModerationActions provides component.moderation,

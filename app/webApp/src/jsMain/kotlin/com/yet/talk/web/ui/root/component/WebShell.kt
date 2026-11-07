@@ -3,6 +3,7 @@ package com.yet.talk.web.ui.root.component
 import androidx.compose.runtime.Composable
 import com.yet.talk.feature.tab.main.component.tabs.TabsComponent
 import com.yet.talk.web.browser.rememberIsPhone
+import com.yet.talk.web.ui.components.NetworkBar
 import org.jetbrains.compose.web.dom.Aside
 import org.jetbrains.compose.web.dom.Div
 import org.jetbrains.compose.web.dom.Main
@@ -29,7 +30,10 @@ fun WebShell(
     if (rememberIsPhone()) {
         Div({ classes("talk", "t-phone-page") }) {
             if (home) MobileHomeHeader(me, actions)
-            Main({ classes("t-phone-main") }) { main() }
+            Main({ classes("t-phone-main") }) {
+                NetworkBar()
+                main()
+            }
             // Only the four tabs of the phone navigation show it; every page above them has Back instead.
             if (phoneNav) {
                 if (home) ComposeFab(actions)
@@ -41,7 +45,14 @@ fun WebShell(
     Div({ classes("talk", "t-web") }) {
         Rail(selection, me, actions)
         // Chats lays out its own two panes (`t-chat-col`, `t-chat-main`) beside the rail.
-        if (width == ShellWidth.Chats) main() else Main({ classes(if (width == ShellWidth.Wide) "t-wide" else "t-main") }) { main() }
+        if (width == ShellWidth.Chats) {
+            main()
+        } else {
+            Main({ classes(if (width == ShellWidth.Wide) "t-wide" else "t-main") }) {
+                NetworkBar()
+                main()
+            }
+        }
         if (right != null && width == ShellWidth.Column) {
             Aside({ classes("t-right") }) { right() }
         }

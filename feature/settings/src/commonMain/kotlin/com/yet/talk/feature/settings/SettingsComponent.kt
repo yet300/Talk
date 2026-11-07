@@ -4,6 +4,7 @@ import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.value.Value
 import com.yet.talk.domain.model.account.Account
 import com.yet.talk.domain.model.account.AppLock
+import com.yet.talk.domain.model.network.RelayState
 import com.yet.talk.domain.model.error.DomainError
 import com.yet.talk.domain.model.relay.Relay
 import com.yet.talk.domain.model.settings.ThemeMode
@@ -51,6 +52,8 @@ interface SettingsComponent {
         val me: User?,
         val theme: ThemeMode,
         val relays: List<Relay>,
+        /** Whether each relay is connected now. */
+        val relayStates: Map<String, RelayState>,
         val relayInput: String,
         val exportedKey: String?,
         val lock: AppLock,

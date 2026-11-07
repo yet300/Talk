@@ -8,7 +8,7 @@ import com.arkivanov.decompose.value.Value
 /** For UI previews: a fixed model, actions do nothing. */
 class PreviewSettingsComponent(
     model: SettingsComponent.Model = SettingsComponent.Model(
-        account = null, me = null, theme = ThemeMode.System, relays = emptyList(), relayInput = "", exportedKey = null, lock = AppLock(), isWorking = false, error = null,
+        account = null, me = null, theme = ThemeMode.System, relays = emptyList(), relayStates = emptyMap(), relayInput = "", exportedKey = null, lock = AppLock(), isWorking = false, error = null,
     ),
 ) : SettingsComponent {
     override val model: Value<SettingsComponent.Model> = MutableValue(model)

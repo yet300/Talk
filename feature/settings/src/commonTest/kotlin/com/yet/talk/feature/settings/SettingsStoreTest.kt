@@ -121,7 +121,9 @@ class SettingsStoreTest {
     private val relays = FakeRelays()
     private val accounts = FakeAccounts()
     private val chats = FakeChats()
-    private val store by lazy { SettingsStoreFactory(DefaultStoreFactory(), accounts, relays, FakeProfiles(), preferences, chats).create() }
+    private val store by lazy { SettingsStoreFactory(DefaultStoreFactory(), accounts, relays, FakeProfiles(), preferences, chats, object : com.yet.talk.domain.repository.NetworkRepository {
+        override val status = kotlinx.coroutines.flow.flowOf(com.yet.talk.domain.model.network.NetworkStatus())
+    }).create() }
 
     @Test
     fun aPasscodeIsTypedTwiceAndErasingChatsErasesThem() = runTest {

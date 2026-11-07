@@ -6,6 +6,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import com.yet.talk.domain.model.channel.ChannelLevel
+import com.yet.talk.domain.model.channel.Geohash
 import com.yet.talk.resources.*
 import com.yet.talk.web.ui.components.ButtonStyle
 import com.yet.talk.web.ui.components.TalkButton
@@ -19,7 +20,7 @@ import org.jetbrains.compose.web.dom.H2
 import org.jetbrains.compose.web.dom.P
 import org.jetbrains.compose.web.dom.Text
 
-/** Teleport (`Teleport`): an area code and a level; the map from the design comes later. */
+/** Teleport (`Teleport`): an area code, or a tap on the map, and a level. */
 @Composable
 fun TeleportDialog(onOpen: (String, ChannelLevel) -> Unit, onDismiss: () -> Unit) {
     var code by remember { mutableStateOf("") }
@@ -37,6 +38,7 @@ fun TeleportDialog(onOpen: (String, ChannelLevel) -> Unit, onDismiss: () -> Unit
             H2({ classes("t-h1", "t-flush") }) { Text(title) }
             P({ classes("t-flush") }) { Text(stringResource(MR.strings.channels_teleport_body)) }
             TextField(code, { code = it }, stringResource(MR.strings.channels_area_code), "u4pru", "teleport-code") { onOpen(code, level) }
+            TeleportMap(code, level, stringResource(MR.strings.channels_map), onPick = { code = it })
             Div({ classes("t-chips", "t-chips-flush"); attr("role", "radiogroup"); attr("aria-label", levelLabel) }) {
                 ChannelLevel.entries.forEach { option ->
                     val on = option == level
@@ -46,7 +48,12 @@ fun TeleportDialog(onOpen: (String, ChannelLevel) -> Unit, onDismiss: () -> Unit
                         type(ButtonType.Button)
                         attr("role", "radio")
                         attr("aria-checked", on.toString())
-                        onClick { level = option }
+                        onClick {
+                            level = option
+                            // An area picked or typed finer than the level is cut to it.
+                            val area = Geohash.normalize(code)
+                            if (Geohash.isValid(area) && area.length > option.precision) code = area.take(option.precision)
+                        }
                     }) { Text(stringResource(option.label)) }
                 }
             }

@@ -228,7 +228,9 @@ Public rooms per area, the same events bitchat uses, so Talk and bitchat users m
 - **Presence:** while Location channels are open and the location is known, one kind 20001 per area at Region,
   Province and City, 2–5 s apart, every 40–80 s. Never for a teleport.
 - **Teleport:** any area by its code; messages there carry `["t", "teleport"]`.
-- **Not used:** NIP-13 proof of work (bitchat accepts unmined events; Android's is off by default).
+- **Proof of work:** messages are mined (NIP-13 `["nonce", n, "12"]`, 12 bits: bitchat Android's default when its
+  filter is on; iOS mines 8). Incoming messages are accepted without work, as bitchat does.
+- **Teleport map:** OpenStreetMap tiles (the tile server sees the part of the map you look at, not your location).
 - **Privacy limit:** without Tor, relays see the connection's IP address; a relay that also serves the account could
   link the two by connection. bitchat routes this over Tor.
 
@@ -260,6 +262,15 @@ score = engagement / (age_hours + 2)^1.8
 - Engagement: likes (kind 7), reposts (kind 6) and replies (kind 1 with `e` = post), counting
   only events by someone other than the post's author.
 - The result is cached locally and recomputed at most every 3 minutes.
+
+## Publishing and retries
+
+Every signed event goes through the outbox (`Outbox`, table `outbox`): each relay's answer is kept. A relay that
+took it, already had it (`duplicate:`), or refused it for good (`blocked:`, `invalid:`, `restricted:`, `pow:`) is
+done; one that refused for now (`rate-limited:`, `error:`, `auth-required:`, no reason) or did not answer stays owed
+the event and gets it again after 30 s, 1 min, 2 min… up to an hour (10 tries), and at once when the device comes
+back online or a relay reconnects. Retry on a Not sent post goes only to the relays still owed it. Chat wraps go
+through it too; ephemeral channel events do not.
 
 ## Counters
 

@@ -9,6 +9,7 @@ internal val stateToModel: (SettingsStore.State) -> SettingsComponent.Model = { 
         me = state.me,
         theme = state.theme,
         relays = state.relays,
+        relayStates = state.relayStates,
         relayInput = state.relayInput,
         exportedKey = state.exportedKey,
         lock = state.lock,

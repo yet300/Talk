@@ -21,7 +21,8 @@ import kotlin.time.Duration.Companion.milliseconds
  * The web app serves the worker at [workerPath], relative to the page.
  *
  * The database survives reloads, so the schema is created once and migrated by `PRAGMA user_version`,
- * the way the Android and native drivers do it.
+ * the way the Android and native drivers do it. Every tab opens its own worker; the workers share one database
+ * (the owner tab's), and [CrossTabSqlDriver] keeps each tab's queries fresh.
  *
  * A worker whose script does not load (a missing or half-written file, a page served while the build
  * rewrites it) fires a bare `error` event and every query on it fails, so the first query doubles as a
@@ -33,7 +34,9 @@ internal class WebSqlDriverFactory(
 ) : SqlDriverFactory {
 
     override suspend fun create(): SqlDriver {
-        val (driver, version) = started()
+        val (worker, version) = started()
+        // Other tabs share the database through the worker; their writes refresh this tab's queries too.
+        val driver = CrossTabSqlDriver(worker)
         val schema = TalkDatabase.Schema
         when (version) {
             0L -> schema.awaitCreate(driver)

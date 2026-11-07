@@ -16,4 +16,8 @@
         <item quantity="one">%d person</item>
         <item quantity="other">%d people</item>
     </plural>
+    <plural name="network_waiting">
+        <item quantity="one">%d update waiting for a relay</item>
+        <item quantity="other">%d updates waiting for a relay</item>
+    </plural>
 </resources>

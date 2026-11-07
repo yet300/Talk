@@ -12,7 +12,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flowOn
@@ -39,6 +42,22 @@ internal class RelayPool(
     private val authenticator: RelayAuthenticator? = null,
 ) : RelayClient {
     private val connections = MutableStateFlow<Map<String, RelayConnection>>(emptyMap())
+
+    @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
+    override val statuses: Flow<Map<String, RelayStatus>> = connections.flatMapLatest { all ->
+        if (all.isEmpty()) {
+            flowOf(emptyMap())
+        } else {
+            combine(all.values.map { connection -> connection.state.map { connection.url to it.toStatus() } }) { it.toMap() }
+        }
+    }
+
+    private fun RelayConnection.State.toStatus() = when (this) {
+        RelayConnection.State.Idle -> RelayStatus.Idle
+        RelayConnection.State.Connecting -> RelayStatus.Connecting
+        RelayConnection.State.Connected -> RelayStatus.Connected
+        RelayConnection.State.Disconnected -> RelayStatus.Disconnected
+    }
 
     fun connection(url: String): RelayConnection {
         connections.value[url]?.let { return it }

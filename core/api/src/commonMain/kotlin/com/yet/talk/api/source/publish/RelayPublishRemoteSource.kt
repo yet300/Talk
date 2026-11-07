@@ -11,5 +11,7 @@ internal class RelayPublishRemoteSource(
     private val relays: RelayClient,
     private val selection: RelaySelection,
 ) : PublishRemoteSource {
-    override suspend fun publish(event: Event): PublishResult = relays.publish(event, selection.writeRelays())
+    override suspend fun writeRelays(): List<String> = selection.writeRelays()
+
+    override suspend fun publish(event: Event, relays: Collection<String>): PublishResult = this.relays.publish(event, relays)
 }

@@ -15,12 +15,15 @@ import com.yet.talk.domain.repository.PreferencesRepository
 import com.yet.talk.domain.rule.ContentRules
 import com.yet.talk.nostr.event.Event
 import com.yet.talk.nostr.nip.Kinds
+import com.yet.talk.nostr.nip.Nip13
 import com.yet.talk.nostr.signer.LocalKeySigner
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.Inject
 import dev.zacsweers.metro.SingleIn
 import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.channelFlow
@@ -131,8 +134,11 @@ internal class ChannelRepositoryImpl(
     override suspend fun send(channel: LocationChannel, text: String): Result<Unit> {
         val content = ContentRules.validatePost(text, isReply = true).getOrElse { return Result.failure(it) }
         return remote {
-            val signer = LocalKeySigner(keys.forArea(channel.geohash))
-            val event = signer.sign(ChannelEvents.message(channel.geohash, content, currentNickname(), channel.isTeleport, now()))
+            val key = keys.forArea(channel.geohash)
+            val template = ChannelEvents.message(channel.geohash, content, currentNickname(), channel.isTeleport, now())
+            // Proof of work (NIP-13), off the main thread: bitchat clients that filter by work accept it.
+            val mined = withContext(Dispatchers.Default) { Nip13.mine(template, key.publicKey, POW_BITS) }
+            val event = LocalKeySigner(key).sign(mined)
             sent.emit(event)
             if (!remoteSource.publish(event, GeoRelays.nearest(channel.geohash))) throw DomainError.NoRelayAccepted
         }
@@ -179,5 +185,7 @@ internal class ChannelRepositoryImpl(
         const val HISTORY_SECONDS = 60 * 60L
         const val MAX_MESSAGES = 500
         val COUNT_REFRESH = 30.seconds
+        /** bitchat Android's default when its PoW filter is on (iOS mines 8). */
+        const val POW_BITS = 12
     }
 }

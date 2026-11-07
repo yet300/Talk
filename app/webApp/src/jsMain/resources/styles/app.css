@@ -348,3 +348,13 @@ iframe.t-player{border:0;display:block}
 .t-chip-on{background:var(--text-primary);color:var(--bg);border-color:var(--text-primary)}
 .t-chips-flush{padding:0}
 .t-grow{flex:1;min-width:0}
+/* Network status: the offline bar and relay states */
+.t-network-bar{display:flex;align-items:center;gap:var(--space-sm);padding:var(--space-sm) var(--space-lg);background:var(--surface);color:var(--text-secondary);font-size:13px;line-height:16px;border-bottom:1px solid var(--border)}
+.t-network-offline{color:var(--text-primary)}
+.t-relay-dot{display:inline-block;width:8px;height:8px;border-radius:var(--radius-pill);margin-right:6px;background:var(--text-secondary);vertical-align:1px}
+.t-relay-connected{background:var(--repost-green)}
+.t-relay-connecting{background:var(--warning-yellow)}
+.t-relay-unreachable{background:var(--error-red)}
+/* The teleport map (Leaflet) */
+.t-map-view{width:100%;aspect-ratio:4/3;border-radius:var(--radius-card);overflow:hidden;background:var(--surface);z-index:0}
+.t-map-view .leaflet-control-attribution{font-size:10px}

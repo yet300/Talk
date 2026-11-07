@@ -6,6 +6,8 @@ import com.yet.talk.database.driver.iosSqlDriverFactory
 import dev.zacsweers.metro.AppScope
 import com.yet.talk.domain.repository.LocationSource
 import com.yet.talk.location.UnavailableLocationSource
+import com.yet.talk.domain.repository.ConnectivitySource
+import com.yet.talk.network.AssumedOnline
 import dev.zacsweers.metro.DependencyGraph
 import dev.zacsweers.metro.Provides
 import dev.zacsweers.metro.SingleIn
@@ -20,6 +22,9 @@ internal interface IosAppGraph : AppGraph, RepositoriesGraph {
     @SingleIn(AppScope::class)
     @Provides
     fun locationSource(): LocationSource = UnavailableLocationSource()
+
+    @Provides
+    fun connectivity(): ConnectivitySource = AssumedOnline()
 
     @Provides
     fun httpClient(): HttpClient = relayHttpClient(Darwin)

@@ -103,7 +103,7 @@ class RootComponentTest {
             editProfile = { _, _ -> PreviewEditProfileComponent() },
         )
         val lifecycle = LifecycleRegistry().apply { resume() }
-        DefaultRootComponent(DefaultComponentContext(lifecycle), RootStoreFactory(DefaultStoreFactory(), accounts, Preferences), factories, deepLink, PreviewPostCardsComponent(), PreviewModerationComponent())
+        DefaultRootComponent(DefaultComponentContext(lifecycle), RootStoreFactory(DefaultStoreFactory(), accounts, Preferences), factories, deepLink, PreviewPostCardsComponent(), PreviewModerationComponent(), kotlinx.coroutines.flow.flowOf(com.yet.talk.domain.model.network.NetworkStatus()))
     }
 
     private val active get() = root.stack.value.active.instance
