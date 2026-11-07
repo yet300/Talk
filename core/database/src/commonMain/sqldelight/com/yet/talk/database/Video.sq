@@ -1,0 +1,152 @@
+-- The HackerTube catalog (data ODC-By 1.0), loaded once from the bundled JSON (see SqlVideoDao.loadCatalog).
+CREATE TABLE video (
+    vid TEXT NOT NULL PRIMARY KEY,
+    title TEXT NOT NULL,
+    channel TEXT NOT NULL,
+    summary TEXT,
+    why_hn TEXT,
+    content_type TEXT,
+    level TEXT,
+    primary_topic TEXT,
+    quote TEXT,
+    recommenders INTEGER NOT NULL DEFAULT 0,
+    score REAL NOT NULL DEFAULT 0
+);
+
+CREATE INDEX video_score ON video(score);
+
+CREATE TABLE video_category (
+    vid TEXT NOT NULL,
+    category TEXT NOT NULL,
+    PRIMARY KEY (vid, category)
+);
+
+CREATE INDEX video_category_name ON video_category(category);
+
+-- The viewer's lists, on this device: liked, later (Watch later), history.
+CREATE TABLE video_list (
+    vid TEXT NOT NULL,
+    list TEXT NOT NULL,
+    added_at INTEGER NOT NULL,
+    PRIMARY KEY (vid, list)
+);
+
+-- NIP-25 kind 17 likes of a video URL, from relays and our own.
+CREATE TABLE video_like (
+    event_id TEXT NOT NULL PRIMARY KEY,
+    vid TEXT NOT NULL,
+    user TEXT NOT NULL,
+    created_at INTEGER NOT NULL
+);
+
+CREATE INDEX video_like_vid ON video_like(vid);
+
+-- NIP-22 kind 1111 comments on a video URL.
+CREATE TABLE video_comment (
+    id TEXT NOT NULL PRIMARY KEY,
+    vid TEXT NOT NULL,
+    author TEXT NOT NULL,
+    content TEXT NOT NULL,
+    created_at INTEGER NOT NULL,
+    deleted INTEGER NOT NULL DEFAULT 0,
+    publish_state TEXT NOT NULL
+);
+
+CREATE INDEX video_comment_vid ON video_comment(vid, created_at);
+
+countVideos:
+SELECT COUNT(*) FROM video;
+
+selectVideo:
+SELECT * FROM video WHERE vid = ?;
+
+selectCategoriesOf:
+SELECT category FROM video_category WHERE vid = ? ORDER BY rowid;
+
+-- Category chips, the largest first.
+selectCategories:
+SELECT category FROM video_category GROUP BY category ORDER BY COUNT(*) DESC, category;
+
+-- Browse: optional category, level and type; the most recommended first.
+selectBrowse:
+SELECT * FROM video v
+WHERE (:category IS NULL OR v.vid IN (SELECT c.vid FROM video_category c WHERE c.category = :category))
+  AND (:level IS NULL OR v.level = :level)
+  AND (:type IS NULL OR v.content_type = :type)
+ORDER BY v.score DESC, v.vid
+LIMIT :limit OFFSET :offset;
+
+countBrowse:
+SELECT COUNT(*) FROM video v
+WHERE (:category IS NULL OR v.vid IN (SELECT c.vid FROM video_category c WHERE c.category = :category))
+  AND (:level IS NULL OR v.level = :level)
+  AND (:type IS NULL OR v.content_type = :type);
+
+selectList:
+SELECT v.* FROM video_list l JOIN video v ON v.vid = l.vid WHERE l.list = :list ORDER BY l.added_at DESC;
+
+isInList:
+SELECT EXISTS (SELECT 1 FROM video_list WHERE vid = :vid AND list = :list);
+
+addToList:
+INSERT OR REPLACE INTO video_list(vid, list, added_at) VALUES (?, ?, ?);
+
+removeFromList:
+DELETE FROM video_list WHERE vid = :vid AND list = :list;
+
+-- For you: videos sharing categories with what you liked or watched, then the most recommended; never one of those.
+selectForYou:
+WITH seen(vid) AS (SELECT vid FROM video_list WHERE list IN ('liked', 'history')),
+taste(category, weight) AS (
+    SELECT c.category, COUNT(*) FROM video_category c WHERE c.vid IN (SELECT vid FROM seen) GROUP BY c.category
+)
+SELECT v.* FROM video v
+LEFT JOIN (
+    SELECT c.vid, SUM(t.weight) AS affinity FROM video_category c JOIN taste t ON t.category = c.category GROUP BY c.vid
+) a ON a.vid = v.vid
+WHERE v.vid NOT IN (SELECT vid FROM seen)
+ORDER BY COALESCE(a.affinity, 0) DESC, v.score DESC, v.vid
+LIMIT :limit;
+
+-- Related: most categories in common, then the most recommended.
+selectRelated:
+SELECT v.* FROM video v
+JOIN (
+    SELECT c.vid, COUNT(*) AS shared FROM video_category c
+    WHERE c.category IN (SELECT category FROM video_category WHERE vid = :vid) AND c.vid != :vid
+    GROUP BY c.vid
+) r ON r.vid = v.vid
+ORDER BY r.shared DESC, v.score DESC, v.vid
+LIMIT :limit;
+
+insertLike:
+INSERT OR IGNORE INTO video_like(event_id, vid, user, created_at) VALUES (?, ?, ?, ?);
+
+deleteLikes:
+DELETE FROM video_like WHERE event_id IN :eventIds AND user = :user;
+
+selectLikeIds:
+SELECT event_id FROM video_like WHERE vid = :vid AND user = :user;
+
+countLikes:
+SELECT COUNT(DISTINCT user) FROM video_like WHERE vid = ?;
+
+insertComment:
+INSERT OR IGNORE INTO video_comment(id, vid, author, content, created_at, publish_state) VALUES (?, ?, ?, ?, ?, ?);
+
+setCommentState:
+UPDATE video_comment SET publish_state = :state WHERE id = :id;
+
+deleteComments:
+UPDATE video_comment SET deleted = 1 WHERE id IN :ids AND author = :author;
+
+selectComments:
+SELECT c.id, c.vid, c.author, c.content, c.created_at, c.publish_state,
+    a.name AS author_name, a.display_name AS author_display_name, a.picture AS author_picture, a.nip05 AS author_nip05
+FROM video_comment c
+LEFT JOIN profile a ON a.pubkey = c.author
+WHERE c.vid = :vid AND c.deleted = 0
+ORDER BY c.created_at, c.id;
+
+countComments:
+SELECT COUNT(*) FROM video_comment WHERE vid = ? AND deleted = 0;

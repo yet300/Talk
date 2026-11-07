@@ -31,6 +31,9 @@ interface PostCardsComponent {
 
     /** "Retry" on a post of yours that is Not sent. */
     fun retry(post: Post)
+
+    /** A video card on the phone opens the video page (the web plays it in the card). */
+    fun openVideo(id: String)
 }
 
 /** For UI previews: no cards, so link rows show. */
@@ -42,6 +45,8 @@ class PreviewPostCardsComponent : PostCardsComponent {
     override fun quote(id: PostId): Flow<Post?> = flowOf(null)
 
     override fun retry(post: Post) = Unit
+
+    override fun openVideo(id: String) = Unit
 }
 
 @Inject
@@ -69,4 +74,7 @@ internal class DefaultPostCardsComponent(
     override fun retry(post: Post) {
         scope.launch { posts.retryPublish(post.id) }
     }
+
+    /** Navigation belongs to the root, which wraps this component. */
+    override fun openVideo(id: String) = Unit
 }

@@ -7,6 +7,10 @@ import com.yet.talk.api.source.media.MediaRemoteSource
 import com.yet.talk.api.source.nip05.Nip05Verifier
 import com.yet.talk.api.source.github.GitHubRemoteSource
 import com.yet.talk.api.source.youtube.YouTubeRemoteSource
+import com.yet.talk.data.video.catalog.VideoCatalogSource
+import com.yet.talk.data.di.VideoCatalogBindings
+import com.yet.talk.api.source.video.VideoRemoteSource
+import com.yet.talk.domain.repository.VideoRepository
 import com.yet.talk.api.source.post.PostRemoteSource
 import com.yet.talk.api.source.publish.PublishRemoteSource
 import com.yet.talk.api.source.social.SocialRemoteSource
@@ -32,7 +36,7 @@ import kotlin.time.Clock
  * The real database and data bindings, as the app graph merges them, with the network, the key
  * vault and the shared app bindings replaced by test doubles.
  */
-@DependencyGraph(AppScope::class, excludes = [ApiBindings::class, CommonBindings::class, KeyVaultBindings::class])
+@DependencyGraph(AppScope::class, excludes = [ApiBindings::class, CommonBindings::class, KeyVaultBindings::class, VideoCatalogBindings::class])
 internal interface DataTestGraph {
     val accounts: AccountRepository
     val posts: PostRepository
@@ -42,6 +46,7 @@ internal interface DataTestGraph {
     val trending: TrendingRepository
     val profiles: ProfileRepository
     val github: GitHubRepository
+    val videos: VideoRepository
     val syncDao: SyncDao
 
     @DependencyGraph.Factory
@@ -59,6 +64,8 @@ internal interface DataTestGraph {
             @Provides nip05: Nip05Verifier,
             @Provides github: GitHubRemoteSource,
             @Provides youtube: YouTubeRemoteSource,
+            @Provides videoRemote: VideoRemoteSource,
+            @Provides catalog: VideoCatalogSource,
         ): DataTestGraph
     }
 }

@@ -3,6 +3,7 @@ package com.yet.talk.data.fake
 import com.yet.talk.api.schema.TalkEvent
 import com.yet.talk.api.source.media.BlobDescriptor
 import com.yet.talk.api.source.media.MediaRemoteSource
+import com.yet.talk.api.source.video.VideoRemoteSource
 import com.yet.talk.api.source.github.GistDto
 import com.yet.talk.api.source.github.GitHubRemoteSource
 import com.yet.talk.api.source.github.RepoDto
@@ -72,6 +73,15 @@ class FakeNetwork {
         override suspend fun gist(id: String) = gists[id].also { gitHubCalls++ }
         override suspend fun repo(owner: String, name: String) = repos["$owner/$name"].also { gitHubCalls++ }
         override suspend fun user(login: String): UserDto? = null.also { gitHubCalls++ }
+    }
+
+    var catalogJson = "[]"
+    var catalogVersion = 1L
+
+    val videos = object : VideoRemoteSource {
+        override suspend fun activity(videoUrl: String) = parsed().filter {
+            (it is TalkEvent.UrlLike && it.url == videoUrl) || (it is TalkEvent.UrlComment && it.url == videoUrl)
+        }
     }
 
     val media = object : MediaRemoteSource {

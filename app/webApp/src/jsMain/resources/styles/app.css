@@ -147,7 +147,7 @@
 .t-tile-img,.t-thumb-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .t-thumb-btn{all:unset;box-sizing:border-box;position:relative;display:flex;align-items:center;justify-content:center;aspect-ratio:16/9;width:100%;cursor:pointer;background:var(--surface)}
 .t-thumb-btn .t-play{position:relative}
-.t-player{border:0;display:block}
+iframe.t-player{border:0;display:block}
 .t-viewer{position:fixed;z-index:600;padding:0}
 .t-viewer-full{max-width:calc(100% - 128px);max-height:calc(100% - 128px);object-fit:contain;border-radius:var(--radius-card)}
 .t-viewer-close{top:16px;left:16px}
@@ -156,3 +156,28 @@
 .t-viewer-count{position:absolute;bottom:16px;left:0;right:0;text-align:center}
 @media (max-width:600px){.t-viewer-full{max-width:100%;max-height:calc(100% - 128px)}}
 .t-grid-1,.t-grid-2{grid-template-rows:minmax(0,1fr)}
+/* Videos (VideoHome, VideoCard, VideoPage, VideoInfo) */
+.t-video-grid-web{grid-template-columns:repeat(auto-fill,minmax(min(280px,100%),1fr))}
+.t-video-grid-phone{grid-template-columns:repeat(auto-fill,minmax(min(320px,100%),1fr))}
+.t-video-card{display:flex;flex-direction:column;gap:var(--space-sm);color:var(--text-primary);min-width:0}
+.t-video-card:hover .x-name{text-decoration:underline}
+.t-video-note{margin:0;padding:var(--space-sm) var(--space-lg) var(--space-xl)}
+.t-filter-row{display:flex;flex-wrap:wrap;gap:var(--space-sm);padding:0 var(--space-lg) var(--space-sm)}
+.t-filter{position:relative}
+.t-filter-menu{position:absolute;top:48px;left:0;z-index:6;max-height:280px;overflow-y:auto;min-width:200px}
+.t-player-start{border-radius:0}
+.t-video-info{display:flex;flex-direction:column;gap:var(--space-md);padding:var(--space-md) var(--space-lg) var(--space-lg)}
+.t-video-title{margin:0;font-size:20px;line-height:24px;font-weight:700}
+.t-video-actions{max-width:none;margin:0;justify-content:flex-start;gap:var(--space-lg)}
+.t-video-comments{border-top:1px solid var(--border)}
+.t-right .t-video-card{margin-bottom:var(--space-xl)}
+.t-why h2{font-size:15px;line-height:20px}
+/* Videos fixes: the wide column scrolls on its own (as in Videos-Web); chip rows show no scrollbar */
+.t-web .t-wide{height:100%;overflow-y:auto;overflow-x:hidden}
+.t-chips{scrollbar-width:none}
+.t-chips::-webkit-scrollbar{display:none}
+.t-chips-wrap{flex-wrap:wrap;overflow-x:visible}
+.t-chip-more{border-style:dashed}
+.t-video-row{display:flex;gap:var(--space-md);overflow-x:auto;padding:var(--space-sm) var(--space-lg) var(--space-lg);scrollbar-width:none;scroll-snap-type:x mandatory;scroll-padding-inline:var(--space-lg)}
+.t-video-row::-webkit-scrollbar{display:none}
+.t-video-row .t-video-card{flex:0 0 72%;scroll-snap-align:start}

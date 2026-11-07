@@ -6,6 +6,9 @@ import com.yet.talk.domain.model.post.PostId
 sealed interface ComposeMode {
     data object New : ComposeMode
 
+    /** A new post that starts with [text], e.g. a shared video's link. */
+    data class Share(val text: String) : ComposeMode
+
     data class Reply(val parent: PostId) : ComposeMode
 
     data class Quote(val quoted: PostId) : ComposeMode
@@ -15,7 +18,7 @@ sealed interface ComposeMode {
     /** The post the editor works on (the parent, the quoted or the edited post); null for a new post. */
     val target: PostId?
         get() = when (this) {
-            New -> null
+            New, is Share -> null
             is Reply -> parent
             is Quote -> quoted
             is Edit -> post

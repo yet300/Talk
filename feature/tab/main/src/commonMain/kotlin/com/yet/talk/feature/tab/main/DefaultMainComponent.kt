@@ -78,11 +78,14 @@ internal class DefaultMainComponent(
 
     override fun openProfile(id: UserId) = showDetails(MainComponent.Link.Profile(id))
 
+    override fun openVideo(id: String) = showDetails(MainComponent.Link.Video(id))
+
     private fun showDetails(link: MainComponent.Link) = navigation.navigate { it.copy(details = DetailsConfig(link)) }
 
     private fun onTabsOutput(event: TabsComponent.Output) = when (event) {
         is TabsComponent.Output.OpenPost -> openPost(event.id)
         is TabsComponent.Output.OpenProfile -> openProfile(event.id)
+        is TabsComponent.Output.OpenVideo -> openVideo(event.id)
         is TabsComponent.Output.Reply -> output(MainComponent.Output.Reply(event.parent))
         is TabsComponent.Output.Quote -> output(MainComponent.Output.Quote(event.quoted))
         TabsComponent.Output.NewPost -> output(MainComponent.Output.NewPost)
@@ -99,6 +102,7 @@ internal class DefaultMainComponent(
         is DetailsComponent.Output.OpenRevisions -> output(MainComponent.Output.OpenRevisions(event.id))
         DetailsComponent.Output.OpenSettings -> output(MainComponent.Output.OpenSettings)
         DetailsComponent.Output.EditProfile -> output(MainComponent.Output.EditProfile)
+        is DetailsComponent.Output.Share -> output(MainComponent.Output.Share(event.text))
     }
 
     private val ChildPanelsMode.isTwoPane get() = this != ChildPanelsMode.SINGLE
@@ -108,13 +112,18 @@ internal class DefaultMainComponent(
 
     @Serializable
     private data class DetailsConfig(val kind: Kind, val id: String) {
-        enum class Kind { Post, Profile }
+        enum class Kind { Post, Profile, Video }
 
         constructor(link: MainComponent.Link) : this(
-            kind = if (link is MainComponent.Link.Post) Kind.Post else Kind.Profile,
+            kind = when (link) {
+                is MainComponent.Link.Post -> Kind.Post
+                is MainComponent.Link.Profile -> Kind.Profile
+                is MainComponent.Link.Video -> Kind.Video
+            },
             id = when (link) {
                 is MainComponent.Link.Post -> link.id.value
                 is MainComponent.Link.Profile -> link.id.value
+                is MainComponent.Link.Video -> link.id
             },
         )
 
@@ -122,6 +131,7 @@ internal class DefaultMainComponent(
             get() = when (kind) {
                 Kind.Post -> MainComponent.Link.Post(PostId(id))
                 Kind.Profile -> MainComponent.Link.Profile(UserId(id))
+                Kind.Video -> MainComponent.Link.Video(id)
             }
     }
 }

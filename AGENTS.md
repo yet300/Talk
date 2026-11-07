@@ -45,16 +45,18 @@ Clean Architecture, SOLID, KISS, YAGNI. In practice:
 | `:feature:profile` | `feature/profile` | A profile (or your own, with `userId = null`): Posts / Replies (and Bookmarks on your own), follow, Edit profile |
 | `:feature:editprofile` | `feature/editprofile` | Profile editor: text fields, NIP-05 check, avatar and banner links from allowed sites (`ProfileImageHosts`), GitHub linking by gist (NIP-39) |
 | `:feature:settings` | `feature/settings` | Account, key export, relays (`RelayRules`), sign out |
-| `:feature:tab:main` | `feature/tab/main` | `MainComponent`: list-detail `childPanels` — `component/tabs` (Home, Search, Activity, Bookmarks, Profile) in the main panel, `component/details` (a stack of posts and profiles) in the details panel; `isReading` for the Duo replies pose |
+| `:feature:tab:main` | `feature/tab/main` | `MainComponent`: list-detail `childPanels` — `component/tabs` (Home, Search, Activity, Videos, Bookmarks, Profile) in the main panel, `component/details` (a stack of posts, profiles and videos) in the details panel; `isReading` for the Duo replies pose |
 | `:feature:tab:home` | `feature/tab/home` | Home timeline: Following / Popular (trending) / Latest |
 | `:feature:tab:search` | `feature/tab/search` | Local search on every keystroke, NIP-50 relays after a 350 ms pause |
 | `:feature:tab:activity` | `feature/tab/activity` | Replies, quotes, reposts, likes and follows aimed at you (no store) |
 | `:feature:tab:bookmarks` | `feature/tab/bookmarks` | Your NIP-51 bookmarks |
+| `:feature:tab:videos` | `feature/tab/videos` | Videos: the HackerTube catalog (For you, Browse with category, level and type), Liked, Watch later, History |
+| `:feature:video` | `feature/video` | A video page: player, details, Like (NIP-25 kind 17), Watch later, Share, comments (NIP-22), related |
 
 Dependency graph:
 
 ```
-feature:root → feature:tab:main → feature:tab:{home,search,activity,bookmarks}, feature:profile
+feature:root → feature:tab:main → feature:tab:{home,search,activity,videos,bookmarks}, feature:{profile,video}
 feature:root → feature:{auth,post,compose,profile,settings,editprofile}
 every feature → core:domain, core:common
 core:data → core:domain, core:database, core:api → core:nostr
@@ -98,8 +100,13 @@ excerpts are derived from the markdown (`PostSummaries`), as in KarpathyTalk.
   created and migrated by `PRAGMA user_version`. DAO and repository tests skip on JS (Node has no Web Worker/OPFS).
 - **Web routing:** Decompose `withWebHistory`; the root and `MainComponent` are `WebNavigationOwner`s (paths:
   `/signin`, `/post/<id>`, `/post/<id>/revisions`, `/user/<id>`, `/settings`, `/compose`, tabs `/search`,
-  `/activity`, `/bookmarks`, `/me`, `/settings/profile` for the profile editor). A shared link is the root factory's `deepLink`, opened above Main after sign-in.
+  `/activity`, `/videos`, `/bookmarks`, `/me`, `/video/<id>`, `/settings/profile` for the profile editor). A shared link is the root factory's `deepLink`, opened above Main after sign-in.
   The dev server falls back to `index.html` (`webpack.config.d/devServer.js`).
+- **Video catalog:** the HackerTube catalog (ODC-By 1.0) is committed as Kotlin sources in `core:data`
+  (`data/video/catalog/VideoCatalogPart*.kt`, string chunks under the JVM's 64 KB constant limit), so every platform
+  ships the same data. `scripts/update_video_catalog.py` regenerates them; `.github/workflows/update-video-catalog.yml`
+  runs it weekly and commits changes. The first Videos screen loads it into SQLite in one statement (`json_each`,
+  `SqlVideoDao.loadCatalog`), again whenever `VIDEO_CATALOG_VERSION` changes. Do not edit the generated files.
 - **Keys:** `KSafeKeyVault` is the only place the secret key is persisted. `SecretKey.toString()` is redacted.
   Android backups are off (`allowBackup="false"`).
 

@@ -8,6 +8,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import com.yet.talk.domain.model.post.PostLink
 import com.yet.talk.resources.*
+import com.yet.talk.web.browser.rememberIsPhone
 import com.yet.talk.web.ui.theme.TalkIcon
 import com.yet.talk.web.ui.theme.TalkIcons
 import com.yet.talk.web.ui.theme.stringResource
@@ -32,14 +33,15 @@ fun LinkCard(link: PostLink) {
 }
 
 /**
- * A YouTube link (`VideoCard`, embed): the thumbnail with Play, the title and channel from oEmbed. Play swaps
- * in YouTube's privacy-enhanced player, inline.
+ * A YouTube link (`VideoCard`, embed): the thumbnail with Play, the title and channel from oEmbed. On the web
+ * Play swaps in YouTube's privacy-enhanced player, inline; on the phone it opens the video page.
  */
 @Composable
 private fun YouTubeCard(link: PostLink.YouTube) {
     val cards = LocalPostCards.current
     val video by remember(link.videoId, cards) { cards?.youTube(link.videoId) ?: flowOf(null) }.collectAsState(null)
     var playing by remember(link.videoId) { mutableStateOf(false) }
+    val phone = rememberIsPhone()
     val title = video?.title ?: link.url
     Div({ classes("t-embed"); onClick { it.stopPropagation() } }) {
         if (playing) {
@@ -57,7 +59,7 @@ private fun YouTubeCard(link: PostLink.YouTube) {
                 classes("t-thumb", "t-thumb-btn")
                 type(ButtonType.Button)
                 attr("aria-label", label)
-                onClick { playing = true }
+                onClick { if (phone && cards != null) cards.openVideo(link.videoId) else playing = true }
             }) {
                 Img(src = link.thumbnail(), alt = "") { classes("t-thumb-img"); attr("loading", "lazy") }
                 Span({ classes("t-play") }) { TalkIcon(TalkIcons.Play) }

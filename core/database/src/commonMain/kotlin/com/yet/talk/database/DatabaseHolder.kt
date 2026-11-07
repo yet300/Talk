@@ -5,6 +5,7 @@ import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
 import app.cash.sqldelight.coroutines.mapToOne
 import app.cash.sqldelight.coroutines.mapToOneOrNull
+import app.cash.sqldelight.db.SqlDriver
 import com.yet.talk.database.driver.SqlDriverFactory
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.Inject
@@ -26,10 +27,22 @@ internal class DatabaseHolder(private val driverFactory: SqlDriverFactory) {
     @Volatile
     private var database: TalkDatabase? = null
 
+    @Volatile
+    private var openDriver: SqlDriver? = null
+
     // Lock-free once open: every DAO call goes through here, and a suspension inside a transaction
     // could resume on another thread, which the Android and native drivers do not allow.
     suspend fun get(): TalkDatabase = database ?: mutex.withLock {
-        database ?: TalkDatabase(driverFactory.create()).also { database = it }
+        database ?: driverFactory.create().let { driver ->
+            openDriver = driver
+            TalkDatabase(driver).also { database = it }
+        }
+    }
+
+    /** For the few statements the SQL dialect cannot check (the catalog load uses SQLite's json_each). */
+    suspend fun driver(): SqlDriver {
+        get()
+        return requireNotNull(openDriver)
     }
 
     internal fun <T : Any> observeList(context: CoroutineContext, query: TalkDatabase.() -> Query<T>): Flow<List<T>> =

@@ -94,6 +94,7 @@ internal fun TabsComponent.Tab.icon(active: Boolean): ImageResource = when (this
     TabsComponent.Tab.Home -> TalkIcons.Home
     TabsComponent.Tab.Search -> TalkIcons.Search
     TabsComponent.Tab.Activity -> TalkIcons.Activity
+    TabsComponent.Tab.Videos -> TalkIcons.Video
     TabsComponent.Tab.Bookmarks -> if (active) TalkIcons.BookmarkFilled else TalkIcons.Bookmark
     TabsComponent.Tab.Profile -> TalkIcons.User
 }
@@ -104,6 +105,7 @@ internal fun TabsComponent.Tab.label(): String = stringResource(
         TabsComponent.Tab.Home -> MR.strings.tab_home
         TabsComponent.Tab.Search -> MR.strings.tab_search
         TabsComponent.Tab.Activity -> MR.strings.tab_activity
+        TabsComponent.Tab.Videos -> MR.strings.tab_videos
         TabsComponent.Tab.Bookmarks -> MR.strings.tab_bookmarks
         TabsComponent.Tab.Profile -> MR.strings.tab_profile
     },

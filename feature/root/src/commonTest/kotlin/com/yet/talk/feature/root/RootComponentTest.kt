@@ -67,6 +67,7 @@ class RootComponentTest {
             opened += id
         }
         override fun openProfile(id: UserId) = Unit
+        override fun openVideo(id: String) = Unit
         val tabs = mutableListOf<TabsComponent.Tab>()
         override fun onTabSelected(tab: TabsComponent.Tab) {
             tabs += tab

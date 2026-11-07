@@ -4,6 +4,8 @@ import com.yet.talk.api.source.github.GitHubClient
 import com.yet.talk.api.source.github.GitHubRemoteSource
 import com.yet.talk.api.source.media.BlossomClient
 import com.yet.talk.api.source.youtube.YouTubeOEmbedClient
+import com.yet.talk.api.source.video.RelayVideoRemoteSource
+import com.yet.talk.api.source.video.VideoRemoteSource
 import com.yet.talk.api.source.youtube.YouTubeRemoteSource
 import com.yet.talk.api.source.media.MediaRemoteSource
 import com.yet.talk.api.source.nip05.Nip05Client
@@ -50,6 +52,9 @@ abstract class ApiBindings {
 
     @Binds
     internal abstract val YouTubeOEmbedClient.bindYouTubeRemoteSource: YouTubeRemoteSource
+
+    @Binds
+    internal abstract val RelayVideoRemoteSource.bindVideoRemoteSource: VideoRemoteSource
 
     @Binds
     internal abstract val RelaySearchRemoteSource.bindSearchRemoteSource: SearchRemoteSource

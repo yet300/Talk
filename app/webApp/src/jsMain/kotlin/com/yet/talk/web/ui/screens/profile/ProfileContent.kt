@@ -25,13 +25,14 @@ fun ProfileContent(component: ProfileComponent) {
     val posts = component.posts.collectAsPagingItems()
     val actions = PostActionHandlers(component::onReply, component::onRepost, component::onLike, component::onBookmark, component::onOpenRevisions)
 
+    val phone = rememberIsPhone()
     TopBar(
         title = model.user?.displayLabel ?: stringResource(MR.strings.tab_profile),
-        onBack = component::onBack.takeIf { model.canGoBack },
+        // Your profile is a tab on the web; on the phone it opens from the home header, so it has Back too.
+        onBack = component::onBack.takeIf { model.canGoBack || phone },
     )
     ProfileHeader(model, onFollow = component::onFollowToggle, onEditProfile = component::onEditProfile)
     // Bookmarks is a tab of your own profile on the phone only; the web has its own Bookmarks destination.
-    val phone = rememberIsPhone()
     val tabs = ProfileComponent.Tab.entries.filter { it != ProfileComponent.Tab.Bookmarks || (phone && model.isMe) }
     LaunchedEffect(tabs, model.tab) { if (model.tab !in tabs) component.onTabSelected(ProfileComponent.Tab.Posts) }
     Tabs(

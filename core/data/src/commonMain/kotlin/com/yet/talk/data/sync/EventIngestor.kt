@@ -49,6 +49,8 @@ internal class EventIngestor(
         events.forEach { event ->
             when (event) {
                 is TalkEvent.Post -> Unit
+                // Video likes and comments are stored by VideoRepositoryImpl, which knows the video.
+                is TalkEvent.UrlLike, is TalkEvent.UrlComment -> Unit
                 is TalkEvent.Revision -> ingestRevision(event)
                 is TalkEvent.Reaction -> reactions.insert(
                     ReactionRecord(

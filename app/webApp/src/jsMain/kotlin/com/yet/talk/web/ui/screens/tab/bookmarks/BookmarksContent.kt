@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import com.yet.talk.feature.tab.bookmarks.BookmarksComponent
 import com.yet.talk.resources.*
+import com.yet.talk.web.browser.rememberIsPhone
 import com.yet.talk.web.decompose.subscribeAsState
 import com.yet.talk.web.paging.collectAsPagingItems
 import com.yet.talk.web.ui.components.EmptyState
@@ -23,7 +24,8 @@ fun BookmarksContent(component: BookmarksComponent) {
     val posts = component.posts.collectAsPagingItems()
     val actions = PostActionHandlers(component::onReply, component::onRepost, component::onLike, component::onBookmark, component::onOpenRevisions)
 
-    TopBar(stringResource(MR.strings.bookmarks_title))
+    // On the phone Bookmarks is not in the navigation (it is a tab of your profile): Back returns home.
+    TopBar(stringResource(MR.strings.bookmarks_title), onBack = component::onBrowseHome.takeIf { rememberIsPhone() })
     model.error?.let { ErrorRow(it, onDismiss = component::onErrorShown) }
     PagedList(
         posts,

@@ -31,7 +31,7 @@ internal class ComposeStoreFactory(
     fun create(mode: ComposeMode, draft: String?): ComposeStore =
         object : ComposeStore, Store<ComposeStore.Intent, ComposeStore.State, ComposeStore.Label> by storeFactory.create(
             name = "ComposeStore",
-            initialState = ComposeStore.State(mode = mode, text = draft.orEmpty(), prefilled = draft != null),
+            initialState = ComposeStore.State(mode = mode, text = draft ?: (mode as? ComposeMode.Share)?.text.orEmpty(), prefilled = draft != null),
             bootstrapper = SimpleBootstrapper(ComposeStore.Action.LoadTarget),
             executorFactory = ::ExecutorImpl,
             reducer = ReducerImpl,
@@ -73,7 +73,7 @@ internal class ComposeStoreFactory(
             dispatch(ComposeStore.Msg.Publishing(true))
             scope.launch {
                 val result: Result<PostId> = when (val mode = state.mode) {
-                    ComposeMode.New -> publishPost(state.text, state.images)
+                    ComposeMode.New, is ComposeMode.Share -> publishPost(state.text, state.images)
                     is ComposeMode.Quote -> publishPost(state.text, state.images, quoteOf = mode.quoted)
                     is ComposeMode.Reply -> replyToPost(mode.parent, state.text, state.images)
                     is ComposeMode.Edit ->

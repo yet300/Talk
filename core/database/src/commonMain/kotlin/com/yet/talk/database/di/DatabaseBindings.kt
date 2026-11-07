@@ -4,6 +4,7 @@ import com.yet.talk.database.dao.ActivityDao
 import com.yet.talk.database.dao.BookmarkDao
 import com.yet.talk.database.dao.FollowDao
 import com.yet.talk.database.dao.GitHubCardDao
+import com.yet.talk.database.dao.VideoDao
 import com.yet.talk.database.dao.MaintenanceDao
 import com.yet.talk.database.dao.PostDao
 import com.yet.talk.database.dao.ProfileDao
@@ -16,6 +17,7 @@ import com.yet.talk.database.dao.sql.SqlActivityDao
 import com.yet.talk.database.dao.sql.SqlBookmarkDao
 import com.yet.talk.database.dao.sql.SqlFollowDao
 import com.yet.talk.database.dao.sql.SqlGitHubCardDao
+import com.yet.talk.database.dao.sql.SqlVideoDao
 import com.yet.talk.database.dao.sql.SqlMaintenanceDao
 import com.yet.talk.database.dao.sql.SqlPostDao
 import com.yet.talk.database.dao.sql.SqlProfileDao
@@ -67,6 +69,9 @@ abstract class DatabaseBindings {
 
     @Binds
     internal abstract val SqlGitHubCardDao.bindGitHubCardDao: GitHubCardDao
+
+    @Binds
+    internal abstract val SqlVideoDao.bindVideoDao: VideoDao
 
     @Binds
     internal abstract val SqlMaintenanceDao.bindMaintenanceDao: MaintenanceDao

@@ -37,6 +37,12 @@ sealed interface TalkEvent {
 
     data class Deletion(override val event: Event, val eventIds: List<String>) : TalkEvent
 
+    /** A like of a URL (kind 17), such as a video. */
+    data class UrlLike(override val event: Event, val url: String) : TalkEvent
+
+    /** A top-level comment on a URL (kind 1111). */
+    data class UrlComment(override val event: Event, val url: String) : TalkEvent
+
     data class Contacts(override val event: Event, val pubkeys: List<String>) : TalkEvent
 
     data class Bookmarks(override val event: Event, val eventIds: List<String>) : TalkEvent
@@ -65,6 +71,9 @@ sealed interface TalkEvent {
                 ?.takeIf { event.content != "-" }
                 ?.let { Reaction(event, it, Reaction.Type.Like) }
             Kinds.REPOST, Kinds.GENERIC_REPOST -> event.tags.firstValue("e")?.let { Reaction(event, it, Reaction.Type.Repost) }
+            Kinds.EXTERNAL_REACTION -> event.tags.firstValue("i")?.takeIf { event.content != "-" }?.let { UrlLike(event, it) }
+            // Only comments on the URL itself; replies to other comments are not shown.
+            Kinds.COMMENT -> event.tags.firstValue("I")?.takeIf { it == event.tags.firstValue("i") }?.let { UrlComment(event, it) }
             Kinds.METADATA -> Metadata.parse(event)?.let { Profile(event, it) }
             Kinds.DELETION -> Deletion(event, event.tags.values("e"))
             Kinds.CONTACTS -> Contacts(event, event.contactPubkeys())

@@ -45,6 +45,7 @@ class DaoTest {
         val activity = SqlActivityDao(holder, dispatchers)
         val trending = SqlTrendingDao(holder, dispatchers)
         val maintenance = SqlMaintenanceDao(holder, dispatchers)
+        val videos = com.yet.talk.database.dao.sql.SqlVideoDao(holder, dispatchers)
     }
 
     /** One page, loaded the way Paging loads it. */
@@ -253,5 +254,27 @@ class DaoTest {
         const val ALICE = "alice"
         const val BOB = "bob"
         const val CAROL = "carol"
+    }
+
+    @Test
+    fun loadsTheCatalogAndRecommendsFromTheLists() = dbTest { daos ->
+        val catalog = """[
+            {"vid":"a","title":"Micrograd","channel":"Karpathy","level":"intro","content_type":"lecture","categories":["ML","Python"],"score":25.0,"recommenders":17},
+            {"vid":"b","title":"Vectors","channel":"3b1b","level":"intro","content_type":"course","categories":["Math"],"score":30.0},
+            {"vid":"c","title":"Makemore","channel":"Karpathy","level":"intermediate","content_type":"lecture","categories":["ML"],"score":10.0},
+            {"vid":"bad","channel":"no title"}
+        ]"""
+        daos.videos.loadCatalog(catalog)
+        assertEquals(3, daos.videos.catalogSize())
+        assertEquals(listOf("ML", "Math", "Python"), daos.videos.observeCategories().first())
+        assertEquals(listOf("a", "c"), daos.videos.browsePages("ML", null, null)().firstPage(20).map { it.vid })
+        assertEquals(listOf("c"), daos.videos.browsePages(null, "intermediate", "lecture")().firstPage(20).map { it.vid })
+        assertEquals(17L, daos.videos.observeVideo("a").first()?.recommenders)
+
+        assertEquals(listOf("b", "a", "c"), daos.videos.observeForYou(3).first().map { it.vid }, "a new viewer gets the most recommended")
+        daos.videos.setInList("a", com.yet.talk.database.model.VideoLists.LIKED, true, at = 1)
+        assertEquals(listOf("c", "b"), daos.videos.observeForYou(3).first().map { it.vid }, "taste first, never what was liked")
+        assertEquals(listOf("c"), daos.videos.observeRelated("a", 3).first().map { it.vid })
+        assertEquals(listOf("a"), daos.videos.observeList(com.yet.talk.database.model.VideoLists.LIKED).first().map { it.vid })
     }
 }

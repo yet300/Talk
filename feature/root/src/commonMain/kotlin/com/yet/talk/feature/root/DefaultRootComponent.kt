@@ -42,7 +42,7 @@ internal class DefaultRootComponent(
     storeFactory: RootStoreFactory,
     private val factories: DestinationFactories,
     deepLink: String?,
-    override val postCards: PostCardsComponent,
+    cards: PostCardsComponent,
 ) : RootComponent, ComponentContext by componentContext {
 
     private val store = instanceKeeper.getStore { storeFactory.create() }
@@ -63,6 +63,13 @@ internal class DefaultRootComponent(
     override val stack: Value<ChildStack<*, RootComponent.Child>> = configStack
 
     override val theme: Value<ThemeMode> = store.asValue().map { it.theme }
+
+    override val postCards: PostCardsComponent = object : PostCardsComponent by cards {
+        override fun openVideo(id: String) {
+            navigation.popWhile { it != Config.Main }
+            main?.openVideo(id)
+        }
+    }
 
     override val webNavigation: WebNavigation<*> =
         childStackWebNavigation(
@@ -121,6 +128,7 @@ internal class DefaultRootComponent(
         MainComponent.Output.NewPost -> navigation.pushNew(Config.Compose.new())
         MainComponent.Output.OpenSettings -> navigation.pushNew(Config.Settings)
         MainComponent.Output.EditProfile -> navigation.pushNew(Config.EditProfile)
+        is MainComponent.Output.Share -> navigation.pushNew(Config.Compose.share(event.text))
     }
 
     private fun onSettingsOutput(event: SettingsComponent.Output) = when (event) {
@@ -133,7 +141,7 @@ internal class DefaultRootComponent(
         when (event) {
             ComposeComponent.Output.Closed -> navigation.pop()
             is ComposeComponent.Output.Published -> when (config.kind) {
-                Config.Compose.Kind.New, Config.Compose.Kind.Quote -> navigation.pop { main?.openPost(event.id) }
+                Config.Compose.Kind.New, Config.Compose.Kind.Share, Config.Compose.Kind.Quote -> navigation.pop { main?.openPost(event.id) }
                 Config.Compose.Kind.Reply, Config.Compose.Kind.Edit -> navigation.pop()
             }
         }
@@ -143,7 +151,7 @@ internal class DefaultRootComponent(
         get() = configStack.value.items.firstNotNullOfOrNull { (it.instance as? RootComponent.Child.Main)?.component }
 
     /**
-     * A shared link: `/post/<id>` and `/user/<id>` open in Main's details panel; `/post/<id>/revisions` also
+     * A shared link: `/post/<id>`, `/user/<id>` and `/video/<id>` open in Main's details panel; `/post/<id>/revisions` also
      * opens the revisions above it, `/settings` the settings; a tab's path (`/search`, `/activity`,
      * `/bookmarks`, `/me`) selects that tab. Anything else opens Main as it is.
      */
@@ -157,6 +165,7 @@ internal class DefaultRootComponent(
                     segments.size == 3 && segments[0] == "post" && segments[2] == "revisions" ->
                         DeepLink(MainComponent.Link.Post(PostId(segments[1])), listOf(Config.Revisions(segments[1])))
                     segments.size == 2 && segments[0] == "user" -> DeepLink(MainComponent.Link.Profile(UserId(segments[1])), emptyList())
+                    segments.size == 2 && segments[0] == "video" -> DeepLink(MainComponent.Link.Video(segments[1]), emptyList())
                     segments == listOf("settings") -> DeepLink(null, listOf(Config.Settings))
                     segments.size == 1 -> TabsComponent.Tab.entries.firstOrNull { it.path == segments[0] }
                         ?.let { DeepLink(null, emptyList(), tab = it) }
@@ -200,12 +209,13 @@ internal class DefaultRootComponent(
 
         @Serializable
         data class Compose(val kind: Kind, val target: String?) : Config {
-            enum class Kind { New, Reply, Quote, Edit }
+            enum class Kind { New, Share, Reply, Quote, Edit }
 
             override val path get() = "compose"
 
             fun toMode(): ComposeMode = when (kind) {
                 Kind.New -> ComposeMode.New
+                Kind.Share -> ComposeMode.Share(requireNotNull(target))
                 Kind.Reply -> ComposeMode.Reply(PostId(requireNotNull(target)))
                 Kind.Quote -> ComposeMode.Quote(PostId(requireNotNull(target)))
                 Kind.Edit -> ComposeMode.Edit(PostId(requireNotNull(target)))
@@ -213,6 +223,8 @@ internal class DefaultRootComponent(
 
             companion object {
                 fun new() = Compose(Kind.New, null)
+
+                fun share(text: String) = Compose(Kind.Share, text)
 
                 fun reply(parent: PostId) = Compose(Kind.Reply, parent.value)
 

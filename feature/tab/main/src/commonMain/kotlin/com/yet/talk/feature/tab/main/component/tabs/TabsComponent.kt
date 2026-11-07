@@ -12,11 +12,12 @@ import com.yet.talk.feature.tab.activity.ActivityComponent
 import com.yet.talk.feature.tab.bookmarks.BookmarksComponent
 import com.yet.talk.feature.tab.home.HomeComponent
 import com.yet.talk.feature.tab.search.SearchComponent
+import com.yet.talk.feature.tab.videos.VideosComponent
 
 /**
  * The tabs (bottom bar, web rail, Duo side column): the main panel of [com.yet.talk.feature.tab.main.MainComponent].
  * Each tab keeps its state while another one is shown. On the web the active tab is the URL
- * (`/`, `/search`, `/activity`, `/bookmarks`, `/me`) without adding history entries.
+ * (`/`, `/search`, `/activity`, `/videos`, `/bookmarks`, `/me`) without adding history entries.
  */
 interface TabsComponent : WebNavigationOwner {
     val stack: Value<ChildStack<*, Child>>
@@ -29,7 +30,7 @@ interface TabsComponent : WebNavigationOwner {
     data class Me(val user: User? = null, val npub: String? = null, val relayCount: Int = 0)
 
     /** [path] is the tab's web URL (`/search`…); Home is `/`. */
-    enum class Tab(val path: String?) { Home(null), Search("search"), Activity("activity"), Bookmarks("bookmarks"), Profile("me") }
+    enum class Tab(val path: String?) { Home(null), Search("search"), Activity("activity"), Videos("videos"), Bookmarks("bookmarks"), Profile("me") }
 
     sealed class Child(val tab: Tab) {
         class Home(val component: HomeComponent) : Child(Tab.Home)
@@ -37,6 +38,8 @@ interface TabsComponent : WebNavigationOwner {
         class Search(val component: SearchComponent) : Child(Tab.Search)
 
         class Activity(val component: ActivityComponent) : Child(Tab.Activity)
+
+        class Videos(val component: VideosComponent) : Child(Tab.Videos)
 
         class Bookmarks(val component: BookmarksComponent) : Child(Tab.Bookmarks)
 
@@ -48,6 +51,8 @@ interface TabsComponent : WebNavigationOwner {
         data class OpenPost(val id: PostId) : Output
 
         data class OpenProfile(val id: UserId) : Output
+
+        data class OpenVideo(val id: String) : Output
 
         data class Reply(val parent: PostId) : Output
 

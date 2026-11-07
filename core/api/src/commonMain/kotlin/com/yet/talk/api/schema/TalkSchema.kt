@@ -19,7 +19,15 @@ object TalkSchema {
         const val REACTION = "reaction"
         const val REPOST = "repost"
         const val DELETION = "deletion"
+        const val VIDEO_LIKE = "video-like"
+        const val VIDEO_COMMENT = "video-comment"
     }
+
+    /** NIP-73 kind for a URL. */
+    const val WEB = "web"
+
+    /** How Talk names a YouTube video in `i` tags: one URL per video, whatever link was shared. */
+    fun videoUrl(videoId: String) = "https://www.youtube.com/watch?v=$videoId"
 
     fun labels(role: String): List<List<String>> = listOf(listOf("L", NAMESPACE), listOf("l", role, NAMESPACE))
 

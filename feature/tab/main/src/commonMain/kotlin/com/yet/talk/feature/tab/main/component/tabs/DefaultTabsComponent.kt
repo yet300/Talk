@@ -16,6 +16,7 @@ import com.yet.talk.feature.tab.activity.ActivityComponent
 import com.yet.talk.feature.tab.bookmarks.BookmarksComponent
 import com.yet.talk.feature.tab.home.HomeComponent
 import com.yet.talk.feature.tab.search.SearchComponent
+import com.yet.talk.feature.tab.videos.VideosComponent
 import dev.zacsweers.metro.Inject
 import kotlinx.serialization.Serializable
 
@@ -61,6 +62,7 @@ internal class DefaultTabsComponent(
                 TabsComponent.Tab.Home -> Config.Home
                 TabsComponent.Tab.Search -> Config.Search
                 TabsComponent.Tab.Activity -> Config.Activity
+                TabsComponent.Tab.Videos -> Config.Videos
                 TabsComponent.Tab.Bookmarks -> Config.Bookmarks
                 TabsComponent.Tab.Profile -> Config.Profile
             },
@@ -72,6 +74,13 @@ internal class DefaultTabsComponent(
             Config.Home -> TabsComponent.Child.Home(factories.home(context, ::onHomeOutput))
             Config.Search -> TabsComponent.Child.Search(factories.search(context, ::onSearchOutput))
             Config.Activity -> TabsComponent.Child.Activity(factories.activity(context, ::onActivityOutput))
+            Config.Videos -> TabsComponent.Child.Videos(
+                factories.videos(context) { event ->
+                    when (event) {
+                        is VideosComponent.Output.OpenVideo -> output(TabsComponent.Output.OpenVideo(event.id))
+                    }
+                },
+            )
             Config.Bookmarks -> TabsComponent.Child.Bookmarks(factories.bookmarks(context, ::onBookmarksOutput))
             Config.Profile -> TabsComponent.Child.Profile(factories.profile(context, null, ::onProfileOutput))
         }
@@ -120,8 +129,8 @@ internal class DefaultTabsComponent(
     private fun onProfileOutput(event: ProfileComponent.Output) {
         output(
             when (event) {
-                // The Profile tab has no back.
-                ProfileComponent.Output.Back -> return
+                // Your profile has Back only on the phone, where it opened from Home's header.
+                ProfileComponent.Output.Back -> return onTabClicked(TabsComponent.Tab.Home)
                 is ProfileComponent.Output.OpenPost -> TabsComponent.Output.OpenPost(event.id)
                 is ProfileComponent.Output.OpenProfile -> TabsComponent.Output.OpenProfile(event.id)
                 is ProfileComponent.Output.Reply -> TabsComponent.Output.Reply(event.parent)
@@ -145,6 +154,9 @@ internal class DefaultTabsComponent(
         data object Activity : Config(TabsComponent.Tab.Activity.path)
 
         @Serializable
+        data object Videos : Config(TabsComponent.Tab.Videos.path)
+
+        @Serializable
         data object Bookmarks : Config(TabsComponent.Tab.Bookmarks.path)
 
         @Serializable
@@ -158,6 +170,7 @@ internal class TabFactories(
     val home: HomeComponent.Factory,
     val search: SearchComponent.Factory,
     val activity: ActivityComponent.Factory,
+    val videos: VideosComponent.Factory,
     val bookmarks: BookmarksComponent.Factory,
     val profile: ProfileComponent.Factory,
 )

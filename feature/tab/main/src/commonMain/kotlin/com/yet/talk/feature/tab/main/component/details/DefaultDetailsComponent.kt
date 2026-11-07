@@ -13,6 +13,7 @@ import com.yet.talk.domain.model.post.PostId
 import com.yet.talk.domain.model.user.UserId
 import com.yet.talk.feature.post.component.post.PostComponent
 import com.yet.talk.feature.profile.ProfileComponent
+import com.yet.talk.feature.video.VideoComponent
 import com.yet.talk.feature.tab.main.MainComponent
 import dev.zacsweers.metro.Inject
 import kotlinx.serialization.Serializable
@@ -55,6 +56,7 @@ internal class DefaultDetailsComponent(
         when (config) {
             is Config.Post -> DetailsComponent.Child.Post(factories.post(context, PostId(config.id), ::onPostOutput))
             is Config.Profile -> DetailsComponent.Child.Profile(factories.profile(context, UserId(config.id), ::onProfileOutput))
+            is Config.Video -> DetailsComponent.Child.Video(factories.video(context, config.id, ::onVideoOutput))
         }
 
     private fun onPostOutput(event: PostComponent.Output) = when (event) {
@@ -78,6 +80,13 @@ internal class DefaultDetailsComponent(
         is ProfileComponent.Output.OpenRevisions -> output(DetailsComponent.Output.OpenRevisions(event.id))
     }
 
+    private fun onVideoOutput(event: VideoComponent.Output) = when (event) {
+        VideoComponent.Output.Back -> onBack()
+        is VideoComponent.Output.OpenVideo -> open(MainComponent.Link.Video(event.id))
+        is VideoComponent.Output.OpenProfile -> open(MainComponent.Link.Profile(event.id))
+        is VideoComponent.Output.Share -> output(DetailsComponent.Output.Share(event.text))
+    }
+
     @Serializable
     private sealed class Config(val path: String) {
         @Serializable
@@ -85,11 +94,15 @@ internal class DefaultDetailsComponent(
 
         @Serializable
         data class Profile(val id: String) : Config("user/$id")
+
+        @Serializable
+        data class Video(val id: String) : Config("video/$id")
     }
 
     private fun MainComponent.Link.toConfig(): Config = when (this) {
         is MainComponent.Link.Post -> Config.Post(id.value)
         is MainComponent.Link.Profile -> Config.Profile(id.value)
+        is MainComponent.Link.Video -> Config.Video(id)
     }
 }
 
@@ -98,6 +111,7 @@ internal class DefaultDetailsComponent(
 internal class DetailFactories(
     val post: PostComponent.Factory,
     val profile: ProfileComponent.Factory,
+    val video: VideoComponent.Factory,
 )
 
 @Inject

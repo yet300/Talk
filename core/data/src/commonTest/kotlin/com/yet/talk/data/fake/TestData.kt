@@ -2,6 +2,7 @@ package com.yet.talk.data.fake
 
 import com.app.common.AppDispatchers
 import com.yet.talk.database.driver.SqlDriverFactory
+import com.yet.talk.data.video.catalog.VideoCatalogSource
 import dev.zacsweers.metro.createGraphFactory
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -25,6 +26,11 @@ internal class TestData(factory: SqlDriverFactory, scope: CoroutineScope, io: Co
         nip05 = { identifier, _ -> identifier == "me@example.com" },
         github = network.github,
         youtube = { null },
+        videoRemote = network.videos,
+        catalog = object : VideoCatalogSource {
+            override val version get() = network.catalogVersion
+            override fun catalogJson() = network.catalogJson
+        },
     )
 
     val accounts = graph.accounts
@@ -35,5 +41,6 @@ internal class TestData(factory: SqlDriverFactory, scope: CoroutineScope, io: Co
     val trending = graph.trending
     val profiles = graph.profiles
     val github = graph.github
+    val videos = graph.videos
     val syncDao = graph.syncDao
 }

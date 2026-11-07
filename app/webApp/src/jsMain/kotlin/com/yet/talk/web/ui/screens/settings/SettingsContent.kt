@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import com.yet.talk.feature.settings.SettingsComponent
 import com.yet.talk.resources.*
+import com.yet.talk.web.browser.rememberIsPhone
 import com.yet.talk.web.decompose.subscribeAsState
 import com.yet.talk.web.ui.components.ErrorRow
 import com.yet.talk.web.ui.components.TopBar
@@ -16,7 +17,8 @@ import com.yet.talk.web.ui.theme.stringResource
 @Composable
 fun SettingsContent(component: SettingsComponent) {
     val model by component.model.subscribeAsState()
-    TopBar(stringResource(MR.strings.settings_title))
+    // The web reaches Settings from the rail; the phone, from the home header, so it needs Back.
+    TopBar(stringResource(MR.strings.settings_title), onBack = component::onBack.takeIf { rememberIsPhone() })
     model.error?.let { ErrorRow(it, onDismiss = component::onErrorShown) }
     IdentitySection(model, component)
     RelaysSection(model, component)

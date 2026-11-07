@@ -100,7 +100,7 @@ private fun Shell(
 ) {
     val panels = main?.panels?.subscribeAsState()?.value
     val me = panels?.main?.instance?.me?.subscribeAsState()?.value ?: TabsComponent.Me()
-    WebShell(selection, me, actions, width, right, content)
+    WebShell(selection, me, actions, width, right, main = content)
 }
 
 /** Until the saved key has been read: the wordmark on the page background. */

@@ -53,6 +53,24 @@ object TalkEvents {
     fun repost(target: Event, createdAt: Long) =
         repost(target, createdAt, extraTags = TalkSchema.labels(TalkSchema.Role.REPOST))
 
+    /** A like of a video (NIP-25 kind 17 on the NIP-73 URL). */
+    fun videoLike(videoUrl: String, createdAt: Long) = EventTemplate(
+        kind = Kinds.EXTERNAL_REACTION,
+        content = "+",
+        tags = listOf(listOf("k", TalkSchema.WEB), listOf("i", videoUrl)) + TalkSchema.labels(TalkSchema.Role.VIDEO_LIKE),
+        createdAt = createdAt,
+    )
+
+    /** A top-level comment on a video (NIP-22 kind 1111): root and parent are the video URL. */
+    fun videoComment(videoUrl: String, content: String, createdAt: Long) = EventTemplate(
+        kind = Kinds.COMMENT,
+        content = content,
+        tags = listOf(
+            listOf("I", videoUrl), listOf("K", TalkSchema.WEB), listOf("i", videoUrl), listOf("k", TalkSchema.WEB),
+        ) + TalkSchema.labels(TalkSchema.Role.VIDEO_COMMENT),
+        createdAt = createdAt,
+    )
+
     /** NIP-09 deletion of the author's own events, given as id to kind. */
     fun delete(targets: Map<String, Int>, createdAt: Long) = EventTemplate(
         kind = Kinds.DELETION,

@@ -9,6 +9,8 @@ kotlin {
             api(projects.feature.tab.search)
             api(projects.feature.tab.activity)
             api(projects.feature.tab.bookmarks)
+            api(projects.feature.tab.videos)
+            api(projects.feature.video)
             api(projects.feature.profile)
             api(projects.feature.post)
         }

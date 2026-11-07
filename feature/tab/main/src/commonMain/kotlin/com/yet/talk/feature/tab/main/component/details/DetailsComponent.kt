@@ -7,6 +7,7 @@ import com.arkivanov.decompose.value.Value
 import com.yet.talk.domain.model.post.PostId
 import com.yet.talk.feature.post.component.post.PostComponent
 import com.yet.talk.feature.profile.ProfileComponent
+import com.yet.talk.feature.video.VideoComponent
 import com.yet.talk.feature.tab.main.MainComponent
 
 /**
@@ -29,6 +30,8 @@ interface DetailsComponent : WebNavigationOwner {
         class Post(val component: PostComponent) : Child()
 
         class Profile(val component: ProfileComponent) : Child()
+
+        class Video(val component: VideoComponent) : Child()
     }
 
     sealed interface Output {
@@ -46,6 +49,9 @@ interface DetailsComponent : WebNavigationOwner {
         data object OpenSettings : Output
 
         data object EditProfile : Output
+
+        /** A new post starting with [text] (Share on a video). */
+        data class Share(val text: String) : Output
     }
 
     fun interface Factory {

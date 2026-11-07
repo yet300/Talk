@@ -22,6 +22,7 @@ fun WebShell(
     actions: RailActions,
     width: ShellWidth = ShellWidth.Column,
     right: (@Composable () -> Unit)? = null,
+    phoneNav: Boolean = selection is RailSelection.Tab && selection.tab in PhoneTabs,
     main: @Composable () -> Unit,
 ) {
     val home = selection == RailSelection.Tab(TabsComponent.Tab.Home)
@@ -29,8 +30,8 @@ fun WebShell(
         Div({ classes("talk", "t-phone-page") }) {
             if (home) MobileHomeHeader(me, actions)
             Main({ classes("t-phone-main") }) { main() }
-            // The editor is full screen on a phone, as in Compose · Mobile.
-            if (width == ShellWidth.Column) {
+            // Only the four tabs of the phone navigation show it; every page above them has Back instead.
+            if (phoneNav) {
                 if (home) ComposeFab(actions)
                 MobileNav(selection, actions)
             }

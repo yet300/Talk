@@ -3,6 +3,9 @@ package com.yet.talk.data
 import androidx.paging.testing.asSnapshot
 import com.yet.talk.api.schema.PostRef
 import com.yet.talk.api.schema.TalkEvents
+import com.yet.talk.api.schema.TalkSchema
+import com.yet.talk.domain.model.video.VideoList
+import com.yet.talk.domain.model.video.VideoStats
 import com.yet.talk.data.fake.TestData
 import com.yet.talk.domain.model.error.DomainError
 import com.yet.talk.domain.model.post.PostId
@@ -146,6 +149,36 @@ class DataTest {
         val calls = data.network.gitHubCalls
         assertEquals(card, data.github.card(ref).toList().last())
         assertEquals(calls, data.network.gitHubCalls, "served from the database")
+    }
+
+    @Test
+    fun videosLoadOnceAndTheirLikesAndCommentsLiveOnNostr() = dataTest { data ->
+        data.accounts.importKey(data.accounts.generateKey().getOrThrow()).getOrThrow()
+        data.network.catalogJson = """[{"vid":"VMj-3S1tku0","title":"Micrograd","channel":"Karpathy","categories":["ML"],"score":25}]"""
+        data.videos.ensureCatalog().getOrThrow()
+        data.network.catalogJson = "not loaded twice"
+        data.videos.ensureCatalog().getOrThrow()
+        assertEquals("Micrograd", data.videos.observeVideo("VMj-3S1tku0").first()?.title)
+        data.network.catalogJson = """[{"vid":"VMj-3S1tku0","title":"Micrograd, refreshed","channel":"Karpathy"}]"""
+        data.network.catalogVersion = 2
+        data.videos.ensureCatalog().getOrThrow()
+        assertEquals("Micrograd, refreshed", data.videos.observeVideo("VMj-3S1tku0").first()?.title, "a new catalog version loads again")
+
+        data.network.events += bob.sign(TalkEvents.videoLike(TalkSchema.videoUrl("VMj-3S1tku0"), 10))
+        data.network.events += bob.sign(TalkEvents.videoComment(TalkSchema.videoUrl("VMj-3S1tku0"), "watch this", 11))
+        data.videos.refresh("VMj-3S1tku0").getOrThrow()
+        data.videos.setLiked("VMj-3S1tku0", true).getOrThrow()
+        data.videos.comment("VMj-3S1tku0", "great lecture").getOrThrow()
+
+        assertEquals(VideoStats(likes = 2, comments = 2), data.videos.observeStats("VMj-3S1tku0").first())
+        assertEquals(listOf("watch this", "great lecture"), data.videos.comments("VMj-3S1tku0").first().map { it.content })
+        assertEquals(listOf(Kinds.EXTERNAL_REACTION, Kinds.COMMENT), data.network.published.map { it.kind })
+        assertTrue(data.videos.observeViewer("VMj-3S1tku0").first().liked)
+        assertEquals(listOf("VMj-3S1tku0"), data.videos.list(VideoList.Liked).first().map { it.id })
+
+        data.videos.setLiked("VMj-3S1tku0", false).getOrThrow()
+        assertEquals(Kinds.DELETION, data.network.published.last().kind)
+        assertEquals(1L, data.videos.observeStats("VMj-3S1tku0").first().likes)
     }
 
     @Test

@@ -51,6 +51,13 @@ shown only when the check holds; the result lives in the profile cache. GitHub l
 the API (repository or user), cached for a day. Without a token GitHub allows 60 requests an hour, so a
 failure pauses fetching for five minutes and the plain link row shows meanwhile.
 
+Videos (the HackerTube catalog): a video is named by its URL `https://www.youtube.com/watch?v=<id>` (NIP-73,
+`k` = `web`), whatever link was shared. A like is a NIP-25 kind 17 reaction (`content` `+`, tags `k` and `i`,
+Talk label role `video-like`); unliking publishes a NIP-09 deletion of it. A comment is a NIP-22 kind 1111 with
+root and parent both the URL (`I`/`K` and `i`/`k`, role `video-comment`); Talk shows only these top-level
+comments. Watch later and History stay on the device. Likes and comments from other clients on the same URL
+count and show.
+
 Key storage per platform:
 
 - **Android:** an external signer (Amber, NIP-55) when installed, otherwise the `nsec` in KSafe.

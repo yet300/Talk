@@ -9,6 +9,7 @@ import com.yet.talk.web.ui.screens.tab.activity.ActivityContent
 import com.yet.talk.web.ui.screens.tab.bookmarks.BookmarksContent
 import com.yet.talk.web.ui.screens.tab.home.HomeContent
 import com.yet.talk.web.ui.screens.tab.search.SearchContent
+import com.yet.talk.web.ui.screens.tab.videos.VideosContent
 import com.yet.talk.web.ui.theme.stringResource
 
 /** The active tab in the main column. */
@@ -18,6 +19,7 @@ fun TabsContent(child: TabsComponent.Child) {
         is TabsComponent.Child.Home -> HomeContent(child.component)
         is TabsComponent.Child.Search -> SearchContent(child.component)
         is TabsComponent.Child.Activity -> ActivityContent(child.component)
+        is TabsComponent.Child.Videos -> VideosContent(child.component)
         is TabsComponent.Child.Bookmarks -> BookmarksContent(child.component)
         is TabsComponent.Child.Profile -> ProfileContent(child.component)
     }

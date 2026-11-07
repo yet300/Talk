@@ -21,7 +21,7 @@ fun TargetPreview(mode: ComposeMode, post: Post) {
         is ComposeMode.Reply -> MR.strings.compose_reply
         is ComposeMode.Quote -> MR.strings.compose_quote
         is ComposeMode.Edit -> MR.strings.compose_edit
-        ComposeMode.New -> return
+        ComposeMode.New, is ComposeMode.Share -> return
     }
     Div({ classes("t-target") }) {
         Span({ classes("t-caption") }) { Text(stringResource(heading)) }

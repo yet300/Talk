@@ -303,6 +303,18 @@ Decisions in these passes:
     once, at its latest entry: its own time, or the time someone you follow reposted it ("Name reposted").
     Replies show "Replying to @name". Not sent shows Retry in place of the actions, which publishes the
     stored event again.
+16. **Videos** (2026-11-06): the catalog is compiled into the apps (refreshed weekly by CI) and loads into the
+    database on the first Videos or video page ("Getting the catalog ready…"). For you ranks videos sharing
+    categories with Liked and History, then by HackerTube's score, and never shows one of those; three cards.
+    Related: most categories in common, three. Browse pages 20 at a time; the category chips are all 150, the
+    largest first. Comments are top-level only and their cards have no actions. Copy link copies the YouTube
+    URL; Share opens the editor with it, so the post gets a YouTube card. On the phone a video card in a post
+    opens the video page; on the web it plays in the card. Phone navigation is Home, Search, Activity, Videos.
+    On the phone For you is a row to swipe and the categories one swipeable row, so the filters are on the first
+    screen; wider, the categories wrap: the 12 largest, then More (all 150) and Fewer.
+17. **Phone navigation shows only on its four tabs** (2026-11-07). Every page above them (a post, a profile, a
+    video, your profile, Bookmarks, Settings, Revisions, the editors) has Back in its top bar instead; Back on
+    your profile and on Bookmarks returns Home.
 
 ### Build order
 

@@ -37,11 +37,15 @@ interface MainComponent : WebNavigationOwner {
 
     fun openProfile(id: UserId)
 
+    fun openVideo(id: String)
+
     /** What a link opens in the details panel. */
     sealed interface Link {
         data class Post(val id: PostId) : Link
 
         data class Profile(val id: UserId) : Link
+
+        data class Video(val id: String) : Link
     }
 
     /** Root destinations: the editor, settings and revisions open above everything. */
@@ -59,6 +63,8 @@ interface MainComponent : WebNavigationOwner {
         data object OpenSettings : Output
 
         data object EditProfile : Output
+
+        data class Share(val text: String) : Output
     }
 
     fun interface Factory {

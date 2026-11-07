@@ -45,6 +45,9 @@ object TalkIcons {
     val Fork = MR.images.ic_fork
     val Globe = MR.images.ic_globe
     val Play = MR.images.ic_play
+    val Video = MR.images.ic_video
+    val Clock = MR.images.ic_clock
+    val Link = MR.images.ic_link
 }
 
 /**
