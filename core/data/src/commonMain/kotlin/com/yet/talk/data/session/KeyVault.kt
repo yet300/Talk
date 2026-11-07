@@ -7,4 +7,7 @@ internal interface KeyVault {
     suspend fun write(secretKeyHex: String)
 
     suspend fun clear()
+
+    /** The key chats are encrypted with in the database (64 hex), made on first use; [clear] removes it. */
+    suspend fun chatKey(): String
 }

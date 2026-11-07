@@ -50,6 +50,9 @@ object TalkIcons {
     val Link = MR.images.ic_link
     val Report = MR.images.ic_report
     val EyeOff = MR.images.ic_eye_off
+    val Chat = MR.images.ic_chat
+    val Send = MR.images.ic_send
+    val Info = MR.images.ic_info
 }
 
 /**

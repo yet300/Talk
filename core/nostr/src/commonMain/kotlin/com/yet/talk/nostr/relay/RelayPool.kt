@@ -36,12 +36,13 @@ internal class RelayPool(
     private val verify: (Event) -> Boolean = EventVerifier::verify,
     /** Where events are verified (sha256 + Schnorr): never the caller's (often the main) thread. */
     private val verifyDispatcher: CoroutineDispatcher = Dispatchers.Default,
+    private val authenticator: RelayAuthenticator? = null,
 ) : RelayClient {
     private val connections = MutableStateFlow<Map<String, RelayConnection>>(emptyMap())
 
     fun connection(url: String): RelayConnection {
         connections.value[url]?.let { return it }
-        connections.update { if (url in it) it else it + (url to RelayConnection(url, transport, scope)) }
+        connections.update { if (url in it) it else it + (url to RelayConnection(url, transport, scope, authenticator = authenticator)) }
         return connections.value.getValue(url)
     }
 
@@ -128,7 +129,8 @@ internal class RelayPool(
                         true
                     }
                     is RelayMessage.EndOfStoredEvents -> !untilEose
-                    is RelayMessage.Closed -> false
+                    // A live subscription outlives "auth-required": it is sent again once the relay accepts AUTH.
+                    is RelayMessage.Closed -> !untilEose && message.message.startsWith("auth-required")
                     is RelayMessage.CountResult -> true
                 }
             }

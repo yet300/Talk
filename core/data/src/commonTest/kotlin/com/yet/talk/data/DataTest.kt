@@ -5,6 +5,9 @@ import com.yet.talk.api.schema.PostRef
 import com.yet.talk.api.schema.TalkEvents
 import com.yet.talk.api.schema.TalkSchema
 import com.yet.talk.domain.model.video.VideoList
+import com.yet.talk.domain.model.chat.ChatId
+import com.yet.talk.nostr.nip.Nip59
+import com.yet.talk.nostr.nip.Rumor
 import com.yet.talk.domain.model.moderation.ReportReason
 import com.yet.talk.domain.model.moderation.ReportTarget
 import com.yet.talk.domain.model.video.VideoStats
@@ -203,6 +206,46 @@ class DataTest {
         val report = data.network.published.last()
         assertEquals(Kinds.REPORT, report.kind)
         assertEquals(listOf("e", "c".repeat(64), "nudity"), report.tags.first())
+    }
+
+    @Test
+    fun chatsArriveEncryptedAndRepliesReachTheOtherSide() = dataTest { data ->
+        // Bob has inbox relays; his first message to us is a request (we do not follow him).
+        data.network.events += bob.sign(TalkEvents.inboxRelays(listOf("wss://bob-inbox"), 1))
+        val key = SecretKey.generate()
+        val me = UserId(key.publicKey)
+        val hello = Rumor.of(bob.publicKey(), TalkEvents.chatMessage(listOf(me.value), "hi from bob", 1_000))
+        data.network.events += Nip59.wrap(hello, bob, me.value, now = 1_000)
+
+        data.accounts.importKey(Nip19.nsec(key)).getOrThrow()
+        // The sync runs in the background: wait for the chat to arrive.
+        val chat = data.chats.chats().first { it.isNotEmpty() }.single()
+        assertEquals(ChatId.of(listOf(UserId(bob.publicKey()))), chat.id)
+        assertEquals("hi from bob" to true, chat.lastMessage to chat.isRequest)
+        assertEquals(0, data.chats.unreadCount().first(), "requests do not count")
+        assertTrue(data.network.published.none { it.kind == Kinds.DM_RELAYS }, "signing in publishes nothing")
+
+        assertTrue(data.chats.canReceive(chat.id).getOrThrow())
+        data.chats.send(chat.id, "hi bob").getOrThrow()
+        val messages = data.chats.messages(chat.id).first()
+        assertEquals(listOf("hi from bob" to false, "hi bob" to true), messages.map { it.content to it.isMine })
+        assertEquals(PublishState.Published, messages.last().publishState)
+        assertTrue(!data.chats.chats().first().single().isRequest, "answering accepts it")
+        assertTrue(data.network.published.any { it.kind == Kinds.DM_RELAYS && it.pubkey == me.value }, "the first message publishes our inbox list")
+
+        // Bob opens the wrap addressed to him; nobody else can.
+        val toBob = data.network.published.filter { it.kind == Kinds.GIFT_WRAP && listOf("p", bob.publicKey()) in it.tags }.single()
+        assertEquals("hi bob", Nip59.unwrap(toBob, bob)?.content)
+        assertNull(Nip59.unwrap(toBob, LocalKeySigner(SecretKey.generate())))
+    }
+
+    @Test
+    fun someoneWithoutInboxRelaysCannotReceiveChats() = dataTest { data ->
+        data.accounts.importKey(data.accounts.generateKey().getOrThrow()).getOrThrow()
+        val chat = ChatId.of(listOf(UserId(bob.publicKey())))
+        assertEquals(false, data.chats.canReceive(chat).getOrThrow())
+        assertEquals(DomainError.CannotReceiveChats, data.chats.send(chat, "hello?").exceptionOrNull())
+        assertEquals(PublishState.Failed, data.chats.messages(chat).first().single().publishState)
     }
 
     @Test

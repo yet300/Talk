@@ -1,0 +1,20 @@
+-- Version 6 → 7: NIP-17 private chats.
+CREATE TABLE chat (
+    id TEXT NOT NULL PRIMARY KEY,
+    members TEXT NOT NULL,
+    -- 1 once the viewer wrote in it or accepted it: no longer a request.
+    accepted INTEGER NOT NULL DEFAULT 0,
+    last_read_at INTEGER NOT NULL DEFAULT 0,
+    last_at INTEGER NOT NULL DEFAULT 0
+);
+
+CREATE TABLE chat_message (
+    id TEXT NOT NULL PRIMARY KEY,
+    chat_id TEXT NOT NULL,
+    author TEXT NOT NULL,
+    created_at INTEGER NOT NULL,
+    rumor_enc TEXT NOT NULL,
+    publish_state TEXT NOT NULL
+);
+
+CREATE INDEX chat_message_chat ON chat_message(chat_id, created_at);

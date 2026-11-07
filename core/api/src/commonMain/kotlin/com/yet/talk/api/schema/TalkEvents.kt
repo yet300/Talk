@@ -65,6 +65,22 @@ object TalkEvents {
         createdAt = createdAt,
     )
 
+    /** A private chat message (NIP-17 kind 14): a rumor, sealed and gift-wrapped before it leaves the device. */
+    fun chatMessage(recipients: Collection<String>, content: String, createdAt: Long) = EventTemplate(
+        kind = Kinds.CHAT_MESSAGE,
+        content = content,
+        tags = recipients.map { listOf("p", it) },
+        createdAt = createdAt,
+    )
+
+    /** The relays a user receives chats on (NIP-17 kind 10050). */
+    fun inboxRelays(relays: List<String>, createdAt: Long) = EventTemplate(
+        kind = Kinds.DM_RELAYS,
+        content = "",
+        tags = relays.map { listOf("relay", it) },
+        createdAt = createdAt,
+    )
+
     /** A like of a video (NIP-25 kind 17 on the NIP-73 URL). */
     fun videoLike(videoUrl: String, createdAt: Long) = EventTemplate(
         kind = Kinds.EXTERNAL_REACTION,

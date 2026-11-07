@@ -40,6 +40,7 @@ internal class RelayConnection(
     private val transport: RelayTransport,
     scope: CoroutineScope,
     private val backoff: (attempt: Int) -> Duration = ::defaultBackoff,
+    private val authenticator: RelayAuthenticator? = null,
 ) {
     enum class State { Idle, Connecting, Connected, Disconnected }
 
@@ -85,7 +86,21 @@ internal class RelayConnection(
                             for (message in outgoing) socket.send(message.toJson())
                         }
                         _state.value = State.Connected
-                        socket.incoming.collect { text -> RelayMessage.parse(text)?.let { _messages.emit(it) } }
+                        var authId: String? = null
+                        socket.incoming.collect { text ->
+                            val message = RelayMessage.parse(text) ?: return@collect
+                            when {
+                                // NIP-42: answer, then ask again for what the relay refused before it knew us.
+                                message is RelayMessage.Auth && authenticator != null -> launch {
+                                    val answer = authenticator.authenticate(url, message.challenge) ?: return@launch
+                                    authId = answer.id
+                                    outgoing.trySend(ClientMessage.Auth(answer))
+                                }
+                                message is RelayMessage.Ok && message.eventId == authId && message.accepted ->
+                                    openSubscriptions.value.values.forEach { outgoing.trySend(it) }
+                            }
+                            _messages.emit(message)
+                        }
                         sender.cancel()
                     }
                 } finally {

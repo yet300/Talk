@@ -15,6 +15,9 @@ internal actual fun platformSign(message: ByteArray, secretKey: ByteArray, auxRa
 internal actual fun platformVerify(signature: ByteArray, message: ByteArray, publicKey: ByteArray): Boolean =
     schnorr.verify(signature.toUint8Array(), message.toUint8Array(), publicKey.toUint8Array())
 
+internal actual fun platformSharedX(secretKey: ByteArray, publicKey: ByteArray): ByteArray =
+    secp256k1.getSharedSecret(secretKey.toUint8Array(), (byteArrayOf(2) + publicKey).toUint8Array(), true).toByteArray().copyOfRange(1, 33)
+
 internal actual fun secureRandomBytes(size: Int): ByteArray {
     val bytes = Uint8Array(size)
     js("globalThis.crypto").getRandomValues(bytes)

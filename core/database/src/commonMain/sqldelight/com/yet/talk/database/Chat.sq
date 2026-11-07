@@ -1,0 +1,62 @@
+-- NIP-17 private chats. A chat is its set of members (the other participants' pubkeys, sorted, comma-joined);
+-- messages are stored with their rumor encrypted under a key kept in KSafe (chats encrypted at rest).
+CREATE TABLE chat (
+    id TEXT NOT NULL PRIMARY KEY,
+    members TEXT NOT NULL,
+    -- 1 once the viewer wrote in it or accepted it: no longer a request.
+    accepted INTEGER NOT NULL DEFAULT 0,
+    last_read_at INTEGER NOT NULL DEFAULT 0,
+    last_at INTEGER NOT NULL DEFAULT 0
+);
+
+CREATE TABLE chat_message (
+    id TEXT NOT NULL PRIMARY KEY,
+    chat_id TEXT NOT NULL,
+    author TEXT NOT NULL,
+    created_at INTEGER NOT NULL,
+    rumor_enc TEXT NOT NULL,
+    publish_state TEXT NOT NULL
+);
+
+CREATE INDEX chat_message_chat ON chat_message(chat_id, created_at);
+
+insertChatIfAbsent:
+INSERT OR IGNORE INTO chat(id, members, accepted, last_at) VALUES (?, ?, ?, ?);
+
+touchChat:
+UPDATE chat SET last_at = MAX(last_at, :at), accepted = MAX(accepted, :accepted) WHERE id = :id;
+
+insertMessage:
+INSERT OR IGNORE INTO chat_message(id, chat_id, author, created_at, rumor_enc, publish_state) VALUES (?, ?, ?, ?, ?, ?);
+
+setMessageState:
+UPDATE chat_message SET publish_state = :state WHERE id = :id;
+
+selectMessage:
+SELECT * FROM chat_message WHERE id = ?;
+
+markRead:
+UPDATE chat SET last_read_at = :at WHERE id = :id;
+
+accept:
+UPDATE chat SET accepted = 1 WHERE id = :id;
+
+deleteChat {
+    DELETE FROM chat_message WHERE chat_id = :id;
+    DELETE FROM chat WHERE id = :id;
+}
+
+-- Every chat with its last message and unread count. A request: not accepted, and no member is followed.
+selectChats:
+SELECT c.id, c.members, c.last_at,
+    (c.accepted = 0 AND NOT EXISTS (
+        SELECT 1 FROM follow f WHERE f.follower = :viewer AND instr(',' || c.members || ',', ',' || f.followee || ',') > 0
+    )) AS is_request,
+    (SELECT COUNT(*) FROM chat_message m WHERE m.chat_id = c.id AND m.author != :viewer AND m.created_at > c.last_read_at) AS unread,
+    (SELECT m.rumor_enc FROM chat_message m WHERE m.chat_id = c.id ORDER BY m.created_at DESC, m.id DESC LIMIT 1) AS last_rumor,
+    (SELECT m.publish_state FROM chat_message m WHERE m.chat_id = c.id ORDER BY m.created_at DESC, m.id DESC LIMIT 1) AS last_state
+FROM chat c
+ORDER BY c.last_at DESC;
+
+selectMessages:
+SELECT * FROM chat_message WHERE chat_id = ? ORDER BY created_at, id;

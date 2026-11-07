@@ -397,6 +397,9 @@ Decisions in this pass (on the designer's notes):
 2. Chats core: NIP-44 v2, NIP-59 seal and gift wrap, NIP-17 text messages, the kind 10050 inbox relays (yours
    published, theirs read), the list with Chats · Requests, the conversation, Sending… / Not sent, offline,
    "Can't receive chats yet"; the fifth navigation item with the unread count; messages encrypted at rest.
+   Built (2026-11-07): `Nip44`, `Nip59`, NIP-42 AUTH in `core:nostr`; `ChatRepository` (wraps synced while signed in,
+   kind 10050 published when Chats first opens); `feature:tab:chats` and `feature:chat`; on the web the two panes,
+   the badge on the rail and the capsule. Not yet: the Location channels row and chat info (later steps).
 3. Chats in full: groups up to 10, replies, reactions, delete for everyone / for me, encrypted images (kind 15,
    AES-GCM on Blossom), disappearing messages (NIP-40), mute and block (NIP-51 kind 10000), report, leave.
 4. Trust and security: verify a contact (safety code, QR), Settings' Security section, app lock (NIP-49 on the

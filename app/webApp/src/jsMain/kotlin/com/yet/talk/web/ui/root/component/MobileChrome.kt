@@ -9,6 +9,7 @@ import com.yet.talk.web.ui.components.AvatarSize
 import com.yet.talk.web.ui.components.IconButton
 import com.yet.talk.web.ui.theme.TalkIcon
 import com.yet.talk.web.ui.theme.TalkIcons
+import com.yet.talk.web.ui.theme.pluralResource
 import com.yet.talk.web.ui.theme.stringResource
 import org.jetbrains.compose.web.dom.A
 import org.jetbrains.compose.web.dom.Div
@@ -19,30 +20,34 @@ import org.jetbrains.compose.web.dom.Text
 
 /**
  * The phone's bottom navigation (`MobileNav`): a glass capsule pinned above the bottom edge, icons only,
- * the active tab on a raised pill: Home, Search, Activity, Videos (decision 9). Your profile (with its
- * Bookmarks tab) and Settings open from the home header.
+ * the active tab on a raised pill: Home, Search, Activity, Videos, Chats with the unread count (decision 19).
+ * Your profile (with its Bookmarks tab) and Settings open from the home header.
  */
 @Composable
-fun MobileNav(selection: RailSelection, actions: RailActions) {
+fun MobileNav(selection: RailSelection, unreadChats: Int, actions: RailActions) {
     val label = stringResource(MR.strings.nav_primary)
     Div({ classes("x-bottom-nav-dock", "t-mobile-dock") }) {
         Nav({ classes("x-bottom-nav"); attr("aria-label", label) }) {
             PhoneTabs.forEach { tab ->
                 val active = selection == RailSelection.Tab(tab)
-                val name = tab.label()
+                val badge = if (tab == TabsComponent.Tab.Chats) unreadChats else 0
+                val name = if (badge > 0) "${tab.label()}, ${pluralResource(MR.plurals.chats_unread_count, badge)}" else tab.label()
                 A(href = "#", attrs = {
                     classes("x-bottom-nav-item")
                     attr("aria-label", name)
                     if (active) attr("aria-current", "page")
                     onClick { it.preventDefault(); actions.onTab(tab) }
-                }) { TalkIcon(if (tab == TabsComponent.Tab.Videos) TalkIcons.Play else tab.icon(active)) }
+                }) {
+                    TalkIcon(if (tab == TabsComponent.Tab.Videos) TalkIcons.Play else tab.icon(active))
+                    if (badge > 0) NavBadge(badge)
+                }
             }
         }
     }
 }
 
 /** The tabs in the phone's navigation; Profile opens from the home header's avatar, Bookmarks is a tab of it. */
-internal val PhoneTabs = TabsComponent.Tab.entries - TabsComponent.Tab.Profile - TabsComponent.Tab.Bookmarks
+internal val PhoneTabs = listOf(TabsComponent.Tab.Home, TabsComponent.Tab.Search, TabsComponent.Tab.Activity, TabsComponent.Tab.Videos, TabsComponent.Tab.Chats)
 
 /** The home header on phones (`x-mobile-header`): your avatar (Profile), the wordmark, Settings. */
 @Composable

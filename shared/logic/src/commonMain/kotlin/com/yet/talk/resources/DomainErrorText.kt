@@ -23,6 +23,7 @@ fun DomainError.toStringDesc(): StringDesc = when (this) {
     DomainError.GitHubProofMissing -> StringDesc.Resource(MR.strings.github_proof_missing)
     DomainError.InvalidKey -> StringDesc.Resource(MR.strings.error_invalid_key)
     DomainError.InvalidRelayUrl -> StringDesc.Resource(MR.strings.error_invalid_relay)
+    DomainError.CannotReceiveChats -> StringDesc.Resource(MR.strings.chat_cannot_receive)
     DomainError.NotSignedIn -> StringDesc.Resource(MR.strings.error_not_signed_in)
     DomainError.NotFound -> StringDesc.Resource(MR.strings.error_not_found)
     DomainError.NoRelayAccepted -> StringDesc.Resource(MR.strings.error_no_relay_accepted)

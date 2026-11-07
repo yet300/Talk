@@ -3,6 +3,8 @@ package com.yet.talk.data.fake
 import com.yet.talk.api.schema.TalkEvent
 import com.yet.talk.api.source.media.BlobDescriptor
 import com.yet.talk.api.source.media.MediaRemoteSource
+import com.yet.talk.api.source.chat.ChatRemoteSource
+import com.yet.talk.nostr.nip.Kinds
 import com.yet.talk.api.source.video.VideoRemoteSource
 import com.yet.talk.api.source.github.GistDto
 import com.yet.talk.api.source.github.GitHubRemoteSource
@@ -83,6 +85,23 @@ class FakeNetwork {
     val videos = object : VideoRemoteSource {
         override suspend fun activity(videoUrl: String) = parsed().filter {
             (it is TalkEvent.UrlLike && it.url == videoUrl) || (it is TalkEvent.UrlComment && it.url == videoUrl)
+        }
+    }
+
+    val chats = object : ChatRemoteSource {
+        override suspend fun inboxRelays(pubkeys: Collection<String>) = events
+            .filter { it.kind == Kinds.DM_RELAYS && it.pubkey in pubkeys }
+            .groupBy { it.pubkey }
+            .mapValues { (_, lists) -> lists.maxBy { it.createdAt }.tags.filter { it[0] == "relay" }.map { it[1] } }
+
+        override suspend fun publish(event: Event, relays: Collection<String>): Boolean {
+            published += event
+            if (accept) events += event
+            return accept
+        }
+
+        override fun wraps(pubkey: String, since: Long?, relays: Collection<String>) = kotlinx.coroutines.flow.flow {
+            events.filter { it.kind == Kinds.GIFT_WRAP && listOf("p", pubkey) in it.tags && (since == null || it.createdAt >= since) }.forEach { emit(it) }
         }
     }
 

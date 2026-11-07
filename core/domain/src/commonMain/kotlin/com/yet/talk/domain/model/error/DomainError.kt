@@ -36,6 +36,9 @@ sealed class DomainError(message: String) : Exception(message) {
 
     data object InvalidRelayUrl : Validation("A relay address starts with wss://")
 
+    /** A chat member has no inbox relays (kind 10050), so they cannot receive private chats yet. */
+    data object CannotReceiveChats : DomainError("This person can't receive chats yet")
+
     data object NotSignedIn : DomainError("Sign in to do this")
 
     data object NotFound : DomainError("Not found")

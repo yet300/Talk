@@ -10,4 +10,10 @@ clearUserData {
     DELETE FROM relay;
     DELETE FROM trending;
     DELETE FROM sync_state;
+    DELETE FROM video_list;
+    DELETE FROM video_like;
+    DELETE FROM video_comment;
+    DELETE FROM report;
+    DELETE FROM chat_message;
+    DELETE FROM chat;
 }

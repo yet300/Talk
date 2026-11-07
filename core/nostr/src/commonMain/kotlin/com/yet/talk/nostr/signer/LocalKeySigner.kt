@@ -8,6 +8,7 @@ import com.yet.talk.nostr.event.Event
 import com.yet.talk.nostr.event.EventHash
 import com.yet.talk.nostr.event.EventTemplate
 import com.yet.talk.nostr.key.SecretKey
+import com.yet.talk.nostr.nip.Nip44
 
 class LocalKeySigner(private val secretKey: SecretKey) : Signer {
 
@@ -27,4 +28,13 @@ class LocalKeySigner(private val secretKey: SecretKey) : Signer {
             sig = signature.toHex(),
         )
     }
+
+    override suspend fun nip44Encrypt(plaintext: String, peerPubkey: String): String =
+        Nip44.encrypt(plaintext, conversationKey(peerPubkey))
+
+    override suspend fun nip44Decrypt(payload: String, peerPubkey: String): String =
+        Nip44.decrypt(payload, conversationKey(peerPubkey))
+
+    // Derived per call: the shared key is as sensitive as the secret key, so it is not cached.
+    private fun conversationKey(peerPubkey: String) = Nip44.conversationKey(secretKey.toHex(), peerPubkey)
 }

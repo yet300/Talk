@@ -139,6 +139,36 @@ Rules:
 
 Every event the app writes, apart from kinds 0, 3 and 10003, carries the label namespace.
 
+## Private chats (NIP-17)
+
+Chats are the standard Nostr DMs, so they work with other NIP-17 clients (0xchat, Amethyst, Coracle). They carry
+no Talk label: the label would mark them on relays, and the inner events are never public.
+
+| Layer | Event |
+|---|---|
+| message (the rumor) | kind 14, unsigned, `content` = the text, a `p` tag per other member; the id is computed but there is no `sig` |
+| seal | kind 13, signed by the author, `content` = the rumor NIP-44 v2 encrypted to one recipient, no tags |
+| gift wrap | kind 1059, signed by a throwaway key, `content` = the seal NIP-44 encrypted to that recipient, `["p", <recipient>]` |
+| inbox relays | kind 10050 with `["relay", <url>]` tags (1 to 3) |
+
+- **Sending:** one wrap per member, published to that member's kind 10050 relays, plus one to the author's own
+  inbox (their copy on other devices). A member with no kind 10050 cannot be written to ("Can't receive chats
+  yet"); nothing is sent to anyone else's relays instead.
+- **Timestamps:** the seal's and the wrap's `created_at` are random, up to two days in the past (NIP-59), so
+  relays do not learn when a message was written. The rumor keeps the real time.
+- **Receiving:** a live subscription for kind 1059 with `#p` = me on my inbox relays, from the last sync minus two
+  days. A wrap counts only when the seal's signature holds, the seal's pubkey equals the rumor's, and the rumor's
+  id is right. The chat is the set of the rumor's `p` tags and author, minus me.
+- **Inbox relays:** Talk publishes your kind 10050 when you first open Chats or send, if you have none:
+  `wss://auth.nostr1.com` (serves wraps only to their recipient, after NIP-42 AUTH) and `wss://relay.damus.io`.
+  Others' kind 10050 are read from their relays and from `wss://purplepag.es`.
+- **NIP-42:** a relay that sends `AUTH` gets a kind 22242 event with `["relay", <url>]` and `["challenge", <c>]`,
+  signed by the session key; subscriptions closed with `auth-required` are sent again once it says OK.
+- **Requests:** a chat with nobody you follow, that you have neither written in nor accepted, is a request.
+- **On the device:** messages are stored NIP-44 encrypted with a random 32-byte key kept in KSafe
+  (`chat_storage_key`), deleted on sign-out.
+- **No forward secrecy** (NIP-17 has none): someone who later gets your key can read the wraps relays kept.
+
 ## Feeds
 
 As in KarpathyTalk, timelines list posts only: reposts are counted on the post, not shown as timeline items.

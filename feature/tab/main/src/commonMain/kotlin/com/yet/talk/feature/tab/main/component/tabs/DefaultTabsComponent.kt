@@ -10,10 +10,13 @@ import com.arkivanov.decompose.router.webhistory.WebNavigation
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.app.common.decompose.coroutineScope
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import com.yet.talk.feature.profile.ProfileComponent
 import com.yet.talk.feature.tab.activity.ActivityComponent
 import com.yet.talk.feature.tab.bookmarks.BookmarksComponent
+import com.yet.talk.feature.tab.chats.ChatsComponent
+import com.yet.talk.domain.repository.ChatRepository
 import com.yet.talk.feature.tab.home.HomeComponent
 import com.yet.talk.feature.tab.search.SearchComponent
 import com.yet.talk.feature.tab.videos.VideosComponent
@@ -25,6 +28,7 @@ internal class DefaultTabsComponent(
     private val output: (TabsComponent.Output) -> Unit,
     private val factories: TabFactories,
     meSource: MeSource,
+    chats: ChatRepository,
 ) : TabsComponent, ComponentContext by componentContext {
 
     private val navigation = StackNavigation<Config>()
@@ -33,7 +37,9 @@ internal class DefaultTabsComponent(
     override val me: Value<TabsComponent.Me> = meValue
 
     init {
-        coroutineScope().launch { meSource.observe().collect { meValue.value = it } }
+        coroutineScope().launch {
+            combine(meSource.observe(), chats.unreadCount()) { me, unread -> me.copy(unreadChats = unread) }.collect { meValue.value = it }
+        }
     }
 
     private val configStack: Value<ChildStack<Config, TabsComponent.Child>> =
@@ -62,6 +68,7 @@ internal class DefaultTabsComponent(
                 TabsComponent.Tab.Home -> Config.Home
                 TabsComponent.Tab.Search -> Config.Search
                 TabsComponent.Tab.Activity -> Config.Activity
+                TabsComponent.Tab.Chats -> Config.Chats
                 TabsComponent.Tab.Videos -> Config.Videos
                 TabsComponent.Tab.Bookmarks -> Config.Bookmarks
                 TabsComponent.Tab.Profile -> Config.Profile
@@ -74,6 +81,13 @@ internal class DefaultTabsComponent(
             Config.Home -> TabsComponent.Child.Home(factories.home(context, ::onHomeOutput))
             Config.Search -> TabsComponent.Child.Search(factories.search(context, ::onSearchOutput))
             Config.Activity -> TabsComponent.Child.Activity(factories.activity(context, ::onActivityOutput))
+            Config.Chats -> TabsComponent.Child.Chats(
+                factories.chats(context) { event ->
+                    when (event) {
+                        is ChatsComponent.Output.OpenProfile -> output(TabsComponent.Output.OpenProfile(event.id))
+                    }
+                },
+            )
             Config.Videos -> TabsComponent.Child.Videos(
                 factories.videos(context) { event ->
                     when (event) {
@@ -154,6 +168,9 @@ internal class DefaultTabsComponent(
         data object Activity : Config(TabsComponent.Tab.Activity.path)
 
         @Serializable
+        data object Chats : Config(TabsComponent.Tab.Chats.path)
+
+        @Serializable
         data object Videos : Config(TabsComponent.Tab.Videos.path)
 
         @Serializable
@@ -170,6 +187,7 @@ internal class TabFactories(
     val home: HomeComponent.Factory,
     val search: SearchComponent.Factory,
     val activity: ActivityComponent.Factory,
+    val chats: ChatsComponent.Factory,
     val videos: VideosComponent.Factory,
     val bookmarks: BookmarksComponent.Factory,
     val profile: ProfileComponent.Factory,
@@ -179,7 +197,8 @@ internal class TabFactories(
 internal class DefaultTabsComponentFactory(
     private val factories: TabFactories,
     private val meSource: MeSource,
+    private val chats: ChatRepository,
 ) : TabsComponent.Factory {
     override fun invoke(componentContext: ComponentContext, output: (TabsComponent.Output) -> Unit): TabsComponent =
-        DefaultTabsComponent(componentContext, output, factories, meSource)
+        DefaultTabsComponent(componentContext, output, factories, meSource, chats)
 }

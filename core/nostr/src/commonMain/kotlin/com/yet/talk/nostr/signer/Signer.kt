@@ -11,4 +11,10 @@ interface Signer {
     suspend fun publicKey(): String
 
     suspend fun sign(template: EventTemplate): Event
+
+    /** NIP-44 v2 encryption to [peerPubkey] with this identity's key (private chats, NIP-17). */
+    suspend fun nip44Encrypt(plaintext: String, peerPubkey: String): String
+
+    /** Throws when the payload is not for this identity or was tampered with. */
+    suspend fun nip44Decrypt(payload: String, peerPubkey: String): String
 }

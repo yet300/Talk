@@ -48,6 +48,7 @@ internal interface DataTestGraph {
     val github: GitHubRepository
     val videos: VideoRepository
     val moderation: com.yet.talk.domain.repository.ModerationRepository
+    val chats: com.yet.talk.domain.repository.ChatRepository
     val syncDao: SyncDao
 
     @DependencyGraph.Factory
@@ -66,6 +67,7 @@ internal interface DataTestGraph {
             @Provides github: GitHubRemoteSource,
             @Provides youtube: YouTubeRemoteSource,
             @Provides videoRemote: VideoRemoteSource,
+            @Provides chatRemote: com.yet.talk.api.source.chat.ChatRemoteSource,
             @Provides catalog: VideoCatalogSource,
         ): DataTestGraph
     }

@@ -27,6 +27,7 @@ internal class TestData(factory: SqlDriverFactory, scope: CoroutineScope, io: Co
         github = network.github,
         youtube = { null },
         videoRemote = network.videos,
+        chatRemote = network.chats,
         catalog = object : VideoCatalogSource {
             override val version get() = network.catalogVersion
             override fun catalogJson() = network.catalogJson
@@ -43,5 +44,6 @@ internal class TestData(factory: SqlDriverFactory, scope: CoroutineScope, io: Co
     val github = graph.github
     val videos = graph.videos
     val moderation = graph.moderation
+    val chats = graph.chats
     val syncDao = graph.syncDao
 }

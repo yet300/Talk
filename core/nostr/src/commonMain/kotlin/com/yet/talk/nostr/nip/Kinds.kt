@@ -13,6 +13,16 @@ object Kinds {
     const val EXTERNAL_REACTION = 17
     /** NIP-22 comment. */
     const val COMMENT = 1111
+    /** NIP-59 seal: the signed, encrypted rumor. */
+    const val SEAL = 13
+    /** NIP-17 chat message (a rumor, never published unwrapped). */
+    const val CHAT_MESSAGE = 14
+    /** NIP-59 gift wrap, signed by a throwaway key. */
+    const val GIFT_WRAP = 1059
+    /** NIP-17 relays to receive chats on. */
+    const val DM_RELAYS = 10050
+    /** NIP-42 relay authentication. */
+    const val CLIENT_AUTH = 22242
     /** NIP-56 report. */
     const val REPORT = 1984
     const val RELAY_LIST = 10002

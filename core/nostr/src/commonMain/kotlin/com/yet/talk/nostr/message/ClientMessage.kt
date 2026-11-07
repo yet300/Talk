@@ -23,6 +23,11 @@ sealed interface ClientMessage {
     data class Publish(val event: Event) : ClientMessage {
         override fun toJson() = frame("EVENT", NostrJson.encodeToJsonElement(Event.serializer(), event))
     }
+
+    /** NIP-42: the signed answer to a relay's challenge. */
+    data class Auth(val event: Event) : ClientMessage {
+        override fun toJson() = frame("AUTH", NostrJson.encodeToJsonElement(Event.serializer(), event))
+    }
 }
 
 private fun frame(type: String, vararg parts: kotlinx.serialization.json.JsonElement): String =

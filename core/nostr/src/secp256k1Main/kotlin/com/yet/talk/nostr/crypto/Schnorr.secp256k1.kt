@@ -14,3 +14,7 @@ internal actual fun platformSign(message: ByteArray, secretKey: ByteArray, auxRa
 
 internal actual fun platformVerify(signature: ByteArray, message: ByteArray, publicKey: ByteArray): Boolean =
     Secp256k1.verifySchnorr(signature, message, publicKey)
+
+// libsecp256k1's ecdh hashes the point; NIP-44 needs the raw x, so the point is multiplied by the key instead.
+internal actual fun platformSharedX(secretKey: ByteArray, publicKey: ByteArray): ByteArray =
+    Secp256k1.pubKeyTweakMul(byteArrayOf(2) + publicKey, secretKey).copyOfRange(1, 33)

@@ -142,4 +142,20 @@ class RelayPoolTest {
 
         assertEquals(stored, pool.subscribe(filter, listOf("wss://a")).first())
     }
+
+    @Test
+    fun aLiveSubscriptionAuthenticatesAndIsServed() = runTest {
+        val note = note("for you only", 1)
+        val relay = FakeRelay(stored = listOf(note), authChallenge = "c-123")
+        val authenticator = RelayAuthenticator { url, challenge ->
+            signer.sign(EventTemplate(22242, "", listOf(listOf("relay", url), listOf("challenge", challenge)), 1))
+        }
+        val pool = RelayPool(
+            FakeTransport(mapOf("wss://inbox" to relay)), backgroundScope,
+            verifyDispatcher = UnconfinedTestDispatcher(testScheduler), authenticator = authenticator,
+        )
+        val received = pool.subscribe(listOf(Filter(kinds = listOf(1))), listOf("wss://inbox")).first()
+        assertEquals(note.id, received.id)
+        assertTrue(relay.authenticated)
+    }
 }

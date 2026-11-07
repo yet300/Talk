@@ -30,3 +30,9 @@ internal expect fun platformVerify(signature: ByteArray, message: ByteArray, pub
 
 /** Cryptographically secure random bytes from the platform. */
 internal expect fun secureRandomBytes(size: Int): ByteArray
+
+/**
+ * The x coordinate of [secretKey] × the point of the x-only [publicKey] (even y), unhashed: NIP-44's shared
+ * secret. Throws for an invalid key.
+ */
+internal expect fun platformSharedX(secretKey: ByteArray, publicKey: ByteArray): ByteArray

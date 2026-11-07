@@ -30,7 +30,7 @@ class RailActions(
 )
 
 /**
- * The web left rail (`Rail`): brand, Home · Search · Activity · Bookmarks · Profile · Settings, the Compose
+ * The web left rail (`Rail`): brand, Home · Search · Activity · Chats (with the unread count) · Videos · Bookmarks · Profile · Settings, the Compose
  * button, and the identity row. CSS collapses it to icons below 1225 px and turns it into a bottom bar
  * below 688 px.
  */
@@ -48,9 +48,10 @@ fun Rail(selection: RailSelection, me: TabsComponent.Me, actions: RailActions) {
         }) { Text(appName) }
         Div({ classes("t-rail-items") }) {
             TabsComponent.Tab.entries.forEach { tab ->
-                RailItem(tab.icon(selection == RailSelection.Tab(tab)), tab.label(), selection == RailSelection.Tab(tab)) { actions.onTab(tab) }
+                val badge = if (tab == TabsComponent.Tab.Chats) me.unreadChats else 0
+                RailItem(tab.icon(selection == RailSelection.Tab(tab)), tab.label(), selection == RailSelection.Tab(tab), badge) { actions.onTab(tab) }
             }
-            RailItem(TalkIcons.Settings, stringResource(MR.strings.action_settings), selection == RailSelection.Settings, actions.onSettings)
+            RailItem(TalkIcons.Settings, stringResource(MR.strings.action_settings), selection == RailSelection.Settings, onClick = actions.onSettings)
         }
         A(href = "/compose", attrs = {
             classes("x-btn", "x-btn-post", "t-rail-post")
@@ -77,16 +78,18 @@ fun Rail(selection: RailSelection, me: TabsComponent.Me, actions: RailActions) {
 }
 
 @Composable
-private fun RailItem(icon: ImageResource, label: String, active: Boolean, onClick: () -> Unit) {
+private fun RailItem(icon: ImageResource, label: String, active: Boolean, badge: Int = 0, onClick: () -> Unit) {
+    val name = if (badge > 0) pluralResource(MR.plurals.chats_unread_count, badge).let { "$label, $it" } else label
     A(href = "#", attrs = {
         classes("x-nav-item")
         if (active) classes("is-active")
-        attr("aria-label", label)
+        attr("aria-label", name)
         if (active) attr("aria-current", "page")
         onClick { it.preventDefault(); onClick() }
     }) {
         TalkIcon(icon)
         Span({ classes("t-rail-label") }) { Text(label) }
+        if (badge > 0) NavBadge(badge)
     }
 }
 
@@ -94,6 +97,7 @@ internal fun TabsComponent.Tab.icon(active: Boolean): ImageResource = when (this
     TabsComponent.Tab.Home -> TalkIcons.Home
     TabsComponent.Tab.Search -> TalkIcons.Search
     TabsComponent.Tab.Activity -> TalkIcons.Activity
+    TabsComponent.Tab.Chats -> TalkIcons.Chat
     TabsComponent.Tab.Videos -> TalkIcons.Video
     TabsComponent.Tab.Bookmarks -> if (active) TalkIcons.BookmarkFilled else TalkIcons.Bookmark
     TabsComponent.Tab.Profile -> TalkIcons.User
@@ -105,8 +109,15 @@ internal fun TabsComponent.Tab.label(): String = stringResource(
         TabsComponent.Tab.Home -> MR.strings.tab_home
         TabsComponent.Tab.Search -> MR.strings.tab_search
         TabsComponent.Tab.Activity -> MR.strings.tab_activity
+        TabsComponent.Tab.Chats -> MR.strings.tab_chats
         TabsComponent.Tab.Videos -> MR.strings.tab_videos
         TabsComponent.Tab.Bookmarks -> MR.strings.tab_bookmarks
         TabsComponent.Tab.Profile -> MR.strings.tab_profile
     },
 )
+
+/** The unread count on a navigation item (`t-nav-badge`); the item's label says it to screen readers. */
+@Composable
+internal fun NavBadge(count: Int) {
+    Span({ classes("t-nav-badge"); attr("aria-hidden", "true") }) { Text(if (count > 99) "99+" else count.toString()) }
+}

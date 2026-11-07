@@ -5,6 +5,7 @@ import androidx.compose.runtime.getValue
 import com.yet.talk.feature.tab.main.MainComponent
 import com.yet.talk.feature.tab.main.component.details.DetailsComponent
 import com.yet.talk.web.decompose.subscribeAsState
+import com.yet.talk.web.ui.root.component.PhoneTabs
 import com.yet.talk.web.ui.root.component.RailActions
 import com.yet.talk.web.ui.root.component.RailSelection
 import com.yet.talk.web.ui.root.component.WebShell
@@ -31,14 +32,22 @@ fun MainContent(component: MainComponent, railActions: RailActions) {
     if (details == null) {
         val tabStack by tabs.stack.subscribeAsState()
         val active = tabStack.active.instance
-        // Videos is a wide grid with no right column (`Videos-Web`).
+        // Videos is a wide grid with no right column (`Videos-Web`); Chats is two panes of its own.
         val videos = active is TabsComponent.Child.Videos
+        val chats = active as? TabsComponent.Child.Chats
+        // On a phone an open conversation covers the navigation, like every page above the tabs.
+        val chatOpen = chats?.component?.pane?.subscribeAsState()?.value?.child != null
         WebShell(
             selection = RailSelection.Tab(active.tab),
             me = me,
             actions = railActions,
-            width = if (videos) ShellWidth.Wide else ShellWidth.Column,
-            right = if (videos) null else { { TabsSide(active, onSearch = { railActions.onTab(it) }) } },
+            width = when {
+                videos -> ShellWidth.Wide
+                chats != null -> ShellWidth.Chats
+                else -> ShellWidth.Column
+            },
+            right = if (videos || chats != null) null else { { TabsSide(active, onSearch = { railActions.onTab(it) }) } },
+            phoneNav = active.tab in PhoneTabs && !chatOpen,
         ) { TabsContent(active) }
     } else {
         DetailsShell(details, me, railActions)

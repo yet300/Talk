@@ -38,3 +38,6 @@ class SecretKey private constructor(internal val bytes: ByteArray) {
             if (Schnorr.isValidSecretKey(bytes)) SecretKey(bytes.copyOf()) else null
     }
 }
+
+/** [size] random bytes as hex, from the platform's secure random (for keys that are not Nostr identities). */
+fun secureRandomHex(size: Int): String = com.yet.talk.nostr.crypto.secureRandomBytes(size).toHex()

@@ -37,6 +37,9 @@ object TalkIcons {
     val Check = MR.images.ic_check
     val Plus = MR.images.ic_plus
     val Offline = MR.images.ic_offline
+    val Chat = MR.images.ic_chat
+    val Send = MR.images.ic_send
+    val Info = MR.images.ic_info
     val Image = MR.images.ic_image
     val Trash = MR.images.ic_trash
 }

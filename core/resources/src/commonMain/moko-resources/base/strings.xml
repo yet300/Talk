@@ -9,6 +9,7 @@
     <string name="tab_activity">Activity</string>
     <string name="tab_bookmarks">Bookmarks</string>
     <string name="tab_videos">Videos</string>
+    <string name="tab_chats">Chats</string>
     <string name="tab_profile">Profile</string>
     <string name="nav_primary">Primary</string>
 
@@ -292,6 +293,7 @@
     <string name="error_image_host">Use a link to a GIF on GIPHY or a photo on Unsplash.</string>
     <string name="error_github_login">That is not a GitHub username.</string>
     <string name="error_gist_link">Paste the link to your gist, like https://gist.github.com/you/….</string>
+    <string name="chat_cannot_receive">This person can’t receive chats yet.</string>
     <string name="error_invalid_key">That is not a valid nsec or secret key.</string>
     <string name="error_invalid_relay">A relay address starts with wss://</string>
     <string name="error_not_signed_in">Sign in to do this.</string>
@@ -299,4 +301,26 @@
     <string name="error_no_relay_accepted">No relay accepted it. Try again.</string>
     <string name="error_network">Can’t reach relays. Check your connection.</string>
     <string name="error_unknown">Something went wrong.</string>
+    <!-- Chats (design pass 4) -->
+    <string name="chats_tab_chats">Chats</string>
+    <string name="chats_tab_requests">Requests</string>
+    <string name="chats_tab_requests_count">Requests %1$d</string>
+    <string name="chats_new">New chat</string>
+    <string name="chats_empty_title">No chats yet</string>
+    <string name="chats_empty_body">Start a private chat with someone you follow.</string>
+    <string name="chats_requests_empty_title">No requests</string>
+    <string name="chats_requests_empty_body">Chats from people you don’t follow wait here until you accept them.</string>
+    <string name="chats_you">You: %1$s</string>
+    <string name="chats_unread">%1$s, unread</string>
+    <string name="chats_pick">Pick a chat, or start a new one.</string>
+    <string name="chat_message">Message</string>
+    <string name="chat_send">Send</string>
+    <string name="chat_today">Today</string>
+    <string name="chat_yesterday">Yesterday</string>
+    <string name="chat_request_note">%1$s isn’t someone you follow.</string>
+    <string name="chat_member_cannot_receive">%1$s can’t receive chats yet. They haven’t chosen relays for chats.</string>
+    <string name="chat_offline">Offline. Messages wait and send when you’re back online.</string>
+    <string name="chat_new_search">Search people by name, NIP-05 or npub</string>
+    <string name="chat_new_cannot_receive">Can’t receive chats yet</string>
+    <string name="action_accept">Accept</string>
 </resources>

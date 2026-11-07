@@ -2,6 +2,7 @@ package com.yet.talk.nostr.di
 
 import com.yet.talk.nostr.relay.KtorRelayTransport
 import com.yet.talk.nostr.relay.RelayClient
+import com.yet.talk.nostr.relay.RelayAuthenticator
 import com.yet.talk.nostr.relay.RelayPool
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.BindingContainer
@@ -22,7 +23,7 @@ abstract class NostrBindings {
         /** One pool for the app: relay connections are shared by every caller. */
         @SingleIn(AppScope::class)
         @Provides
-        internal fun provideRelayClient(http: HttpClient, scope: CoroutineScope): RelayClient =
-            RelayPool(KtorRelayTransport(http), scope)
+        internal fun provideRelayClient(http: HttpClient, scope: CoroutineScope, authenticator: RelayAuthenticator): RelayClient =
+            RelayPool(KtorRelayTransport(http), scope, authenticator = authenticator)
     }
 }
