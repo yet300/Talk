@@ -38,6 +38,7 @@ internal class RootStoreFactory(
                 }.collect { dispatch(RootStore.Msg.AccessChanged(it)) }
             }
             scope.launch { preferences.theme.collect { dispatch(RootStore.Msg.ThemeChanged(it)) } }
+            scope.launch { preferences.privacy.collect { dispatch(RootStore.Msg.PrivacyChanged(it)) } }
         }
     }
 
@@ -46,6 +47,7 @@ internal class RootStoreFactory(
             when (msg) {
                 is RootStore.Msg.AccessChanged -> copy(access = msg.access)
                 is RootStore.Msg.ThemeChanged -> copy(theme = msg.theme)
+                is RootStore.Msg.PrivacyChanged -> copy(privacy = msg.privacy)
             }
     }
 }

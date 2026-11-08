@@ -45,6 +45,7 @@ internal class SettingsStoreFactory(
             scope.launch { relays.relays.collect { dispatch(SettingsStore.Msg.RelaysChanged(it)) } }
             scope.launch { preferences.theme.collect { dispatch(SettingsStore.Msg.ThemeChanged(it)) } }
             scope.launch { accounts.lock.collect { dispatch(SettingsStore.Msg.LockChanged(it)) } }
+            scope.launch { preferences.privacy.collect { dispatch(SettingsStore.Msg.PrivacyChanged(it)) } }
             scope.launch { network.status.collect { dispatch(SettingsStore.Msg.RelayStatesChanged(it.relays)) } }
             scope.launch {
                 accounts.account.collectLatest { account ->
@@ -81,6 +82,8 @@ internal class SettingsStoreFactory(
                 SettingsStore.Intent.RemovePasscode -> scope.launch {
                     accounts.removePasscode().onFailure { dispatch(SettingsStore.Msg.Failed(it as? DomainError)) }
                 }
+                is SettingsStore.Intent.SetDeviceLock -> scope.launch { preferences.setDeviceLock(intent.enabled) }
+                is SettingsStore.Intent.SetHideInScreenshots -> scope.launch { preferences.setHideInScreenshots(intent.hidden) }
                 SettingsStore.Intent.EraseChats -> scope.launch { chats.eraseAll() }
                 SettingsStore.Intent.DismissError -> dispatch(SettingsStore.Msg.Failed(null))
             }
@@ -113,6 +116,7 @@ internal class SettingsStoreFactory(
                 is SettingsStore.Msg.MeChanged -> copy(me = msg.me)
                 is SettingsStore.Msg.ThemeChanged -> copy(theme = msg.theme)
                 is SettingsStore.Msg.LockChanged -> copy(lock = msg.lock)
+                is SettingsStore.Msg.PrivacyChanged -> copy(privacy = msg.privacy)
                 is SettingsStore.Msg.RelayStatesChanged -> copy(relayStates = msg.states)
                 is SettingsStore.Msg.RelayInputChanged -> copy(relayInput = msg.url)
                 is SettingsStore.Msg.KeyExported -> copy(exportedKey = msg.key)

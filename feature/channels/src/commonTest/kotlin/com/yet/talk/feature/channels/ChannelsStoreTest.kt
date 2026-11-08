@@ -9,6 +9,7 @@ import com.yet.talk.domain.model.channel.GeoPoint
 import com.yet.talk.domain.model.channel.Geohash
 import com.yet.talk.domain.model.channel.LocationChannel
 import com.yet.talk.domain.model.error.DomainError
+import com.yet.talk.domain.model.settings.Privacy
 import com.yet.talk.domain.model.settings.ThemeMode
 import com.yet.talk.domain.repository.ChannelRepository
 import com.yet.talk.domain.repository.LocationSource
@@ -40,6 +41,9 @@ class ChannelsStoreTest {
 
     private class Preferences : PreferencesRepository {
         override val theme = MutableStateFlow(ThemeMode.System)
+        override val privacy = MutableStateFlow(Privacy())
+        override suspend fun setDeviceLock(enabled: Boolean) { privacy.value = privacy.value.copy(deviceLock = enabled) }
+        override suspend fun setHideInScreenshots(hidden: Boolean) { privacy.value = privacy.value.copy(hideInScreenshots = hidden) }
         override suspend fun setTheme(mode: ThemeMode) = Unit
         override val channelNickname = MutableStateFlow("anon")
         override suspend fun setChannelNickname(nickname: String) { channelNickname.value = nickname }

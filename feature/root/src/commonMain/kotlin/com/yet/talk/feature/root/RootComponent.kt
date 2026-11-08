@@ -5,6 +5,7 @@ import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.webhistory.WebNavigationOwner
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackHandlerOwner
+import com.yet.talk.domain.model.settings.Privacy
 import com.yet.talk.domain.model.settings.ThemeMode
 import com.yet.talk.domain.model.network.NetworkStatus
 import com.yet.talk.feature.auth.AuthComponent
@@ -36,6 +37,9 @@ interface RootComponent : BackHandlerOwner, WebNavigationOwner {
 
     /** The theme chosen in Settings; the platform UI applies it ([ThemeMode.System] follows the device). */
     val theme: Value<ThemeMode>
+
+    /** The device lock and hiding in screenshots, which the Android and iOS apps apply. */
+    val privacy: Value<Privacy>
 
     /** Offline, your relays' states and what waits to be sent: the offline indicator on every screen. */
     val network: Value<NetworkStatus>

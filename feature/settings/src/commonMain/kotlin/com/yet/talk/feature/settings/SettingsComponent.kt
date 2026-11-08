@@ -7,6 +7,7 @@ import com.yet.talk.domain.model.account.AppLock
 import com.yet.talk.domain.model.network.RelayState
 import com.yet.talk.domain.model.error.DomainError
 import com.yet.talk.domain.model.relay.Relay
+import com.yet.talk.domain.model.settings.Privacy
 import com.yet.talk.domain.model.settings.ThemeMode
 import com.yet.talk.domain.model.user.User
 
@@ -38,6 +39,12 @@ interface SettingsComponent {
 
     fun onRemovePasscode()
 
+    /** Open Talk with the device lock (Android and iOS; the UI checks the device lock before turning it on). */
+    fun onDeviceLockChanged(enabled: Boolean)
+
+    /** Hide chats and the key in screenshots and the recents preview (Android). */
+    fun onHideInScreenshotsChanged(hidden: Boolean)
+
     /** Erase chats from this device (after the UI's confirmation). */
     fun onEraseChats()
 
@@ -57,6 +64,7 @@ interface SettingsComponent {
         val relayInput: String,
         val exportedKey: String?,
         val lock: AppLock,
+        val privacy: Privacy,
         val isWorking: Boolean,
         val error: DomainError?,
     )

@@ -43,6 +43,10 @@ internal class DefaultSettingsComponent(
 
     override fun onRemovePasscode() = store.accept(SettingsStore.Intent.RemovePasscode)
 
+    override fun onDeviceLockChanged(enabled: Boolean) = store.accept(SettingsStore.Intent.SetDeviceLock(enabled))
+
+    override fun onHideInScreenshotsChanged(hidden: Boolean) = store.accept(SettingsStore.Intent.SetHideInScreenshots(hidden))
+
     override fun onEraseChats() = store.accept(SettingsStore.Intent.EraseChats)
 
     override fun onEraseEverything() = store.accept(SettingsStore.Intent.SignOut)

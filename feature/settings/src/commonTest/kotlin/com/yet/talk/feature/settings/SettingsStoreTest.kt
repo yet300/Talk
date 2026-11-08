@@ -108,6 +108,9 @@ class SettingsStoreTest {
 
     private class FakePreferences : PreferencesRepository {
         override val theme = MutableStateFlow(ThemeMode.System)
+        override val privacy = MutableStateFlow(com.yet.talk.domain.model.settings.Privacy())
+        override suspend fun setDeviceLock(enabled: Boolean) { privacy.value = privacy.value.copy(deviceLock = enabled) }
+        override suspend fun setHideInScreenshots(hidden: Boolean) { privacy.value = privacy.value.copy(hideInScreenshots = hidden) }
         override suspend fun setTheme(mode: ThemeMode) {
             theme.value = mode
         }
@@ -188,5 +191,17 @@ class SettingsStoreTest {
         store.accept(SettingsStore.Intent.SignOut)
         assertEquals(true, accounts.signedOut)
         assertEquals(null, store.state.account)
+    }
+
+    @Test
+    fun storesTheDeviceLockAndHidingInScreenshots() = runTest {
+        assertEquals(false, store.state.privacy.deviceLock)
+        assertEquals(true, store.state.privacy.hideInScreenshots, "chats and the key are hidden by default")
+
+        store.accept(SettingsStore.Intent.SetDeviceLock(true))
+        store.accept(SettingsStore.Intent.SetHideInScreenshots(false))
+
+        assertEquals(true, preferences.privacy.value.deviceLock)
+        assertEquals(com.yet.talk.domain.model.settings.Privacy(deviceLock = true, hideInScreenshots = false), store.state.privacy)
     }
 }

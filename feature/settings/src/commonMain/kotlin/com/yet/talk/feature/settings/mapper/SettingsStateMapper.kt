@@ -13,6 +13,7 @@ internal val stateToModel: (SettingsStore.State) -> SettingsComponent.Model = { 
         relayInput = state.relayInput,
         exportedKey = state.exportedKey,
         lock = state.lock,
+        privacy = state.privacy,
         isWorking = state.isWorking,
         error = state.error,
     )
