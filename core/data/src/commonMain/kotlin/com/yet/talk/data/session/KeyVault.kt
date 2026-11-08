@@ -29,7 +29,4 @@ internal interface KeyVault {
     suspend fun takeLegacyChatKey(): String?
 
     suspend fun clearChatKey()
-
-    /** The device seed location channel keys are derived from (hex, made on first use); [clear] removes it. */
-    suspend fun channelSeed(): String
 }

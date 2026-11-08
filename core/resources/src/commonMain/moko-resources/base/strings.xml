@@ -416,45 +416,6 @@
     <string name="verify_verified_on">You verified %1$s on %2$s.</string>
     <string name="verify_unverify">Remove verification</string>
     <string name="verify_mismatch">That code isn’t theirs. Don’t mark them as verified.</string>
-    <!-- Location channels (design pass 4, step 5) -->
-    <string name="error_location">Talk can’t get your location. Allow it in the browser, or teleport to an area by its code.</string>
-    <string name="error_area_code">That isn’t an area code.</string>
-    <string name="channels_title">Location channels</string>
-    <string name="channels_row_caption">Public rooms for the places you’re in</string>
-    <string name="channels_caption">Public rooms for the places you’re in. Anyone in the area can read and write.</string>
-    <string name="level_region">Region</string>
-    <string name="level_province">Province</string>
-    <string name="level_city">City</string>
-    <string name="level_neighborhood">Neighborhood</string>
-    <string name="level_block">Block</string>
-    <string name="channels_people_unknown">? people</string>
-    <string name="channels_teleport">Teleport</string>
-    <string name="channels_teleport_caption">Open any area by its code or from a map</string>
-    <string name="channels_map">Map: tap to pick an area</string>
-    <string name="channels_nickname_here">Your nickname here: %1$s</string>
-    <string name="channels_nickname_caption">You appear with a new identity in each place</string>
-    <string name="action_change">Change</string>
-    <string name="channels_intro_body">Public rooms for places, from a whole region down to a single block. Anyone in the area can read and write.</string>
-    <string name="channels_not_kept">Messages here are public and not kept: you see what is said while you are here.</string>
-    <string name="action_continue">Continue</string>
-    <string name="action_not_now">Not now</string>
-    <string name="channels_location_title">Use your location</string>
-    <string name="channels_location_body">Talk turns your location into an area code on this device. Your exact location is never sent.</string>
-    <string name="channels_allow_location">Allow location</string>
-    <string name="channels_teleport_instead">Teleport instead</string>
-    <string name="channels_nickname_title">Choose a nickname</string>
-    <string name="channels_nickname">Nickname</string>
-    <string name="channels_nickname_body">You appear with a new identity in each place. It isn’t linked to your profile.</string>
-    <string name="channels_join">Join</string>
-    <string name="channels_teleport_body">Open a channel for any place. Your messages there carry a teleport mark, so people know you aren’t in the area.</string>
-    <string name="channels_area_code">Area code</string>
-    <string name="channels_level">Level</string>
-    <string name="channels_open">Open channel</string>
-    <string name="channels_teleported_here">You teleported here</string>
-    <string name="channels_teleported">Teleported</string>
-    <string name="channels_message_as">Message #%1$s as %2$s</string>
-    <string name="channels_block_warning">People here can tell you’re within about a block.</string>
-    <string name="channels_room_title">#%1$s · %2$s</string>
     <!-- Network status -->
     <string name="network_offline">Offline. Showing what’s saved here.</string>
     <string name="network_unreachable">Can’t reach your relays. Showing what’s saved here.</string>
@@ -470,11 +431,9 @@
     <string name="security_hide_screenshots">Hide in screenshots</string>
     <string name="security_hide_screenshots_caption">Chats and your private key don’t show in screenshots or recent apps.</string>
     <string name="action_clear">Clear</string>
-    <string name="channels_location_denied">Location is off for Talk. Teleport opens channels by area code.</string>
     <!-- iOS: the device lock is Face ID, Touch ID or the device passcode -->
     <string name="lock_device_body_ios">Unlock with Face ID, Touch ID or your passcode.</string>
     <string name="security_device_lock_caption_ios">Open Talk with Face ID, Touch ID or your passcode.</string>
     <string name="security_device_lock_unavailable_ios">Set a passcode in Settings first.</string>
     <string name="security_hide_screenshots_caption_ios">Chats and your private key are covered in the app switcher and left out of screen recordings.</string>
-    <string name="error_location_ios">Talk can’t get your location. Allow it in Settings, or teleport to an area by its code.</string>
 </resources>

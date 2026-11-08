@@ -49,7 +49,6 @@ internal interface DataTestGraph {
     val videos: VideoRepository
     val moderation: com.yet.talk.domain.repository.ModerationRepository
     val chats: com.yet.talk.domain.repository.ChatRepository
-    val channels: com.yet.talk.domain.repository.ChannelRepository
     val network: com.yet.talk.domain.repository.NetworkRepository
     val relays: com.yet.talk.domain.repository.RelayRepository
     val syncDao: SyncDao
@@ -71,7 +70,6 @@ internal interface DataTestGraph {
             @Provides youtube: YouTubeRemoteSource,
             @Provides videoRemote: VideoRemoteSource,
             @Provides chatRemote: com.yet.talk.api.source.chat.ChatRemoteSource,
-            @Provides channelRemote: com.yet.talk.api.source.channel.ChannelRemoteSource,
             @Provides preferences: com.yet.talk.domain.repository.PreferencesRepository,
             @Provides connectivity: com.yet.talk.domain.repository.ConnectivitySource,
             @Provides relayStatuses: com.yet.talk.api.source.relay.RelayStatusSource,

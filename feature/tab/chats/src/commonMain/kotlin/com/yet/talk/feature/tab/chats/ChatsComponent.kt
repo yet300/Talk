@@ -13,7 +13,6 @@ import com.yet.talk.feature.chat.component.conversation.ConversationComponent
 import com.yet.talk.feature.chat.component.info.ChatInfoComponent
 import com.yet.talk.feature.chat.component.newchat.NewChatComponent
 import com.yet.talk.feature.chat.component.verify.VerifyComponent
-import com.yet.talk.feature.channels.ChannelsComponent
 import kotlinx.serialization.Serializable
 
 /**
@@ -34,9 +33,6 @@ interface ChatsComponent : BackHandlerOwner {
     fun onOpenChat(id: ChatId)
 
     fun onNewChat()
-
-    /** The Location channels row at the top of the list. */
-    fun onOpenChannels()
 
     fun onErrorShown()
 
@@ -63,8 +59,6 @@ interface ChatsComponent : BackHandlerOwner {
         class Info(val id: ChatId, val component: ChatInfoComponent) : Pane()
 
         class Verify(val id: ChatId, val component: VerifyComponent) : Pane()
-
-        class Channels(val component: ChannelsComponent) : Pane()
     }
 
     sealed interface Output {

@@ -29,7 +29,6 @@ internal class TestData(factory: SqlDriverFactory, scope: CoroutineScope, io: Co
         youtube = { null },
         videoRemote = network.videos,
         chatRemote = network.chats,
-        channelRemote = network.channels,
         preferences = preferences,
         connectivity = object : com.yet.talk.domain.repository.ConnectivitySource {
             override val online = network.online
@@ -55,7 +54,6 @@ internal class TestData(factory: SqlDriverFactory, scope: CoroutineScope, io: Co
     val videos = graph.videos
     val moderation = graph.moderation
     val chats = graph.chats
-    val channels = graph.channels
     val networkStatus = graph.network
     val relays = graph.relays
     val syncDao = graph.syncDao

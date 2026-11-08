@@ -43,11 +43,6 @@ sealed class DomainError(message: String) : Exception(message) {
 
     data object WrongPasscode : DomainError("Wrong passcode")
 
-    /** The location was denied or can't be found. */
-    data object LocationUnavailable : DomainError("Location unavailable")
-
-    data object InvalidAreaCode : Validation("Not an area code")
-
     data class PasscodeTooShort(val min: Int) : Validation("A passcode has at least $min characters")
 
     data object PasscodesDontMatch : Validation("The passcodes don't match")

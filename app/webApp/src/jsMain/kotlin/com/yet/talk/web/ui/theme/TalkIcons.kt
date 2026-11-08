@@ -60,8 +60,6 @@ object TalkIcons {
     val Users = MR.images.ic_users
     val Shield = MR.images.ic_shield
     val Qr = MR.images.ic_qr
-    val Pin = MR.images.ic_pin
-    val Teleport = MR.images.ic_teleport
     val Chevron = MR.images.ic_chevron
 }
 

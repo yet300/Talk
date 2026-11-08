@@ -334,19 +334,8 @@ iframe.t-player{border:0;display:block}
 .t-lock .x-btn{width:100%}
 .t-row-flat{border-bottom:0;padding-bottom:0}
 .t-security-row{padding:var(--space-md) var(--space-lg);border-bottom:1px solid var(--border)}
-/* Location channels (step 5) */
-.t-channel-icon{display:inline-flex;align-items:center;justify-content:center;color:var(--text-secondary)}
-.t-channels-intro{display:flex;justify-content:center;padding:var(--space-2xl) var(--space-lg)}
-.t-channels-step{align-items:center;text-align:center;gap:var(--space-lg)}
-.t-channels-step .t-field{width:100%;text-align:left}
-.t-channels-step .x-btn{width:100%}
-.t-line{padding:var(--space-xs) var(--space-lg);overflow-wrap:anywhere}
-.t-line-text{white-space:pre-wrap}
-.t-nick{font-weight:700}
-.t-line-mine .t-nick{color:var(--x-blue)}
 .t-convo-scroll>.t-notice+.t-notice{margin-top:calc(-1 * var(--space-sm))}
 .t-chip-on{background:var(--text-primary);color:var(--bg);border-color:var(--text-primary)}
-.t-chips-flush{padding:0}
 .t-grow{flex:1;min-width:0}
 /* Network status: the offline bar and relay states */
 .t-network-bar{display:flex;align-items:center;gap:var(--space-sm);padding:var(--space-sm) var(--space-lg);background:var(--surface);color:var(--text-secondary);font-size:13px;line-height:16px;border-bottom:1px solid var(--border)}
@@ -355,9 +344,6 @@ iframe.t-player{border:0;display:block}
 .t-relay-connected{background:var(--repost-green)}
 .t-relay-connecting{background:var(--warning-yellow)}
 .t-relay-unreachable{background:var(--error-red)}
-/* The teleport map (Leaflet) */
-.t-map-view{width:100%;aspect-ratio:4/3;border-radius:var(--radius-card);overflow:hidden;background:var(--surface);z-index:0}
-.t-map-view .leaflet-control-attribution{font-size:10px}
 /* The sliding selection of the rail and the phone's capsule (NavPill.kt), as the Android capsule: the pill springs
    from item to item and stretches along its path; held and dragged on the capsule it becomes a lens. */
 .t-nav-pilled{position:relative}

@@ -52,7 +52,6 @@ enum TalkIcons {
     static let more = mr.ic_more
     static let mute = mr.ic_mute
     static let offline = mr.ic_offline
-    static let pin = mr.ic_pin
     static let play = mr.ic_play
     static let plus = mr.ic_plus
     static let qr = mr.ic_qr
@@ -66,7 +65,6 @@ enum TalkIcons {
     static let share = mr.ic_share
     static let shield = mr.ic_shield
     static let star = mr.ic_star
-    static let teleport = mr.ic_teleport
     static let timer = mr.ic_timer
     static let trash = mr.ic_trash
     static let user = mr.ic_user

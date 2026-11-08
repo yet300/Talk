@@ -27,8 +27,6 @@ fun DomainError.toStringDesc(): StringDesc = when (this) {
     is DomainError.TooManyMembers -> StringDesc.ResourceFormatted(MR.strings.chat_too_many_members, max)
     DomainError.UnreadableMuteList -> StringDesc.Resource(MR.strings.error_mute_list_unreadable)
     DomainError.WrongPasscode -> StringDesc.Resource(MR.strings.error_wrong_passcode)
-    DomainError.LocationUnavailable -> StringDesc.Resource(MR.strings.error_location)
-    DomainError.InvalidAreaCode -> StringDesc.Resource(MR.strings.error_area_code)
     is DomainError.PasscodeTooShort -> StringDesc.ResourceFormatted(MR.strings.error_passcode_short, min)
     DomainError.PasscodesDontMatch -> StringDesc.Resource(MR.strings.error_passcodes_differ)
     DomainError.NotSignedIn -> StringDesc.Resource(MR.strings.error_not_signed_in)

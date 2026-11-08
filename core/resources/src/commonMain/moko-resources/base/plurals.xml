@@ -12,10 +12,6 @@
         <item quantity="one">%d unread message</item>
         <item quantity="other">%d unread messages</item>
     </plural>
-    <plural name="channels_people">
-        <item quantity="one">%d person</item>
-        <item quantity="other">%d people</item>
-    </plural>
     <plural name="network_waiting">
         <item quantity="one">%d update waiting for a relay</item>
         <item quantity="other">%d updates waiting for a relay</item>

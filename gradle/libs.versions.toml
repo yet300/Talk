@@ -67,8 +67,6 @@ noble-hashes = "2.4.0"
 noble-ciphers = "2.4.0"
 # QR codes for Verify on the web (npm)
 qrcode-generator = "2.0.4"
-# The teleport map on the web (npm), with OpenStreetMap tiles
-leaflet = "1.9.4"
 
 mokoResources = "0.27.1"
 mokoGraphics = "0.10.2"

@@ -65,10 +65,6 @@ class RootComponentTest {
         override suspend fun setTheme(mode: ThemeMode) {
             theme.value = mode
         }
-        override val channelNickname = MutableStateFlow("anon")
-        override suspend fun setChannelNickname(nickname: String) = Unit
-        override val channelIntroSeen = MutableStateFlow(false)
-        override suspend fun setChannelIntroSeen() = Unit
     }
 
     /** Records what the root asks of Main; its panels are never rendered here. */

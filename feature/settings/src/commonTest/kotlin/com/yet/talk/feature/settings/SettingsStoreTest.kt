@@ -114,10 +114,6 @@ class SettingsStoreTest {
         override suspend fun setTheme(mode: ThemeMode) {
             theme.value = mode
         }
-        override val channelNickname = MutableStateFlow("anon")
-        override suspend fun setChannelNickname(nickname: String) = Unit
-        override val channelIntroSeen = MutableStateFlow(false)
-        override suspend fun setChannelIntroSeen() = Unit
     }
 
     private val preferences = FakePreferences()

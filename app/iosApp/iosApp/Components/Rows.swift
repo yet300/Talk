@@ -80,18 +80,6 @@ extension PersonRow where Trailing == EmptyView {
     }
 }
 
-/// An icon on the elevated circle, the leading part of a settings or channel row.
-struct RowIcon: View {
-    let icon: SharedLogic.ImageResource
-
-    var body: some View {
-        TalkIcon(icon: icon, size: 20)
-            .foregroundStyle(TalkColor.textPrimary)
-            .frame(width: TalkSize.avatarMd, height: TalkSize.avatarMd)
-            .background(TalkColor.elevated, in: Circle())
-    }
-}
-
 /// A row's highlight on touch-down.
 struct RowPressStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {

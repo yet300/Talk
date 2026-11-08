@@ -118,25 +118,6 @@ class FakeNetwork {
         override suspend fun muteList(pubkey: String) = events.filter { it.kind == Kinds.MUTE_LIST && it.pubkey == pubkey }.maxByOrNull { it.createdAt }
     }
 
-    /** Location channel events; [channelRelays] records where each subscription went. */
-    val channelEvents = kotlinx.coroutines.flow.MutableSharedFlow<Event>(replay = 100)
-    val channelRelays = mutableListOf<Collection<String>>()
-
-    val channels = object : com.yet.talk.api.source.channel.ChannelRemoteSource {
-        override fun events(geohashes: Collection<String>, since: Long, relays: Collection<String>, presenceOnly: Boolean) =
-            kotlinx.coroutines.flow.flow {
-                channelRelays += relays
-                channelEvents.collect { event -> if (event.tags.any { it.getOrNull(0) == "g" && it.getOrNull(1) in geohashes } && event.createdAt >= since) emit(event) }
-            }
-
-        override suspend fun publish(event: Event, relays: Collection<String>): Boolean {
-            published += event
-            // Relays pass an event to every matching subscription, the sender's too.
-            if (accept) channelEvents.emit(event)
-            return accept
-        }
-    }
-
     /** The device's connection and the relays' states. */
     val online = kotlinx.coroutines.flow.MutableStateFlow(true)
     val relayStatuses = kotlinx.coroutines.flow.MutableStateFlow(emptyMap<String, com.yet.talk.nostr.relay.RelayStatus>())

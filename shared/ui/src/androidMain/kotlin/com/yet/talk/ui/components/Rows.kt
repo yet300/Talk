@@ -114,20 +114,6 @@ fun PersonRow(user: User, onClick: () -> Unit, modifier: Modifier = Modifier, ti
     ListRow(title = title, caption = caption, modifier = modifier, selected = selected, onClick = onClick, leading = { Avatar(user) }, trailing = trailing)
 }
 
-/** A round icon on the elevated ground, the leading part of rows that are not people (Location channels, Teleport). */
-@Composable
-fun RowIcon(icon: ImageResource) {
-    Box(Modifier.size(MaterialTheme.sizes.avatarMd).clip(CircleShape).drawBehindElevated(), contentAlignment = Alignment.Center) {
-        TalkIcon(icon, contentDescription = null, size = 18.dp, tint = MaterialTheme.talkColors.textPrimary)
-    }
-}
-
-@Composable
-private fun Modifier.drawBehindElevated(): Modifier {
-    val color = MaterialTheme.talkColors.elevated
-    return drawBehind { drawRect(color) }
-}
-
 /** A setting with a switch (`t-switch`): the whole row toggles, and TalkBack reads it as a switch. */
 @Composable
 fun SwitchRow(title: String, caption: String?, checked: Boolean, onCheckedChange: (Boolean) -> Unit, icon: ImageResource? = null, enabled: Boolean = true) {

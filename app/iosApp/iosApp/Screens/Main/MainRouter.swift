@@ -9,10 +9,8 @@ struct Route: Hashable {
         case above(TabsComponentChild)
         /// A page of the details panel in one pane: a post, an author, a video.
         case details(DetailsComponentChild, DetailsComponent)
-        /// The open conversation, its info, Verify, New chat or Location channels over the Chats list on a phone.
+        /// The open conversation, its info, Verify or New chat over the Chats list on a phone.
         case chatPane(ChatsComponent)
-        /// A location channel's room over the channels.
-        case room(RoomComponent)
         /// Compose, Settings, Revisions, Edit profile above Main.
         case root(RootComponentChild)
     }
@@ -26,8 +24,7 @@ struct Route: Hashable {
 
 /// Flattens the component tree below the root into the pages the tab in front pushes, so one native `NavigationStack`
 /// (system back button, interactive swipe back, vertical bars on the Duo) renders several Decompose containers: the
-/// root stack above Main, the details panel in one pane, your profile and Bookmarks above the tabs, the Chats pane
-/// and a channel's room. Popping a page (Back or the swipe) tells the component that owns it.
+/// root stack above Main, the details panel in one pane, your profile and Bookmarks above the tabs, the Chats pane. Popping a page (Back or the swipe) tells the component that owns it.
 final class MainRouter: ObservableObject {
     @Published private(set) var routes: [Route] = []
     /// The tab whose navigation stack is in front: the active tab, or the tab under your profile or Bookmarks.
@@ -73,8 +70,6 @@ final class MainRouter: ObservableObject {
             details.onBack()
         case .chatPane(let chats):
             if let pane = chats.pane.value.child?.instance { Self.close(pane) }
-        case .room(let room):
-            room.onBack()
         case .root:
             root.onBack()
         }
@@ -87,7 +82,6 @@ final class MainRouter: ObservableObject {
         case .newChat(let it): it.component.onBack()
         case .info(let it): it.component.onBack()
         case .verify(let it): it.component.onBack()
-        case .channels(let it): it.component.onBack()
         }
     }
 
@@ -125,15 +119,8 @@ final class MainRouter: ObservableObject {
                let chats = stack.items.compactMap({ $0.instance as? TabsComponentChild.Chats }).first?.component {
                 watched.insert("pane")
                 watcher.watch("pane", chats.pane)
-                if let pane = chats.pane.value.child?.instance {
+                if chats.pane.value.child?.instance != nil {
                     routes.append(Route(key: "pane:\(ObjectIdentifier(chats))", kind: .chatPane(chats)))
-                    if let channels = pane as? ChatsComponentPane.Channels {
-                        watched.insert("room")
-                        watcher.watch("room", channels.component.room)
-                        if let room = channels.component.room.value.child?.instance {
-                            routes.append(Route(key: "room:\(ObjectIdentifier(room))", kind: .room(room)))
-                        }
-                    }
                 }
             }
         }

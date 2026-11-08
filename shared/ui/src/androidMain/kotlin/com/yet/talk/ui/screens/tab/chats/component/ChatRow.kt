@@ -19,7 +19,6 @@ import com.yet.talk.domain.model.chat.Chat
 import com.yet.talk.domain.model.post.PublishState
 import com.yet.talk.resources.*
 import com.yet.talk.ui.components.ListRow
-import com.yet.talk.ui.components.RowIcon
 import com.yet.talk.ui.screens.chat.component.ChatAvatar
 import com.yet.talk.ui.screens.chat.component.chatTitle
 import com.yet.talk.ui.theme.TalkIcon
@@ -63,18 +62,5 @@ fun ChatRow(chat: Chat, selected: Boolean, onClick: () -> Unit, modifier: Modifi
                 if (unread) Box(Modifier.size(10.dp).clip(CircleShape).background(colors.accent))
             }
         },
-    )
-}
-
-/** The Location channels entry at the top of the Chats list. */
-@Composable
-fun ChannelsRow(selected: Boolean, onClick: () -> Unit) {
-    ListRow(
-        title = stringResource(MR.strings.channels_title),
-        caption = stringResource(MR.strings.channels_row_caption),
-        selected = selected,
-        onClick = onClick,
-        leading = { RowIcon(TalkIcons.Pin) },
-        trailing = { TalkIcon(TalkIcons.Chevron, contentDescription = null, size = 18.dp, tint = MaterialTheme.talkColors.textSecondary) },
     )
 }

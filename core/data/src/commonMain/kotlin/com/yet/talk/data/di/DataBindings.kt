@@ -33,9 +33,7 @@ import com.yet.talk.domain.repository.YouTubeRepository
 import com.yet.talk.domain.repository.VideoRepository
 import com.yet.talk.domain.repository.ModerationRepository
 import com.yet.talk.domain.repository.ChatRepository
-import com.yet.talk.domain.repository.ChannelRepository
 import com.yet.talk.domain.repository.NetworkRepository
-import com.yet.talk.data.channel.ChannelRepositoryImpl
 import com.yet.talk.data.repository.ChatRepositoryImpl
 import com.yet.talk.data.session.SessionRelayAuthenticator
 import com.yet.talk.nostr.relay.RelayAuthenticator
@@ -87,8 +85,6 @@ abstract class DataBindings {
     @Binds
     internal abstract val ChatRepositoryImpl.bindChatRepository: ChatRepository
 
-    @Binds
-    internal abstract val ChannelRepositoryImpl.bindChannelRepository: ChannelRepository
 
     @Binds
     internal abstract val NetworkRepositoryImpl.bindNetworkRepository: NetworkRepository

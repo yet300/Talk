@@ -1,8 +1,8 @@
 import SwiftUI
 import SharedLogic
 
-/// Chats (`Chats-Mobile`, `Chats-Inner`): the list with Chats · Requests as pages to swipe (`ChildPages`) and the
-/// Location channels row; the open conversation, its info, Verify, New chat or Location channels are the `pane` slot
+/// Chats (`Chats-Mobile`, `Chats-Inner`): the list with Chats · Requests as pages to swipe (`ChildPages`); the open
+/// conversation, its info, Verify or New chat are the `pane` slot
 /// (`ChildSlot`). On a phone the router pushes the pane over the list (Back and the swipe close it); on a regular-width
 /// window (the Duo inner screen, iPad) the list and the pane sit side by side.
 struct ChatsView: View {
@@ -25,7 +25,7 @@ struct ChatsView: View {
                 Rectangle().fill(TalkColor.border).frame(width: TalkSize.hairline).ignoresSafeArea()
                 Group {
                     if let open {
-                        PaneContent(pane: open, showsRoom: true)
+                        PaneContent(pane: open)
                             .id(ObjectIdentifier(open))
                             .transition(.opacity)
                     } else {
@@ -50,7 +50,7 @@ struct ChatPaneView: View {
     var body: some View {
         ValueReader(chats.pane) { slot in
             if let pane = slot.child?.instance {
-                PaneContent(pane: pane, showsRoom: false)
+                PaneContent(pane: pane)
                     .id(ObjectIdentifier(pane))
             } else {
                 TalkColor.bg
@@ -62,8 +62,6 @@ struct ChatPaneView: View {
 /// One pane of Chats. Each takes its own Back to where its component goes (info back to the conversation).
 struct PaneContent: View {
     let pane: ChatsComponentPane
-    /// Wide windows show a channel's room in the pane; on a phone the router pushes it.
-    let showsRoom: Bool
 
     var body: some View {
         switch onEnum(of: pane) {
@@ -71,12 +69,11 @@ struct PaneContent: View {
         case .newChat(let it): NewChatView(it.component)
         case .info(let it): ChatInfoView(it.component)
         case .verify(let it): VerifyView(it.component)
-        case .channels(let it): ChannelsView(it.component, showsRoom: showsRoom)
         }
     }
 }
 
-/// The list: Chats · Requests (with the count), the Location channels row, the chats, empty states.
+/// The list: Chats · Requests (with the count), the chats, empty states.
 private struct ChatList: View {
     let component: ChatsComponent
     let open: ChatsComponentPane?
@@ -129,14 +126,7 @@ private struct ChatList: View {
         let selected = open?.chatKey
         return ScrollView {
             LazyVStack(spacing: 0) {
-                if tab == .chats {
-                    ListRow(title: strings.channels_title.text, caption: strings.channels_row_caption.text,
-                            selected: open is ChatsComponentPane.Channels, action: component.onOpenChannels) {
-                        RowIcon(icon: TalkIcons.pin)
-                    } trailing: {
-                        TalkIcon(icon: TalkIcons.chevron, size: 18).foregroundStyle(TalkColor.textSecondary)
-                    }
-                } else {
+                if tab == .requests {
                     Caption(strings.chats_blocked_note.text)
                 }
                 if model.isLoading {

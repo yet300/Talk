@@ -1,12 +1,10 @@
 package com.yet.talk.swift
 
 import com.yet.talk.domain.model.activity.ActivityItem
-import com.yet.talk.domain.model.channel.LocationChannel
 import com.yet.talk.domain.model.chat.Chat
 import com.yet.talk.domain.model.chat.ChatMessage
 import com.yet.talk.domain.model.post.Post
 import com.yet.talk.domain.model.user.User
-import com.yet.talk.feature.channels.ChannelsComponent
 import com.yet.talk.feature.chat.component.newchat.NewChatComponent
 import com.yet.talk.feature.tab.activity.ActivityComponent
 import com.yet.talk.feature.tab.bookmarks.BookmarksComponent
@@ -40,13 +38,13 @@ val ChatMessage.Quote.authorKey: String get() = author.value
 /** The post a details panel was opened with, for the highlighted card next to it; null for a profile or video. */
 val MainComponent.Link.postKey: String? get() = (this as? MainComponent.Link.Post)?.id?.value
 
-/** The chat a pane belongs to (the conversation, its info or Verify); null for New chat and channels. */
+/** The chat a pane belongs to (the conversation, its info or Verify); null for New chat. */
 val ChatsComponent.Pane.chatKey: String?
     get() = when (this) {
         is ChatsComponent.Pane.Conversation -> id.value
         is ChatsComponent.Pane.Info -> id.value
         is ChatsComponent.Pane.Verify -> id.value
-        is ChatsComponent.Pane.NewChat, is ChatsComponent.Pane.Channels -> null
+        is ChatsComponent.Pane.NewChat -> null
     }
 
 /** One row of Activity: who did what, when. */
@@ -58,8 +56,6 @@ fun NewChatComponent.Model.cannotReceive(user: User): Boolean = user.id in canno
 /** The person whose inbox relays are being checked. */
 fun NewChatComponent.Model.isChecking(user: User): Boolean = checking == user.id
 
-/** People in [channel] in the last five minutes; null where nobody announces ("? people"). */
-fun ChannelsComponent.Model.peopleIn(channel: LocationChannel): Int? = people[channel.geohash]
 
 /** `now`, `5m`, `2h`, `3d`, then `Oct 28`. */
 fun Instant.relativeText(): String = toRelativeDesc().localizedText()

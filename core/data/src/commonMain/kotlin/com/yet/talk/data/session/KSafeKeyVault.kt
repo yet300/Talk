@@ -1,6 +1,5 @@
 package com.yet.talk.data.session
 
-import com.yet.talk.nostr.key.secureRandomHex
 import dev.zacsweers.metro.Inject
 import eu.anifantakis.lib.ksafe.KSafe
 
@@ -22,7 +21,7 @@ internal class KSafeKeyVault(private val ksafe: Lazy<KSafe>) : KeyVault {
     }
 
     override suspend fun clear() {
-        listOf(KEY, LOCKED_KEY, CHAT_KEY, LEGACY_CHAT_KEY, CHANNEL_SEED).forEach { ksafe.value.delete(it) }
+        listOf(KEY, LOCKED_KEY, CHAT_KEY, LEGACY_CHAT_KEY, LEGACY_CHANNEL_SEED).forEach { ksafe.value.delete(it) }
     }
 
     override suspend fun sealedChatKey(): String? = get(CHAT_KEY)
@@ -36,9 +35,6 @@ internal class KSafeKeyVault(private val ksafe: Lazy<KSafe>) : KeyVault {
         ksafe.value.delete(LEGACY_CHAT_KEY)
     }
 
-    override suspend fun channelSeed(): String =
-        get(CHANNEL_SEED) ?: secureRandomHex(32).also { ksafe.value.put(CHANNEL_SEED, it) }
-
     private suspend fun get(key: String): String? = ksafe.value.get(key, "").ifEmpty { null }
 
     private companion object {
@@ -46,6 +42,7 @@ internal class KSafeKeyVault(private val ksafe: Lazy<KSafe>) : KeyVault {
         const val LOCKED_KEY = "nostr_secret_key_ncryptsec"
         const val CHAT_KEY = "chat_storage_key_sealed"
         const val LEGACY_CHAT_KEY = "chat_storage_key"
-        const val CHANNEL_SEED = "channel_device_seed"
+        /** The location channels' device seed, from versions that had them; erased with the rest. */
+        const val LEGACY_CHANNEL_SEED = "channel_device_seed"
     }
 }

@@ -220,8 +220,6 @@ private struct RouteView: View {
                 DetailsPage(page: page)
             case .chatPane(let chats):
                 ChatPaneView(chats: chats)
-            case .room(let room):
-                RoomView(room)
             case .root(let child):
                 RootDestination(child: child)
             }

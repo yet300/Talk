@@ -35,12 +35,10 @@ import com.yet.talk.ui.components.glass.SwipePages
 import com.yet.talk.ui.components.glass.rememberPagesPosition
 import com.yet.talk.ui.navigation.AnimatedSlot
 import com.yet.talk.ui.platform.SecureScreen
-import com.yet.talk.ui.screens.channels.ChannelsContent
 import com.yet.talk.ui.screens.chat.ChatInfoContent
 import com.yet.talk.ui.screens.chat.ConversationContent
 import com.yet.talk.ui.screens.chat.NewChatContent
 import com.yet.talk.ui.screens.chat.VerifyContent
-import com.yet.talk.ui.screens.tab.chats.component.ChannelsRow
 import com.yet.talk.ui.screens.tab.chats.component.ChatRow
 import com.yet.talk.ui.theme.TalkIcons
 import com.yet.talk.ui.theme.sizes
@@ -49,8 +47,8 @@ import com.yet.talk.ui.theme.stringResource
 import com.yet.talk.ui.theme.talkColors
 
 /**
- * Chats (`Chats-Mobile`, `Chats-Inner`): the list with Chats · Requests as pages to swipe (`ChildPages`) and the
- * Location channels row; the open conversation, its info, Verify, New chat or Location channels in the [pane slot]
+ * Chats (`Chats-Mobile`, `Chats-Inner`): the list with Chats · Requests as pages to swipe (`ChildPages`); the open
+ * conversation, its info, Verify or New chat in the [pane slot]
  * (`ChildSlot`): on a phone it slides over the list (and back with the predictive back gesture), wider it sits beside
  * it. Chats are kept out of screenshots (Settings, Security).
  */
@@ -68,8 +66,7 @@ fun ChatsContent(component: ChatsComponent) {
             }
         } else {
             ChatList(component, open, phone = true)
-            val roomOpen = (open as? ChatsComponent.Pane.Channels)?.component?.room?.subscribeAsState()?.value?.child != null
-            AnimatedSlot(pane, component.backHandler, onBack = ::closePane, backEnabled = !roomOpen) { Pane(it) }
+            AnimatedSlot(pane, component.backHandler, onBack = ::closePane) { Pane(it) }
         }
     }
 }
@@ -80,7 +77,6 @@ private fun closePane(pane: ChatsComponent.Pane) = when (pane) {
     is ChatsComponent.Pane.NewChat -> pane.component.onBack()
     is ChatsComponent.Pane.Info -> pane.component.onBack()
     is ChatsComponent.Pane.Verify -> pane.component.onBack()
-    is ChatsComponent.Pane.Channels -> pane.component.onBack()
 }
 
 @Composable
@@ -90,7 +86,6 @@ private fun Pane(pane: ChatsComponent.Pane) {
         is ChatsComponent.Pane.NewChat -> NewChatContent(pane.component)
         is ChatsComponent.Pane.Info -> ChatInfoContent(pane.component)
         is ChatsComponent.Pane.Verify -> VerifyContent(pane.component)
-        is ChatsComponent.Pane.Channels -> ChannelsContent(pane.component)
     }
 }
 
@@ -119,9 +114,7 @@ private fun ChatList(component: ChatsComponent, open: ChatsComponent.Pane?, phon
                 val chats by page.chats.subscribeAsState()
                 LazyColumn(Modifier.fillMaxSize(), contentPadding = PaddingValues(top = top, bottom = bottom)) {
                     item(key = "error") { ErrorRow(model.error, onDismiss = component::onErrorShown) }
-                    if (page.tab == ChatsComponent.Tab.Chats) {
-                        item(key = "channels") { ChannelsRow(selected = open is ChatsComponent.Pane.Channels, onClick = component::onOpenChannels) }
-                    } else {
+                    if (page.tab == ChatsComponent.Tab.Requests) {
                         item(key = "note") { Caption(stringResource(MR.strings.chats_blocked_note)) }
                     }
                     when {

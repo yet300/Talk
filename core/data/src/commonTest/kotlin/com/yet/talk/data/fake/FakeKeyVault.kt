@@ -11,11 +11,9 @@ internal class FakeKeyVault : KeyVault {
     override suspend fun write(secretKeyHex: String) { stored = secretKeyHex; locked = null }
     override suspend fun readLocked() = locked
     override suspend fun writeLocked(ncryptsec: String) { locked = ncryptsec; stored = null }
-    override suspend fun clear() { stored = null; locked = null; sealedChat = null; seed = null }
+    override suspend fun clear() { stored = null; locked = null; sealedChat = null }
     override suspend fun sealedChatKey() = sealedChat
     override suspend fun writeSealedChatKey(sealed: String) { sealedChat = sealed }
     override suspend fun takeLegacyChatKey(): String? = null
     override suspend fun clearChatKey() { sealedChat = null }
-    var seed: String? = null
-    override suspend fun channelSeed() = seed ?: "22".repeat(32).also { seed = it }
 }
