@@ -18,11 +18,13 @@ import kotlinx.coroutines.launch
 import org.jetbrains.compose.web.renderComposable
 
 fun main() {
+    installHistoryBasePath(BASE_PATH)
     val lifecycle = LifecycleRegistry()
     val graph = createJsAppGraph()
     // Binds the root's navigation to the browser history and restores it after a reload.
     val root = withWebHistory { stateKeeper, deepLink ->
-        graph.rootComponentFactory(DefaultComponentContext(lifecycle = lifecycle, stateKeeper = stateKeeper), deepLink)
+        val normalizedLink = normalizeDeepLink(deepLink, BASE_PATH)
+        graph.rootComponentFactory(DefaultComponentContext(lifecycle = lifecycle, stateKeeper = stateKeeper), normalizedLink)
     }
     lifecycle.attachToDocument()
 

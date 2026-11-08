@@ -5,6 +5,7 @@ import androidx.compose.runtime.remember
 import com.yet.talk.domain.model.post.Post
 import com.yet.talk.feature.post.component.post.PostComponent
 import com.yet.talk.resources.*
+import com.yet.talk.web.appUrl
 import com.yet.talk.web.browser.copyToClipboard
 import com.yet.talk.web.browser.shareOrCopy
 import com.yet.talk.web.ui.components.Avatar
@@ -40,7 +41,7 @@ fun Article(post: Post, model: PostComponent.Model, component: PostComponent) {
     Article({ classes("t-part") }) {
         post.thread?.let { thread ->
             Div({ classes("t-reply-to") }) {
-                A(href = "/post/${thread.parentId.value}", attrs = {
+                A(href = appUrl("/post/${thread.parentId.value}"), attrs = {
                     onClick { it.preventDefault(); component.onOpenPost(thread.parentId) }
                 }) { Text(stringResource(MR.strings.post_show_parent)) }
             }

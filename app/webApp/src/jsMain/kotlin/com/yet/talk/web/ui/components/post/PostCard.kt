@@ -7,6 +7,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import com.yet.talk.domain.model.post.PostId
+import com.yet.talk.web.appUrl
 import com.yet.talk.web.ui.components.ButtonStyle
 import com.yet.talk.web.ui.components.TalkButton
 import com.yet.talk.web.ui.components.moderation.HiddenRow
@@ -70,7 +71,7 @@ fun PostCard(
             }
             if (summary.isArticle) {
                 H2({ classes("t-card-title") }) {
-                    A(href = "/post/${post.id.value}", attrs = { onClick { it.preventDefault(); it.stopPropagation(); onOpen(post) } }) {
+                    A(href = appUrl("/post/${post.id.value}"), attrs = { onClick { it.preventDefault(); it.stopPropagation(); onOpen(post) } }) {
                         Text(summary.title)
                     }
                 }
