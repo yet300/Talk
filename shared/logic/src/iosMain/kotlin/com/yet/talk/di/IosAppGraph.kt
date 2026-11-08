@@ -5,7 +5,7 @@ import com.yet.talk.database.driver.SqlDriverFactory
 import com.yet.talk.database.driver.iosSqlDriverFactory
 import dev.zacsweers.metro.AppScope
 import com.yet.talk.domain.repository.LocationSource
-import com.yet.talk.location.UnavailableLocationSource
+import com.yet.talk.location.IosLocationSource
 import com.yet.talk.domain.repository.ConnectivitySource
 import com.yet.talk.network.DeviceConnectivity
 import dev.zacsweers.metro.DependencyGraph
@@ -21,7 +21,7 @@ internal interface IosAppGraph : AppGraph, RepositoriesGraph {
 
     @SingleIn(AppScope::class)
     @Provides
-    fun locationSource(): LocationSource = UnavailableLocationSource()
+    fun locationSource(): LocationSource = IosLocationSource()
 
     @Provides
     @SingleIn(AppScope::class)

@@ -1,8 +1,8 @@
 plugins {
     alias(libs.plugins.local.kotlin.multiplatform)
     alias(libs.plugins.metro)
-    // Packs the resources of every module into the iOS framework (copyFrameworkResourcesToApp in Xcode).
     alias(libs.plugins.mokoResources)
+    alias(libs.plugins.skie)
 }
 
 kotlin {
