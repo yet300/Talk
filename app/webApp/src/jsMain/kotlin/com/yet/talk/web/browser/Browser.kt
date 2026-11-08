@@ -13,6 +13,12 @@ external interface IntersectionObserverEntry {
     val isIntersecting: Boolean
 }
 
+/** `ResizeObserver`, which the Kotlin/JS DOM declarations do not include either. */
+external class ResizeObserver(callback: (entries: Array<dynamic>, observer: ResizeObserver) -> Unit) {
+    fun observe(target: Element)
+    fun disconnect()
+}
+
 /** Copies [text] to the clipboard (needs a user gesture). */
 fun copyToClipboard(text: String) {
     window.navigator.asDynamic().clipboard?.writeText(text)

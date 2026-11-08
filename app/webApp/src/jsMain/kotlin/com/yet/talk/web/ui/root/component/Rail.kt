@@ -1,5 +1,8 @@
 package com.yet.talk.web.ui.root.component
 
+import com.yet.talk.web.ui.components.rememberNavPill
+import com.yet.talk.web.ui.components.navPillContainer
+import com.yet.talk.web.ui.components.NavPill
 import androidx.compose.runtime.Composable
 import com.yet.talk.feature.tab.main.component.tabs.TabsComponent
 import com.yet.talk.resources.*
@@ -46,7 +49,9 @@ fun Rail(selection: RailSelection, me: TabsComponent.Me, actions: RailActions) {
             attr("aria-label", appName)
             onClick { it.preventDefault(); actions.onTab(TabsComponent.Tab.Home) }
         }) { Text(appName) }
-        Div({ classes("t-rail-items") }) {
+        val pill = rememberNavPill(selection)
+        Div({ classes("t-rail-items"); navPillContainer(pill) }) {
+            NavPill()
             TabsComponent.Tab.entries.forEach { tab ->
                 val badge = if (tab == TabsComponent.Tab.Chats) me.unreadChats else 0
                 RailItem(tab.icon(selection == RailSelection.Tab(tab)), tab.label(), selection == RailSelection.Tab(tab), badge) { actions.onTab(tab) }

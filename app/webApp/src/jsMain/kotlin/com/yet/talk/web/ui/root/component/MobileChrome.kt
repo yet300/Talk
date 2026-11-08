@@ -1,5 +1,8 @@
 package com.yet.talk.web.ui.root.component
 
+import com.yet.talk.web.ui.components.rememberNavPill
+import com.yet.talk.web.ui.components.navPillContainer
+import com.yet.talk.web.ui.components.NavPill
 import androidx.compose.runtime.Composable
 import com.yet.talk.feature.tab.main.component.tabs.TabsComponent
 import com.yet.talk.resources.*
@@ -27,7 +30,9 @@ import org.jetbrains.compose.web.dom.Text
 fun MobileNav(selection: RailSelection, unreadChats: Int, actions: RailActions) {
     val label = stringResource(MR.strings.nav_primary)
     Div({ classes("x-bottom-nav-dock", "t-mobile-dock") }) {
-        Nav({ classes("x-bottom-nav"); attr("aria-label", label) }) {
+        val pill = rememberNavPill(selection, draggable = true) { index -> actions.onTab(PhoneTabs[index]) }
+        Nav({ classes("x-bottom-nav"); attr("aria-label", label); navPillContainer(pill) }) {
+            NavPill()
             PhoneTabs.forEach { tab ->
                 val active = selection == RailSelection.Tab(tab)
                 val badge = if (tab == TabsComponent.Tab.Chats) unreadChats else 0
