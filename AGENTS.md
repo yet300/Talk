@@ -27,7 +27,7 @@ Clean Architecture, SOLID, KISS, YAGNI. In practice:
 | Gradle path | Directory | Role |
 |---|---|---|
 | `:androidApp` | `app/androidApp` | Android entry point: `TalkApplication` owns the graph, `MainActivity` the retained root |
-| — | `app/iosApp` | iOS app (SwiftUI); links the `SharedLogic` framework. `AppDelegate` owns the graph and root; `Theme/`, `Decompose/` |
+| — | `app/iosApp` | iOS app (SwiftUI); links the `SharedLogic` framework (SKIE). `AppDelegate` owns the graph and root; `Theme/`, `Decompose/` (Value, ChildPages, paging), `Components/`, `Root/` (root stack, device lock, privacy), `Screens/` (`Main/MainRouter` flattens the Decompose tree into each tab's `NavigationStack`) |
 | `:webApp` | `app/webApp` | Web app (Compose HTML, webpack): `Main.kt` wires the graph, `withWebHistory` and the theme |
 | `:sharedLogic` | `shared/logic` | Composition root: the Metro graph (`AndroidAppGraph`, `IosAppGraph`, `JsAppGraph`), `DomainError.toStringDesc()`, the umbrella exported to iOS (`SharedLogic.framework`) |
 | `:sharedUI` | `shared/ui` | Android Compose UI (Android-only on purpose, code in `androidMain`): `TalkApp`, `TalkTheme`, root content; glass bars and the iOS 26-style tab capsule with Haze Glass (`components/glass`), images with Coil, paged lists with `paging-compose` |
@@ -80,7 +80,7 @@ excerpts are derived from the markdown (`PostSummaries`), as in KarpathyTalk.
   through `OffsetPagingSource` (20 rows, `FeedRules.PAGE_SIZE`; SQLDelight's own `QueryPagingSource` reads
   synchronously, which the web worker driver rejects), and `FeedRemoteMediator` fetches older
   pages from relays. Its cursor (the oldest event relays returned) and end flag live in `sync_state`.
-  The web collects `PagingData` with a `PagingDataPresenter` (`app/webApp/.../paging`); iOS will do the same in Swift-facing Kotlin.
+  The web collects `PagingData` with a `PagingDataPresenter` (`app/webApp/.../paging`); iOS with `PagingController` (`shared/logic` iosMain `paging/`, handed to Swift by `swift/SwiftAccess.kt`) and the SwiftUI `PagingModel`/`PagedRows`.
 - Writes are optimistic (`Publisher.storeAndPublish`): stored as pending, then published or failed. Every publish goes
   through `Outbox`, which keeps the relays still owed an event and retries only those (see the protocol doc). Deletions
   and unlikes are published first, because tombstones cannot be undone.

@@ -471,4 +471,10 @@
     <string name="security_hide_screenshots_caption">Chats and your private key don’t show in screenshots or recent apps.</string>
     <string name="action_clear">Clear</string>
     <string name="channels_location_denied">Location is off for Talk. Teleport opens channels by area code.</string>
+    <!-- iOS: the device lock is Face ID, Touch ID or the device passcode -->
+    <string name="lock_device_body_ios">Unlock with Face ID, Touch ID or your passcode.</string>
+    <string name="security_device_lock_caption_ios">Open Talk with Face ID, Touch ID or your passcode.</string>
+    <string name="security_device_lock_unavailable_ios">Set a passcode in Settings first.</string>
+    <string name="security_hide_screenshots_caption_ios">Chats and your private key are covered in the app switcher and left out of screen recordings.</string>
+    <string name="error_location_ios">Talk can’t get your location. Allow it in Settings, or teleport to an area by its code.</string>
 </resources>

@@ -4,5 +4,11 @@
 <dict>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
+	<key>NSFaceIDUsageDescription</key>
+	<string>Talk uses Face ID to open when the device lock is on.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Talk turns your location into an area code on this device to show location channels. Your exact location is never sent.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Talk uses the camera to scan a contact’s safety code.</string>
 </dict>
 </plist>

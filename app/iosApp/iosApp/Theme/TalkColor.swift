@@ -43,4 +43,7 @@ enum TalkColor {
     static let tintPink = color(mr.tint_pink)
     static let modalScrim = color(mr.modal_scrim)
     static let mediaScrim = color(mr.media_scrim)
+    /// Your chat bubbles (decision 22: white text reaches 5.4:1 on it).
+    static let bubbleOut = color(mr.bubble_out)
+    static let bubbleTheirs = color(mr.bubble_theirs)
 }
