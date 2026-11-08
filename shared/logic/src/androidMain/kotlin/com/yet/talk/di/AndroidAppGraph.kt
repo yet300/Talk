@@ -6,7 +6,7 @@ import com.yet.talk.database.driver.SqlDriverFactory
 import com.yet.talk.database.driver.androidSqlDriverFactory
 import dev.zacsweers.metro.AppScope
 import com.yet.talk.domain.repository.LocationSource
-import com.yet.talk.location.UnavailableLocationSource
+import com.yet.talk.location.AndroidLocationSource
 import com.yet.talk.domain.repository.ConnectivitySource
 import com.yet.talk.network.DeviceConnectivity
 import dev.zacsweers.metro.DependencyGraph
@@ -22,7 +22,7 @@ internal interface AndroidAppGraph : AppGraph, RepositoriesGraph {
 
     @SingleIn(AppScope::class)
     @Provides
-    fun locationSource(): LocationSource = UnavailableLocationSource()
+    fun locationSource(context: Context): LocationSource = AndroidLocationSource(context)
 
     @Provides
     @SingleIn(AppScope::class)
