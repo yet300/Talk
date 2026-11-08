@@ -462,4 +462,13 @@
     <string name="relay_connecting">Connecting…</string>
     <string name="relay_unreachable">Can’t connect</string>
     <string name="relay_not_used">Not used yet</string>
+    <!-- Android: the device lock and hiding in screenshots (Settings, Security) -->
+    <string name="lock_device_body">Unlock with your fingerprint, face or screen lock.</string>
+    <string name="security_device_lock">Device lock</string>
+    <string name="security_device_lock_caption">Open Talk with your fingerprint, face or screen lock.</string>
+    <string name="security_device_lock_unavailable">Set a screen lock in your device settings first.</string>
+    <string name="security_hide_screenshots">Hide in screenshots</string>
+    <string name="security_hide_screenshots_caption">Chats and your private key don’t show in screenshots or recent apps.</string>
+    <string name="action_clear">Clear</string>
+    <string name="channels_location_denied">Location is off for Talk. Teleport opens channels by area code.</string>
 </resources>

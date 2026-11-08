@@ -1,5 +1,11 @@
 package com.yet.talk.ui.screens.auth
 
+import com.yet.talk.ui.platform.copyText
+import com.yet.talk.ui.platform.SecureScreen
+import com.yet.talk.ui.components.ErrorRow
+import com.yet.talk.ui.components.NetworkBar
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -22,18 +28,28 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalClipboardManager
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import com.yet.talk.feature.auth.AuthComponent
-import com.yet.talk.resources.*
+import com.yet.talk.resources.MR
+import com.yet.talk.resources.action_copied
+import com.yet.talk.resources.action_copy
+import com.yet.talk.resources.app_name
+import com.yet.talk.resources.auth_create_key
+import com.yet.talk.resources.auth_key_caption
+import com.yet.talk.resources.auth_key_label
+import com.yet.talk.resources.auth_key_placeholder
+import com.yet.talk.resources.auth_save_title
+import com.yet.talk.resources.auth_save_warning
+import com.yet.talk.resources.auth_saved_it
+import com.yet.talk.resources.auth_subtitle
+import com.yet.talk.resources.auth_title
+import com.yet.talk.resources.auth_use_key
 import com.yet.talk.ui.components.ButtonStyle
 import com.yet.talk.ui.components.TalkButton
-import com.yet.talk.ui.theme.message
 import com.yet.talk.ui.theme.spacing
 import com.yet.talk.ui.theme.stringResource
 import com.yet.talk.ui.theme.talkColors
@@ -60,9 +76,14 @@ fun AuthContent(component: AuthComponent) {
     ) {
         Column(Modifier.widthIn(max = 420.dp).fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(spacing.lg)) {
             Text(stringResource(MR.strings.app_name), style = MaterialTheme.talkTypography.wordmark, color = MaterialTheme.talkColors.textPrimary)
+            NetworkBar()
             val newKey = model.newKey
-            if (newKey != null) SaveKey(model, newKey, component) else KeyForm(model, component)
-            model.error?.let { Text(it.message(), style = MaterialTheme.talkTypography.body, color = MaterialTheme.talkColors.error) }
+            AnimatedContent(newKey != null, label = "auth") { saving ->
+                Column(verticalArrangement = Arrangement.spacedBy(spacing.lg)) {
+                    if (saving && newKey != null) SaveKey(model, newKey, component) else KeyForm(model, component)
+                }
+            }
+            ErrorRow(model.error, onDismiss = component::onErrorShown)
         }
     }
 }
@@ -93,7 +114,10 @@ private fun KeyForm(model: AuthComponent.Model, component: AuthComponent) {
 @Composable
 private fun SaveKey(model: AuthComponent.Model, newKey: String, component: AuthComponent) {
     val colors = MaterialTheme.talkColors
-    val clipboard = LocalClipboardManager.current
+    val context = LocalContext.current
+    val copied = stringResource(MR.strings.action_copied)
+    // The new key is on screen: keep it out of screenshots and the recents preview.
+    SecureScreen()
     Text(stringResource(MR.strings.auth_save_title), style = MaterialTheme.talkTypography.headingLarge, color = colors.textPrimary)
     Text(stringResource(MR.strings.auth_save_warning), style = MaterialTheme.talkTypography.body, color = colors.textSecondary)
     Text(
@@ -105,7 +129,7 @@ private fun SaveKey(model: AuthComponent.Model, newKey: String, component: AuthC
     TalkButton(
         stringResource(if (model.newKeyCopied) MR.strings.action_copied else MR.strings.action_copy),
         {
-            clipboard.setText(AnnotatedString(newKey))
+            copyText(context, newKey, copied, sensitive = true)
             component.onNewKeyCopied()
         },
         ButtonStyle.Secondary,

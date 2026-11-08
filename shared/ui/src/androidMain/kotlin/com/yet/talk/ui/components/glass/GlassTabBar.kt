@@ -2,7 +2,6 @@ package com.yet.talk.ui.components.glass
 
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.VectorConverter
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
@@ -42,7 +41,15 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.yet.talk.feature.tab.main.component.tabs.TabsComponent
-import com.yet.talk.resources.*
+import com.yet.talk.resources.MR
+import com.yet.talk.resources.chats_unread_count
+import com.yet.talk.resources.tab_activity
+import com.yet.talk.resources.tab_bookmarks
+import com.yet.talk.resources.tab_chats
+import com.yet.talk.resources.tab_home
+import com.yet.talk.resources.tab_profile
+import com.yet.talk.resources.tab_search
+import com.yet.talk.resources.tab_videos
 import com.yet.talk.ui.theme.TalkIcon
 import com.yet.talk.ui.theme.TalkIcons
 import com.yet.talk.ui.theme.pluralResource

@@ -1,6 +1,12 @@
 package com.yet.talk.ui.components.post
 
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.graphics.Color
+import com.yet.talk.ui.components.LocalSelectedPost
+import com.yet.talk.ui.theme.TalkMotion
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -52,7 +58,9 @@ fun PostCard(post: Post, onOpen: (Post) -> Unit, onOpenAuthor: (Post) -> Unit, a
     val colors = MaterialTheme.talkColors
     val spacing = MaterialTheme.spacing
     val summary = post.summary
-    Column(Modifier.fillMaxWidth().clickable(role = Role.Button) { onOpen(post) }) {
+    val selected = LocalSelectedPost.current == post.id
+    val ground by animateColorAsState(if (selected) colors.surface else Color.Transparent, TalkMotion.settle(), label = "selected")
+    Column(Modifier.fillMaxWidth().drawBehind { drawRect(ground) }.clickable(role = Role.Button) { onOpen(post) }) {
         Column(Modifier.padding(horizontal = spacing.lg, vertical = spacing.md)) {
             post.repostedBy?.let { reposter ->
                 Row(Modifier.padding(start = 24.dp, bottom = 4.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -108,6 +116,7 @@ private fun TextBody(text: String) {
     val colors = MaterialTheme.talkColors
     Text(
         text,
+        modifier = Modifier.animateContentSize(TalkMotion.settle()),
         style = MaterialTheme.talkTypography.body,
         color = colors.textPrimary,
         maxLines = if (expanded) Int.MAX_VALUE else TEXT_LINES,

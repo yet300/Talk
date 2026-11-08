@@ -1,6 +1,22 @@
 package com.yet.talk.ui.components.post
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.ContentTransform
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.graphics.graphicsLayer
+import com.yet.talk.ui.theme.TalkMotion
+import com.yet.talk.ui.theme.reducedMotion
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
@@ -29,7 +45,8 @@ import com.yet.talk.ui.theme.talkColors
 import com.yet.talk.ui.theme.talkTypography
 import dev.icerock.moko.resources.ImageResource
 
-/** What the action row does; each screen routes these to its component. */
+/** What the action row does; each screen routes these to its component (remember it, it never changes). */
+@androidx.compose.runtime.Immutable
 class PostActionHandlers(
     val onReply: (Post) -> Unit,
     val onRepost: (Post) -> Unit,
@@ -61,23 +78,53 @@ fun PostActions(post: Post, handlers: PostActionHandlers) {
     }
 }
 
-/** One action (`x-action`): an 18 dp icon with its count, a 44 dp target; tinted when on. */
+/**
+ * One action (`x-action`): an 18 dp icon with its count, a 44 dp target; its colour eases to the on colour, and
+ * turning it on pops the icon with a small spring (only when the finger did it, not when the list scrolls it in).
+ */
 @Composable
 private fun Action(icon: ImageResource, count: Long?, label: String, onColor: Color?, onClick: () -> Unit) {
-    val tint = onColor ?: MaterialTheme.talkColors.textSecondary
+    val on = onColor != null
+    val tint by animateColorAsState(onColor ?: MaterialTheme.talkColors.textSecondary, TalkMotion.settle(), label = "tint")
+    val scale = remember { Animatable(1f) }
+    val seen = remember { BooleanHolder(on) }
+    val reduced = reducedMotion
+    LaunchedEffect(on) {
+        if (on && !seen.value && !reduced) {
+            scale.snapTo(0.6f)
+            scale.animateTo(1f, TalkMotion.pop())
+        }
+        seen.value = on
+    }
     Row(
         modifier = Modifier
             .heightIn(min = MaterialTheme.sizes.touchMin)
             .widthIn(min = MaterialTheme.sizes.touchMin)
             .clip(CircleShape)
-            .toggleable(value = onColor != null, role = Role.Button, onValueChange = { onClick() })
+            .toggleable(value = on, role = Role.Button, onValueChange = { onClick() })
             .semantics { contentDescription = label }
             .padding(horizontal = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        TalkIcon(icon, contentDescription = null, size = MaterialTheme.sizes.iconAction, tint = tint)
+        TalkIcon(
+            icon, contentDescription = null, size = MaterialTheme.sizes.iconAction, tint = tint,
+            modifier = Modifier.graphicsLayer {
+                scaleX = scale.value
+                scaleY = scale.value
+            },
+        )
         if (count != null && count > 0) {
-            Text(count.toString(), style = MaterialTheme.talkTypography.small, color = tint, modifier = Modifier.padding(start = 4.dp))
+            AnimatedContent(count, transitionSpec = { countTransition() }, label = "count") { value ->
+                Text(value.toString(), style = MaterialTheme.talkTypography.small, color = tint, modifier = Modifier.padding(start = 4.dp))
+            }
         }
     }
+}
+
+private class BooleanHolder(var value: Boolean)
+
+/** A count rolls up when it grows and down when it shrinks. */
+private fun AnimatedContentTransitionScope<Long>.countTransition(): ContentTransform {
+    val up = targetState > initialState
+    return (slideInVertically { if (up) it else -it } + fadeIn()) togetherWith (slideOutVertically { if (up) -it else it } + fadeOut())
 }

@@ -6,6 +6,11 @@ android-targetSdk = "37"
 
 androidx-activity = "1.13.0"
 androidx-appcompat = "1.8.0"
+# The device lock (BiometricPrompt, device credential) for the Android app lock (Apache-2.0)
+androidx-biometric = "1.1.0"
+androidx-fragment = "1.8.9"
+# QR codes for Verify on Android (Apache-2.0)
+zxing = "3.5.3"
 
 androidx-core = "1.19.1"
 androidx-espresso = "3.7.0"
@@ -25,6 +30,7 @@ material3Adaptive = "1.3.0"
 haze = "2.1.0"
 # Images on Android (Apache-2.0)
 coil = "3.6.3"
+youtubePlayer = "13.1.0"
 aboutLibraries = "15.3.0"
 composeMultiplatform = "1.12.2"
 material3 = "1.10.0-alpha05"
@@ -73,6 +79,9 @@ kermit = "2.2.0"
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "androidx-core" }
 androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "androidx-appcompat" }
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activity" }
+androidx-biometric = { module = "androidx.biometric:biometric", version.ref = "androidx-biometric" }
+androidx-fragment = { module = "androidx.fragment:fragment-ktx", version.ref = "androidx-fragment" }
+zxing-core = { module = "com.google.zxing:core", version.ref = "zxing" }
 
 compose-uiTooling = { module = "org.jetbrains.compose.ui:ui-tooling", version.ref = "composeMultiplatform" }
 androidx-lifecycle-runtimeCompose = { module = "org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose", version.ref = "androidx-lifecycle" }
@@ -87,6 +96,8 @@ markdown-renderer-m3 = { module = "com.mikepenz:multiplatform-markdown-renderer-
 markdown-renderer-coil3 = { module = "com.mikepenz:multiplatform-markdown-renderer-coil3", version.ref = "markdownRenderer" }
 coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }
 coil-network-okhttp = { module = "io.coil-kt.coil3:coil-network-okhttp", version.ref = "coil" }
+# YouTube's IFrame player in a WebView, with fullscreen (MIT): the catalog's videos are YouTube videos, which Media3 cannot play without scraping streams
+youtube-player-core = { module = "com.pierfrancescosoffritti.androidyoutubeplayer:core", version.ref = "youtubePlayer" }
 compose-uiToolingPreview = { module = "org.jetbrains.compose.ui:ui-tooling-preview", version.ref = "composeMultiplatform" }
 # Web UI: Compose runtime over the DOM (no canvas)
 compose-html-core = { module = "org.jetbrains.compose.html:html-core", version.ref = "composeMultiplatform" }
@@ -101,6 +112,7 @@ moko-graphics = { module = "dev.icerock.moko:graphics", version.ref = "mokoGraph
 #decompose
 decompose = { module = "com.arkivanov.decompose:decompose", version.ref = "decompose" }
 decompose-compose = { module = "com.arkivanov.decompose:extensions-compose", version.ref = "decompose" }
+decompose-compose-experimental = { module = "com.arkivanov.decompose:extensions-compose-experimental", version.ref = "decompose" }
 essenty-lifecycle = { group = "com.arkivanov.essenty", name = "lifecycle", version.ref = "essenty" }
 essenty-stateKeeper = { group = "com.arkivanov.essenty", name = "state-keeper", version.ref = "essenty" }
 essenty-instanceKeeper = { group = "com.arkivanov.essenty", name = "instance-keeper", version.ref = "essenty" }

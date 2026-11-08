@@ -15,3 +15,14 @@ val LocalModerationActions = staticCompositionLocalOf<ModerationComponent?> { nu
 
 /** Quotes, link cards and Retry for every post card; provided by the root content. */
 val LocalPostCards = staticCompositionLocalOf<PostCardsComponent> { PreviewPostCardsComponent() }
+
+/** The post open next to a list (Duo inner, list | article): its card is highlighted (`t-selected`). */
+val LocalSelectedPost = compositionLocalOf<com.yet.talk.domain.model.post.PostId?> { null }
+
+/**
+ * How the reader lays out: in two panes the replies take the left pane ([onShowReplies], decision 6) instead of
+ * following the article.
+ */
+class ReaderMode(val twoPane: Boolean, val onShowReplies: () -> Unit)
+
+val LocalReaderMode = staticCompositionLocalOf { ReaderMode(twoPane = false, onShowReplies = {}) }

@@ -1,125 +1,121 @@
+@file:OptIn(ExperimentalDecomposeApi::class)
+
 package com.yet.talk.ui.screens.main
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.navigationBars
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.windowInsetsPadding
+import com.yet.talk.feature.tab.main.component.tabs.TabsComponent
+import com.yet.talk.ui.theme.talkColors
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.material3.VerticalDivider
+import com.yet.talk.ui.navigation.Page
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
+import com.arkivanov.decompose.ExperimentalDecomposeApi
+import com.arkivanov.decompose.extensions.compose.experimental.panels.ChildPanels
+import com.arkivanov.decompose.extensions.compose.experimental.panels.ChildPanelsAnimators
+import com.arkivanov.decompose.extensions.compose.experimental.panels.HorizontalChildPanelsLayout
+import com.arkivanov.decompose.extensions.compose.experimental.stack.animation.PredictiveBackParams
+import com.arkivanov.decompose.extensions.compose.stack.animation.predictiveback.materialPredictiveBackAnimatable
 import com.arkivanov.decompose.extensions.compose.subscribeAsState
 import com.arkivanov.decompose.router.panels.ChildPanelsMode
 import com.yet.talk.feature.tab.main.MainComponent
 import com.yet.talk.feature.tab.main.component.details.DetailsComponent
-import com.yet.talk.feature.tab.main.component.tabs.TabsComponent
-import com.yet.talk.resources.*
-import com.yet.talk.ui.components.glass.GlassIconButton
-import com.yet.talk.ui.components.glass.GlassTabBar
-import com.yet.talk.ui.components.glass.GlassTopBar
-import com.yet.talk.ui.components.glass.LocalGlassSource
-import com.yet.talk.ui.components.glass.PhoneTabs
-import com.yet.talk.ui.components.glass.label
-import com.yet.talk.ui.screens.main.component.HomeHeader
-import com.yet.talk.ui.screens.post.PostScreen
-import com.yet.talk.ui.screens.profile.ProfileScreen
-import com.yet.talk.ui.screens.tab.home.HomeContent
-import com.yet.talk.ui.theme.TalkIcons
-import com.yet.talk.ui.theme.sizes
-import com.yet.talk.ui.theme.stringResource
-import com.yet.talk.ui.theme.talkColors
-import com.yet.talk.ui.theme.talkTypography
-import dev.chrisbanes.haze.hazeSource
-import dev.chrisbanes.haze.rememberHazeState
+import com.yet.talk.ui.components.LocalReaderMode
+import com.yet.talk.ui.components.LocalSelectedPost
+import com.yet.talk.ui.components.ReaderMode
+import com.yet.talk.ui.navigation.pushAnimator
+import com.yet.talk.ui.navigation.swapAnimator
+import com.yet.talk.ui.screens.main.component.DetailsContent
+import com.yet.talk.ui.screens.main.component.DetailsPlaceholder
+import com.yet.talk.ui.screens.main.component.ReadingPane
+import com.yet.talk.ui.screens.main.component.SideColumn
+import com.yet.talk.ui.screens.main.component.TabsContent
+import com.yet.talk.ui.theme.reducedMotion
 
 /**
- * Main on a phone (single pane): the active tab under the glass bars, edge to edge, and the floating glass capsule;
- * an open post, profile or video covers the tabs (no capsule, Back instead).
+ * Main as list-detail panels (`ChildPanels`, section 7 of the UI review). The window picks the mode: one pane on
+ * phones, the Duo outer screen and the Duo inner screen upright (the details panel covers the tabs and goes back with
+ * the predictive back gesture); two panes on wide windows (the Duo inner screen sideways, tablets in landscape),
+ * split on the fold as 415 | 476, with the side column on the camera side. In two panes Reply swaps the left pane to
+ * the post's replies (decision 6).
  */
 @Composable
 fun MainContent(component: MainComponent, onOpenSettings: () -> Unit) {
-    LaunchedEffect(component) { component.onModeChanged(ChildPanelsMode.SINGLE) }
-    val panels by component.panels.subscribeAsState()
-    val details = panels.details?.instance
-    if (details != null) DetailsContent(details) else TabsContent(panels.main.instance, onOpenSettings)
-}
-
-@Composable
-private fun TabsContent(tabs: TabsComponent, onOpenSettings: () -> Unit) {
-    val stack by tabs.stack.subscribeAsState()
-    val me by tabs.me.subscribeAsState()
-    val active = stack.active.instance
-    val glass = rememberHazeState()
-    CompositionLocalProvider(LocalGlassSource provides glass) {
-        Box(Modifier.fillMaxSize()) {
-            // What scrolls under the bars; the bars refract it.
-            Box(Modifier.fillMaxSize().background(MaterialTheme.talkColors.bg).hazeSource(glass)) {
-                TabScreen(active)
-            }
-            if (active is TabsComponent.Child.Home) {
-                HomeHeader(me, onProfile = { tabs.onTabClicked(TabsComponent.Tab.Profile) }, onSettings = onOpenSettings)
-            }
-            if (active.tab in PhoneTabs) {
-                GlassTabBar(
-                    selected = active.tab,
-                    unreadChats = me.unreadChats,
-                    onSelect = tabs::onTabClicked,
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .windowInsetsPadding(WindowInsets.navigationBars)
-                        .padding(bottom = MaterialTheme.sizes.capsuleOffset / 2),
+    BoxWithConstraints(Modifier.fillMaxSize()) {
+        val panels by component.panels.subscribeAsState()
+        val isReading by component.isReading.subscribeAsState()
+        val tabsStack by panels.main.instance.stack.subscribeAsState()
+        // A wide window keeps the large-screen chrome (the side column, no tab bar) whatever the panels show.
+        val wide = panelsMode(maxWidth, maxHeight) == ChildPanelsMode.DUAL
+        // Chats splits itself (the list | the conversation), so it takes the whole width instead of leaving the
+        // right pane empty beside a cramped list.
+        val fullWidth = tabsStack.active.instance.tab == TabsComponent.Tab.Chats
+        val mode = if (wide && !fullWidth) ChildPanelsMode.DUAL else ChildPanelsMode.SINGLE
+        LaunchedEffect(component, mode) { component.onModeChanged(mode) }
+        val dual = panels.mode != ChildPanelsMode.SINGLE
+        val details = panels.details?.instance
+        val selected = (details?.link as? MainComponent.Link.Post)?.id
+        val reduced = reducedMotion
+        val animators = remember(reduced) { ChildPanelsAnimators<Any, Any, Any, Any, Nothing, Nothing>(single = pushAnimator(reduced), dual = swapAnimator() to swapAnimator()) }
+        val layout = remember { HorizontalChildPanelsLayout(dualWeights = 415f to 476f) }
+        val readerMode = remember(dual, component) { ReaderMode(twoPane = dual, onShowReplies = component::onShowReplies) }
+        CompositionLocalProvider(LocalSelectedPost provides selected.takeIf { dual }, LocalReaderMode provides readerMode) {
+            Row(Modifier.fillMaxSize()) {
+                if (wide) SideColumn(panels.main.instance, details, isReading = isReading, onBack = { details?.onBack() }, onTab = component::onTabSelected)
+                ChildPanels(
+                    panels = component.panels,
+                    modifier = Modifier.weight(1f),
+                    layout = layout,
+                    animators = animators,
+                    mainChild = { child -> Page {
+                        val post = details?.activePost()
+                        if (dual && isReading && post != null) ReadingPane(post) else TabsContent(child.instance, onOpenSettings, phone = !wide)
+                    }},
+                    detailsChild = {
+                        Page {
+                            Row {
+                                // The fold (or the split on a tablet) between the two panes.
+                                if (dual) VerticalDivider(color = MaterialTheme.talkColors.border)
+                                DetailsContent(it.instance)
+                            }
+                        }
+                    },
+                    secondPanelPlaceholder = {
+                        Page {
+                            Row {
+                                VerticalDivider(color = MaterialTheme.talkColors.border)
+                                DetailsPlaceholder()
+                            }
+                        }
+                    },
+                    predictiveBackParams = { state ->
+                        val open = state.details?.instance
+                        if (state.mode == ChildPanelsMode.SINGLE && open != null) {
+                            PredictiveBackParams(open.backHandler, open::onBack, animatable = ::materialPredictiveBackAnimatable)
+                        } else {
+                            null
+                        }
+                    },
                 )
             }
         }
     }
 }
 
-/** Each tab's screen; the ones not built yet show their name. */
-@Composable
-private fun TabScreen(child: TabsComponent.Child) {
-    when (child) {
-        is TabsComponent.Child.Home -> HomeContent(child.component)
-        is TabsComponent.Child.Profile -> ProfileScreen(child.component)
-        else -> Placeholder(child.tab.label())
-    }
-}
+/**
+ * Two panes in an expanded window (840 dp wide) that is not short: the Duo's inner screen sideways (951 × 669) and
+ * tablets. A phone held sideways is wide but short (under 480 dp), and stays one pane, as AGENTS.md has it.
+ */
+private fun panelsMode(width: Dp, height: Dp): ChildPanelsMode =
+    if (width >= 840.dp && height >= 480.dp) ChildPanelsMode.DUAL else ChildPanelsMode.SINGLE
 
 @Composable
-private fun DetailsContent(details: DetailsComponent) {
-    val stack by details.stack.subscribeAsState()
-    when (val page = stack.active.instance) {
-        is DetailsComponent.Child.Post -> PostScreen(page.component)
-        is DetailsComponent.Child.Profile -> ProfileScreen(page.component)
-        is DetailsComponent.Child.Video -> DetailPlaceholder(stringResource(MR.strings.tab_videos), details::onBack)
-    }
-}
-
-/** A page not built yet: its title under a glass bar with Back. */
-@Composable
-private fun DetailPlaceholder(title: String, onBack: () -> Unit) {
-    val glass = rememberHazeState()
-    CompositionLocalProvider(LocalGlassSource provides glass) {
-        Box(Modifier.fillMaxSize()) {
-            Box(Modifier.fillMaxSize().background(MaterialTheme.talkColors.bg).hazeSource(glass)) { Placeholder(title) }
-            GlassTopBar(
-                leading = { GlassIconButton(TalkIcons.Back, stringResource(MR.strings.action_back), onBack) },
-                title = { Text(title, style = MaterialTheme.talkTypography.headingMedium, color = MaterialTheme.talkColors.textPrimary) },
-            )
-        }
-    }
-}
-
-@Composable
-internal fun Placeholder(title: String) {
-    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Text(title, style = MaterialTheme.talkTypography.headingLarge, color = MaterialTheme.talkColors.textSecondary, textAlign = TextAlign.Center)
-    }
-}
+private fun DetailsComponent.activePost() = (stack.subscribeAsState().value.active.instance as? DetailsComponent.Child.Post)?.component

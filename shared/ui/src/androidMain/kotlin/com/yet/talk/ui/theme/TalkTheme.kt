@@ -35,6 +35,7 @@ fun TalkTheme(
         LocalTalkColors provides colors,
         LocalTalkTypography provides typography,
         LocalTalkShapes provides shapes,
+        LocalReducedMotion provides rememberSystemReducedMotion(),
     ) {
         MaterialTheme(
             colorScheme = remember(colors) { colors.toColorScheme() },

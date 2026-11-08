@@ -15,7 +15,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -79,7 +79,7 @@ private fun Picture(image: Image, modifier: Modifier) {
 @Composable
 fun QuotedCard(id: PostId, onOpen: (Post) -> Unit) {
     val cards = LocalPostCards.current
-    val quoted by remember(id, cards) { cards.quote(id) }.collectAsState(null)
+    val quoted by remember(id, cards) { cards.quote(id) }.collectAsStateWithLifecycle(null)
     val post = quoted ?: return
     val colors = MaterialTheme.talkColors
     val shape = MaterialTheme.talkShapes.card

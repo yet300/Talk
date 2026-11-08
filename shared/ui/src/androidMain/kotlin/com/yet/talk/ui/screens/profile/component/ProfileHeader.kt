@@ -1,4 +1,4 @@
-package com.yet.talk.ui.screens.profile
+package com.yet.talk.ui.screens.profile.component
 
 import android.widget.Toast
 import androidx.compose.animation.core.animateFloatAsState
@@ -70,7 +70,6 @@ import com.yet.talk.ui.components.glass.GlassIconButton
 import com.yet.talk.ui.components.glass.GlassSegments
 import com.yet.talk.ui.components.glass.GlassTopBar
 import com.yet.talk.ui.components.glass.LocalGlassSource
-import com.yet.talk.ui.components.list.EmptyState
 import com.yet.talk.ui.components.list.PagedList
 import com.yet.talk.ui.components.post.PostActionHandlers
 import com.yet.talk.ui.components.post.PostCard
@@ -85,86 +84,9 @@ import com.yet.talk.ui.theme.talkTypography
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.rememberHazeState
 
-/**
- * A profile (`Profile · Mobile`): the banner reaches the top edge under a clear bar with glass Back and More; once
- * it scrolls away the bar turns to glass with the name. The header, Posts · Replies (and Bookmarks on your own),
- * and the posts.
- */
-@Composable
-fun ProfileScreen(component: ProfileComponent) {
-    val model by component.model.subscribeAsState()
-    val posts = component.posts.collectAsLazyPagingItems()
-    val actions = PostActionHandlers(component::onReply, component::onRepost, component::onLike, component::onBookmark, component::onOpenRevisions)
-    val list = rememberLazyListState()
-    val glass = rememberHazeState()
-    val bannerPx = with(LocalDensity.current) { MaterialTheme.sizes.bannerHeight.toPx() }
-    // The bar is clear over the banner and glass with the name once the banner has scrolled away.
-    val scrolledPast by remember { derivedStateOf { list.firstVisibleItemIndex > 0 || list.firstVisibleItemScrollOffset > bannerPx * 0.8f } }
-    val tabs = ProfileComponent.Tab.entries.filter { it != ProfileComponent.Tab.Bookmarks || model.isMe }
-    LaunchedEffect(tabs, model.tab) { if (model.tab !in tabs) component.onTabSelected(ProfileComponent.Tab.Posts) }
-    val bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() + MaterialTheme.spacing.xl
-    CompositionLocalProvider(LocalGlassSource provides glass) {
-        Box(Modifier.fillMaxSize()) {
-            PagedList(
-                items = posts,
-                key = { it.id.value },
-                state = list,
-                contentPadding = PaddingValues(bottom = bottom),
-                modifier = Modifier.background(MaterialTheme.talkColors.bg).hazeSource(glass),
-                header = {
-                    item(key = "header") { ProfileHeader(model, component) }
-                    item(key = "tabs") {
-                        Box(Modifier.fillMaxWidth().padding(vertical = MaterialTheme.spacing.sm), contentAlignment = Alignment.Center) {
-                            GlassSegments(
-                                items = tabs,
-                                selected = model.tab,
-                                label = { stringResource(it.label) },
-                                onSelect = component::onTabSelected,
-                            )
-                        }
-                    }
-                    model.error?.let { error ->
-                        item { Text(error.message(), style = MaterialTheme.talkTypography.body, color = MaterialTheme.talkColors.error, modifier = Modifier.padding(MaterialTheme.spacing.lg)) }
-                    }
-                },
-                empty = {
-                    when (model.tab) {
-                        ProfileComponent.Tab.Posts -> EmptyState(stringResource(MR.strings.profile_empty_title))
-                        ProfileComponent.Tab.Replies -> EmptyState(stringResource(MR.strings.profile_empty_replies_title))
-                        ProfileComponent.Tab.Bookmarks -> EmptyState(stringResource(MR.strings.bookmarks_empty_title), stringResource(MR.strings.bookmarks_empty_body))
-                    }
-                },
-            ) { post ->
-                PostCard(post, onOpen = { component.onOpenPost(it.id) }, onOpenAuthor = { component.onOpenAuthor(it.author.id) }, actions = actions)
-            }
-            GlassTopBar(
-                glass = scrolledPast,
-                leading = { GlassIconButton(TalkIcons.Back, stringResource(MR.strings.action_back), component::onBack) },
-                title = {
-                    val titleAlpha by animateFloatAsState(if (scrolledPast) 1f else 0f, label = "title")
-                    Text(
-                        model.user?.displayLabel.orEmpty(),
-                        style = MaterialTheme.talkTypography.headingMedium,
-                        color = MaterialTheme.talkColors.textPrimary,
-                        maxLines = 1,
-                        modifier = Modifier.weight(1f).alpha(titleAlpha),
-                    )
-                },
-                trailing = {
-                    val user = model.user
-                    when {
-                        model.isMe -> GlassIconButton(TalkIcons.Settings, stringResource(MR.strings.action_settings), component::onOpenSettings)
-                        user != null -> ProfileMore(user)
-                    }
-                },
-            )
-        }
-    }
-}
-
 /** The banner (or the surface), 134 dp avatar, Follow or Edit profile, name, `nip05 · npub`, about, links, counts. */
 @Composable
-private fun ProfileHeader(model: ProfileComponent.Model, component: ProfileComponent) {
+fun ProfileHeader(model: ProfileComponent.Model, component: ProfileComponent) {
     val user = model.user
     val colors = MaterialTheme.talkColors
     val spacing = MaterialTheme.spacing
@@ -204,11 +126,7 @@ private fun ProfileHeader(model: ProfileComponent.Model, component: ProfileCompo
                 if (model.isMe) {
                     TalkButton(stringResource(MR.strings.action_edit_profile), component::onEditProfile, ButtonStyle.Secondary)
                 } else if (user != null) {
-                    TalkButton(
-                        stringResource(if (model.isFollowing) MR.strings.action_following else MR.strings.action_follow),
-                        component::onFollowToggle,
-                        if (model.isFollowing) ButtonStyle.Secondary else ButtonStyle.Primary,
-                    )
+                    com.yet.talk.ui.components.FollowButton(model.isFollowing, component::onFollowToggle)
                 }
             }
         }
@@ -283,47 +201,5 @@ private fun Stats(model: ProfileComponent.Model) {
     }
 }
 
-/** … on someone else's profile: Report the profile (NIP-56, public). */
-@Composable
-private fun ProfileMore(user: User) {
-    var reporting by remember { mutableStateOf(false) }
-    val moderation = LocalModerationActions.current
-    val context = LocalContext.current
-    val reported = stringResource(MR.strings.toast_reported)
-    Box {
-        GlassIconButton(TalkIcons.More, stringResource(MR.strings.action_more), { reporting = true })
-        DropdownMenu(expanded = reporting, onDismissRequest = { reporting = false }) {
-            Text(
-                stringResource(MR.strings.report_note),
-                style = MaterialTheme.talkTypography.small,
-                color = MaterialTheme.talkColors.textSecondary,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp).width(240.dp),
-            )
-            ReportReason.entries.forEach { reason ->
-                DropdownMenuItem(text = { Text(stringResource(reason.label)) }, onClick = {
-                    reporting = false
-                    moderation?.report(ReportTarget.Profile(user.id), reason)
-                    Toast.makeText(context, reported, Toast.LENGTH_SHORT).show()
-                })
-            }
-        }
-    }
-}
-
-private val ProfileComponent.Tab.label
-    get() = when (this) {
-        ProfileComponent.Tab.Posts -> MR.strings.profile_posts
-        ProfileComponent.Tab.Replies -> MR.strings.profile_replies
-        ProfileComponent.Tab.Bookmarks -> MR.strings.profile_bookmarks
-    }
-
-private val ReportReason.label
-    get() = when (this) {
-        ReportReason.Nudity -> MR.strings.report_nudity
-        ReportReason.Spam -> MR.strings.report_spam
-        ReportReason.Illegal -> MR.strings.report_illegal
-        ReportReason.Impersonation -> MR.strings.report_impersonation
-        ReportReason.Other -> MR.strings.report_other
-    }
 
 private val AvatarSize = 96.dp
