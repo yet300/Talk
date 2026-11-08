@@ -113,7 +113,8 @@ struct QuotedCard: View {
     @State private var post: Post?
 
     var body: some View {
-        Group {
+        // A stack, not a Group: `.task` on an empty Group never runs, and the post only arrives through it.
+        VStack(spacing: 0) {
             if let post {
                 Button { onOpen(post) } label: {
                     VStack(alignment: .leading, spacing: 4) {
