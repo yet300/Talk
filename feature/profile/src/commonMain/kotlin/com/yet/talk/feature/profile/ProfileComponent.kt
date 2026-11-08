@@ -2,6 +2,7 @@ package com.yet.talk.feature.profile
 
 import androidx.paging.PagingData
 import com.arkivanov.decompose.ComponentContext
+import com.arkivanov.decompose.router.pages.ChildPages
 import com.arkivanov.decompose.value.Value
 import com.yet.talk.domain.model.error.DomainError
 import com.yet.talk.domain.model.post.Post
@@ -10,13 +11,17 @@ import com.yet.talk.domain.model.user.User
 import com.yet.talk.domain.model.user.UserId
 import com.yet.talk.domain.model.user.UserStats
 import kotlinx.coroutines.flow.Flow
+import kotlinx.serialization.Serializable
 
 /** A user's profile with their posts or replies; the viewer's own profile when opened without a user. */
 interface ProfileComponent {
     val model: Value<Model>
 
-    /** The selected tab's posts, 20 a page; cached for the component's lifetime. */
-    val posts: Flow<PagingData<Post>>
+    /**
+     * The tabs as pages to swipe between: Posts and Replies, and Bookmarks on your own profile once that is known.
+     * Each page keeps its own posts and scroll position.
+     */
+    val pages: Value<ChildPages<*, TabPage>>
 
     fun onTabSelected(tab: Tab)
 
@@ -51,7 +56,11 @@ interface ProfileComponent {
     fun onErrorShown()
 
     /** [Tab.Bookmarks] exists only on your own profile (the phone shows it there instead of a nav item). */
+    @Serializable
     enum class Tab { Posts, Replies, Bookmarks }
+
+    /** One tab's posts, 20 a page; cached for the page's lifetime. */
+    class TabPage(val tab: Tab, val posts: Flow<PagingData<Post>>)
 
     data class Model(
         val user: User?,

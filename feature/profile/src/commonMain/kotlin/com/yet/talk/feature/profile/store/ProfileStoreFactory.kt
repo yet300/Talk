@@ -14,7 +14,6 @@ import com.yet.talk.domain.usecase.social.ToggleBookmark
 import com.yet.talk.domain.usecase.social.ToggleFollow
 import com.yet.talk.domain.usecase.social.ToggleLike
 import com.yet.talk.domain.usecase.social.ToggleRepost
-import com.yet.talk.feature.profile.ProfileComponent
 import dev.zacsweers.metro.Inject
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.collectLatest
@@ -66,9 +65,6 @@ internal class ProfileStoreFactory(
 
         override fun executeIntent(intent: ProfileStore.Intent) {
             when (intent) {
-                // Bookmarks are the viewer's own list: the tab exists only on their own profile.
-                is ProfileStore.Intent.SelectTab ->
-                    if (intent.tab != ProfileComponent.Tab.Bookmarks || state().isMe) dispatch(ProfileStore.Msg.TabSelected(intent.tab))
                 ProfileStore.Intent.ToggleFollow -> state().userId?.let { id -> run { toggleFollow(id, state().isFollowing) } }
                 ProfileStore.Intent.Refresh -> state().userId?.let { id -> run { profiles.refresh(id) } }
                 is ProfileStore.Intent.Like -> run { toggleLike(intent.post) }
@@ -91,7 +87,6 @@ internal class ProfileStoreFactory(
                 is ProfileStore.Msg.UserChanged -> copy(user = msg.user)
                 is ProfileStore.Msg.StatsChanged -> copy(stats = msg.stats)
                 is ProfileStore.Msg.FollowingChanged -> copy(isFollowing = msg.following)
-                is ProfileStore.Msg.TabSelected -> copy(tab = msg.tab)
                 is ProfileStore.Msg.Failed -> copy(error = msg.error)
             }
     }

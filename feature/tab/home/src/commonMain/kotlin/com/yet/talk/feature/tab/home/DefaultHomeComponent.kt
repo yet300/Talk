@@ -3,12 +3,16 @@ package com.yet.talk.feature.tab.home
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.app.common.decompose.asValue
+import com.app.common.decompose.combine
 import com.app.common.decompose.coroutineScope
 import com.arkivanov.decompose.ComponentContext
+import com.arkivanov.decompose.router.pages.ChildPages
+import com.arkivanov.decompose.router.pages.Pages
+import com.arkivanov.decompose.router.pages.PagesNavigation
+import com.arkivanov.decompose.router.pages.childPages
+import com.arkivanov.decompose.router.pages.select
 import com.arkivanov.decompose.value.Value
-import com.arkivanov.decompose.value.operator.map
 import com.arkivanov.mvikotlin.core.instancekeeper.getStore
-import com.arkivanov.mvikotlin.extensions.coroutines.states
 import com.yet.talk.domain.model.post.Post
 import com.yet.talk.domain.model.post.PostId
 import com.yet.talk.domain.model.user.UserId
@@ -19,38 +23,40 @@ import com.yet.talk.feature.tab.home.mapper.stateToModel
 import com.yet.talk.feature.tab.home.store.HomeStore
 import com.yet.talk.feature.tab.home.store.HomeStoreFactory
 import dev.zacsweers.metro.Inject
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.map
 
-@OptIn(ExperimentalCoroutinesApi::class)
 internal class DefaultHomeComponent(
     componentContext: ComponentContext,
     private val output: (HomeComponent.Output) -> Unit,
     storeFactory: HomeStoreFactory,
-    postRepository: PostRepository,
-    trendingRepository: TrendingRepository,
+    private val postRepository: PostRepository,
+    private val trendingRepository: TrendingRepository,
 ) : HomeComponent, ComponentContext by componentContext {
 
     private val store = instanceKeeper.getStore { storeFactory.create() }
 
-    override val model: Value<HomeComponent.Model> = store.asValue().map(stateToModel)
+    private val pagesNavigation = PagesNavigation<HomeComponent.Feed>()
 
-    override val posts: Flow<PagingData<Post>> = store.states
-        .map { it.feed }
-        .distinctUntilChanged()
-        .flatMapLatest { feed ->
-            when (feed) {
-                HomeComponent.Feed.Following -> postRepository.feed(Feed.Following)
-                HomeComponent.Feed.Popular -> trendingRepository.trending()
-                HomeComponent.Feed.Latest -> postRepository.feed(Feed.Latest)
-            }
-        }
-        .cachedIn(coroutineScope())
+    private val configPages: Value<ChildPages<HomeComponent.Feed, HomeComponent.FeedPage>> =
+        childPages(
+            source = pagesNavigation,
+            serializer = HomeComponent.Feed.serializer(),
+            initialPages = { Pages(items = HomeComponent.Feed.entries, selectedIndex = 0) },
+            childFactory = { feed, context -> HomeComponent.FeedPage(feed, posts(feed).cachedIn(context.coroutineScope())) },
+        )
 
-    override fun onFeedSelected(feed: HomeComponent.Feed) = store.accept(HomeStore.Intent.SelectFeed(feed))
+    override val pages: Value<ChildPages<*, HomeComponent.FeedPage>> = configPages
+
+    override val model: Value<HomeComponent.Model> =
+        combine(store.asValue(), configPages) { state, pages -> stateToModel(state, pages.items[pages.selectedIndex].configuration) }
+
+    private fun posts(feed: HomeComponent.Feed): Flow<PagingData<Post>> = when (feed) {
+        HomeComponent.Feed.Following -> postRepository.feed(Feed.Following)
+        HomeComponent.Feed.Popular -> trendingRepository.trending()
+        HomeComponent.Feed.Latest -> postRepository.feed(Feed.Latest)
+    }
+
+    override fun onFeedSelected(feed: HomeComponent.Feed) = pagesNavigation.select(HomeComponent.Feed.entries.indexOf(feed))
 
     override fun onLike(post: Post) = store.accept(HomeStore.Intent.Like(post))
 

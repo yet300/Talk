@@ -3,6 +3,6 @@ package com.yet.talk.feature.tab.home.mapper
 import com.yet.talk.feature.tab.home.HomeComponent
 import com.yet.talk.feature.tab.home.store.HomeStore
 
-internal val stateToModel: (HomeStore.State) -> HomeComponent.Model = { state ->
-    HomeComponent.Model(feed = state.feed, error = state.error)
-}
+/** The selected feed comes from the pages, the one place it is kept. */
+internal fun stateToModel(state: HomeStore.State, feed: HomeComponent.Feed): HomeComponent.Model =
+    HomeComponent.Model(feed = feed, error = state.error)

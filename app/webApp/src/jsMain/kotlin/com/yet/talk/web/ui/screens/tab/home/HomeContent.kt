@@ -20,7 +20,10 @@ import com.yet.talk.web.ui.theme.stringResource
 @Composable
 fun HomeContent(component: HomeComponent) {
     val model by component.model.subscribeAsState()
-    val posts = component.posts.collectAsPagingItems()
+    // The web shows one feed at a time: the selected page (its neighbours keep their posts for a swipe on Android).
+    val pages by component.pages.subscribeAsState()
+    val page = pages.items[pages.selectedIndex].instance ?: return
+    val posts = page.posts.collectAsPagingItems()
     val actions = PostActionHandlers(component::onReply, component::onRepost, component::onLike, component::onBookmark, component::onOpenRevisions)
 
     if (!rememberIsPhone()) TopBar(stringResource(MR.strings.tab_home))

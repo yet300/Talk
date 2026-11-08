@@ -34,14 +34,12 @@ internal class ChatsStoreFactory(private val storeFactory: StoreFactory, private
         }
 
         override fun executeIntent(intent: Intent) = when (intent) {
-            is Intent.SelectTab -> dispatch(Msg.TabSelected(intent.tab))
             Intent.DismissError -> dispatch(Msg.Failed(null))
         }
     }
 
     private object ReducerImpl : Reducer<State, Msg> {
         override fun State.reduce(msg: Msg): State = when (msg) {
-            is Msg.TabSelected -> copy(tab = msg.tab)
             is Msg.ChatsChanged -> copy(chats = msg.chats, isLoading = false)
             is Msg.Failed -> copy(error = msg.error)
         }

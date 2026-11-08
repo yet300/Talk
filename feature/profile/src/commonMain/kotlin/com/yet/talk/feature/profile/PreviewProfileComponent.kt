@@ -1,13 +1,14 @@
 package com.yet.talk.feature.profile
 
 import androidx.paging.PagingData
+import com.arkivanov.decompose.Child
+import com.arkivanov.decompose.router.pages.ChildPages
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.yet.talk.domain.model.post.Post
 import com.yet.talk.domain.model.post.PostId
 import com.yet.talk.domain.model.user.UserId
 import com.yet.talk.domain.model.user.UserStats
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 
 /** For UI previews: a fixed model and posts, actions do nothing. */
@@ -20,7 +21,14 @@ class PreviewProfileComponent(
 ) : ProfileComponent {
     override val model: Value<ProfileComponent.Model> = MutableValue(model)
 
-    override val posts: Flow<PagingData<Post>> = flowOf(PagingData.from(posts))
+    override val pages: Value<ChildPages<*, ProfileComponent.TabPage>> = MutableValue(
+        ChildPages(
+            items = ProfileComponent.Tab.entries.map { tab ->
+                Child.Created(tab, ProfileComponent.TabPage(tab, flowOf(PagingData.from(if (tab == model.tab) posts else emptyList()))))
+            },
+            selectedIndex = model.tab.ordinal,
+        ),
+    )
 
     override fun onTabSelected(tab: ProfileComponent.Tab) = Unit
 

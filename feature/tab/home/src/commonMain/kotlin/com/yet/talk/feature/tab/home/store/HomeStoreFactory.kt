@@ -30,7 +30,6 @@ internal class HomeStoreFactory(
 
         override fun executeIntent(intent: HomeStore.Intent) {
             when (intent) {
-                is HomeStore.Intent.SelectFeed -> dispatch(HomeStore.Msg.FeedSelected(intent.feed))
                 is HomeStore.Intent.Like -> run { toggleLike(intent.post) }
                 is HomeStore.Intent.Repost -> run { toggleRepost(intent.post) }
                 is HomeStore.Intent.Bookmark -> run { toggleBookmark(intent.post) }
@@ -47,7 +46,6 @@ internal class HomeStoreFactory(
     private object ReducerImpl : Reducer<HomeStore.State, HomeStore.Msg> {
         override fun HomeStore.State.reduce(msg: HomeStore.Msg): HomeStore.State =
             when (msg) {
-                is HomeStore.Msg.FeedSelected -> copy(feed = msg.feed)
                 is HomeStore.Msg.Failed -> copy(error = msg.error)
             }
     }

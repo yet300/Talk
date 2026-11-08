@@ -1,7 +1,14 @@
 package com.yet.talk.feature.tab.chats
 
 import com.app.common.decompose.asValue
+import com.app.common.decompose.combine
 import com.arkivanov.decompose.ComponentContext
+import com.arkivanov.decompose.router.children.ChildNavState
+import com.arkivanov.decompose.router.pages.ChildPages
+import com.arkivanov.decompose.router.pages.Pages
+import com.arkivanov.decompose.router.pages.PagesNavigation
+import com.arkivanov.decompose.router.pages.childPages
+import com.arkivanov.decompose.router.pages.select
 import com.arkivanov.decompose.router.slot.ChildSlot
 import com.arkivanov.decompose.router.slot.SlotNavigation
 import com.arkivanov.decompose.router.slot.activate
@@ -44,17 +51,35 @@ internal class DefaultChatsComponent(
             childFactory = ::child,
         )
 
-    override val model: Value<ChatsComponent.Model> = store.asValue().map { state ->
+    private val pagesNavigation = PagesNavigation<ChatsComponent.Tab>()
+
+    private val configPages: Value<ChildPages<ChatsComponent.Tab, ChatsComponent.ListPage>> =
+        childPages(
+            source = pagesNavigation,
+            serializer = ChatsComponent.Tab.serializer(),
+            initialPages = { Pages(items = ChatsComponent.Tab.entries, selectedIndex = 0) },
+            // Both pages stay alive: they are two filters of the same list.
+            pageStatus = { index, pages -> if (index == pages.selectedIndex) ChildNavState.Status.RESUMED else ChildNavState.Status.CREATED },
+            childFactory = { tab, _ ->
+                ChatsComponent.ListPage(tab, store.asValue().map { state -> state.chats.filter { it.isRequest == (tab == ChatsComponent.Tab.Requests) } })
+            },
+        )
+
+    override val pages: Value<ChildPages<*, ChatsComponent.ListPage>> = configPages
+
+    /** The selected tab comes from the pages, the one place it is kept. */
+    override val model: Value<ChatsComponent.Model> = combine(store.asValue(), configPages) { state, pages ->
+        val tab = pages.items[pages.selectedIndex].configuration
         ChatsComponent.Model(
-            tab = state.tab,
-            chats = state.chats.filter { it.isRequest == (state.tab == ChatsComponent.Tab.Requests) },
+            tab = tab,
+            chats = state.chats.filter { it.isRequest == (tab == ChatsComponent.Tab.Requests) },
             requestCount = state.chats.count { it.isRequest },
             isLoading = state.isLoading,
             error = state.error,
         )
     }
 
-    override fun onTabSelected(tab: ChatsComponent.Tab) = store.accept(ChatsStore.Intent.SelectTab(tab))
+    override fun onTabSelected(tab: ChatsComponent.Tab) = pagesNavigation.select(ChatsComponent.Tab.entries.indexOf(tab))
 
     override fun onOpenChat(id: ChatId) = navigation.activate(Config.Conversation(id.value))
 

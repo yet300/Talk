@@ -3,10 +3,16 @@ package com.yet.talk.feature.profile
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.app.common.decompose.asValue
+import com.app.common.decompose.combine
 import com.app.common.decompose.coroutineScope
 import com.arkivanov.decompose.ComponentContext
+import com.arkivanov.decompose.router.pages.ChildPages
+import com.arkivanov.decompose.router.pages.Pages
+import com.arkivanov.decompose.router.pages.PagesNavigation
+import com.arkivanov.decompose.router.pages.childPages
+import com.arkivanov.decompose.router.pages.navigate
+import com.arkivanov.decompose.router.pages.select
 import com.arkivanov.decompose.value.Value
-import com.arkivanov.decompose.value.operator.map
 import com.arkivanov.mvikotlin.core.instancekeeper.getStore
 import com.arkivanov.mvikotlin.extensions.coroutines.states
 import com.yet.talk.domain.model.post.Post
@@ -26,6 +32,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalCoroutinesApi::class)
 internal class DefaultProfileComponent(
@@ -33,18 +40,51 @@ internal class DefaultProfileComponent(
     userId: UserId?,
     private val output: (ProfileComponent.Output) -> Unit,
     storeFactory: ProfileStoreFactory,
-    postRepository: PostRepository,
-    bookmarkRepository: BookmarkRepository,
+    private val postRepository: PostRepository,
+    private val bookmarkRepository: BookmarkRepository,
 ) : ProfileComponent, ComponentContext by componentContext {
 
     private val store = instanceKeeper.getStore { storeFactory.create(userId) }
 
-    override val model: Value<ProfileComponent.Model> = store.asValue().map(stateToModel)
+    private val pagesNavigation = PagesNavigation<ProfileComponent.Tab>()
 
-    override val posts: Flow<PagingData<Post>> = store.states
-        .map { Triple(it.userId, it.tab, it.isMe) }
+    private val configPages: Value<ChildPages<ProfileComponent.Tab, ProfileComponent.TabPage>> =
+        childPages(
+            source = pagesNavigation,
+            serializer = ProfileComponent.Tab.serializer(),
+            initialPages = { Pages(items = tabsFor(store.state), selectedIndex = 0) },
+            childFactory = { tab, context -> ProfileComponent.TabPage(tab, posts(tab).cachedIn(context.coroutineScope())) },
+        )
+
+    override val pages: Value<ChildPages<*, ProfileComponent.TabPage>> = configPages
+
+    /** The selected tab comes from the pages, the one place it is kept. */
+    override val model: Value<ProfileComponent.Model> = combine(store.asValue(), configPages) { state, pages ->
+        stateToModel(state, pages.items.getOrNull(pages.selectedIndex)?.configuration ?: ProfileComponent.Tab.Posts)
+    }
+
+    init {
+        // Bookmarks (the viewer's own list) joins the pages once the profile turns out to be your own, and leaves
+        // if it is not; the selected tab stays selected when it still exists.
+        coroutineScope().launch {
+            store.states.map(::tabsFor).distinctUntilChanged().collect { tabs ->
+                pagesNavigation.navigate { pages ->
+                    if (pages.items == tabs) pages else {
+                        val selected = pages.items.getOrNull(pages.selectedIndex)
+                        Pages(items = tabs, selectedIndex = tabs.indexOf(selected).coerceAtLeast(0))
+                    }
+                }
+            }
+        }
+    }
+
+    private fun tabsFor(state: ProfileStore.State): List<ProfileComponent.Tab> =
+        if (state.requested == null || state.isMe) ProfileComponent.Tab.entries else listOf(ProfileComponent.Tab.Posts, ProfileComponent.Tab.Replies)
+
+    private fun posts(tab: ProfileComponent.Tab): Flow<PagingData<Post>> = store.states
+        .map { it.userId to it.isMe }
         .distinctUntilChanged()
-        .flatMapLatest { (id, tab, isMe) ->
+        .flatMapLatest { (id, isMe) ->
             when {
                 id == null -> flowOf(PagingData.empty())
                 tab == ProfileComponent.Tab.Posts -> postRepository.feed(Feed.UserPosts(id))
@@ -53,9 +93,11 @@ internal class DefaultProfileComponent(
                 else -> flowOf(PagingData.empty())
             }
         }
-        .cachedIn(coroutineScope())
 
-    override fun onTabSelected(tab: ProfileComponent.Tab) = store.accept(ProfileStore.Intent.SelectTab(tab))
+    override fun onTabSelected(tab: ProfileComponent.Tab) {
+        val index = configPages.value.items.indexOfFirst { it.configuration == tab }
+        if (index >= 0) pagesNavigation.select(index)
+    }
 
     override fun onFollowToggle() = store.accept(ProfileStore.Intent.ToggleFollow)
 

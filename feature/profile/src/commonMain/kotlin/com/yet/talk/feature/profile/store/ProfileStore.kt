@@ -6,7 +6,6 @@ import com.yet.talk.domain.model.post.Post
 import com.yet.talk.domain.model.user.User
 import com.yet.talk.domain.model.user.UserId
 import com.yet.talk.domain.model.user.UserStats
-import com.yet.talk.feature.profile.ProfileComponent
 
 internal interface ProfileStore : Store<ProfileStore.Intent, ProfileStore.State, Nothing> {
 
@@ -18,13 +17,10 @@ internal interface ProfileStore : Store<ProfileStore.Intent, ProfileStore.State,
         val user: User? = null,
         val stats: UserStats = UserStats(),
         val isFollowing: Boolean = false,
-        val tab: ProfileComponent.Tab = ProfileComponent.Tab.Posts,
         val error: DomainError? = null,
     )
 
     sealed interface Intent {
-        data class SelectTab(val tab: ProfileComponent.Tab) : Intent
-
         data object ToggleFollow : Intent
 
         data object Refresh : Intent
@@ -52,8 +48,6 @@ internal interface ProfileStore : Store<ProfileStore.Intent, ProfileStore.State,
         data class StatsChanged(val stats: UserStats) : Msg
 
         data class FollowingChanged(val following: Boolean) : Msg
-
-        data class TabSelected(val tab: ProfileComponent.Tab) : Msg
 
         data class Failed(val error: DomainError?) : Msg
     }
