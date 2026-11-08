@@ -4,6 +4,7 @@ import com.arkivanov.mvikotlin.core.utils.isAssertOnMainThreadEnabled
 import com.arkivanov.mvikotlin.extensions.coroutines.labels
 import com.arkivanov.mvikotlin.main.store.DefaultStoreFactory
 import com.yet.talk.domain.model.account.Account
+import com.yet.talk.domain.model.account.AppLock
 import com.yet.talk.domain.model.error.DomainError
 import com.yet.talk.domain.model.user.ProfileEdit
 import com.yet.talk.domain.model.user.User
@@ -46,6 +47,10 @@ class EditProfileStoreTest {
         override suspend fun importKey(secretKey: String) = error("unused")
         override suspend fun exportSecretKey() = error("unused")
         override suspend fun signOut() = Unit
+        override val lock = MutableStateFlow(AppLock())
+        override suspend fun unlock(passcode: String) = Result.success(Unit)
+        override suspend fun setPasscode(passcode: String) = Result.success(Unit)
+        override suspend fun removePasscode() = Result.success(Unit)
     }
 
     private class FakeProfiles : ProfileRepository {

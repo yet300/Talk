@@ -3,6 +3,7 @@ package com.yet.talk.feature.auth
 import com.arkivanov.mvikotlin.core.utils.isAssertOnMainThreadEnabled
 import com.arkivanov.mvikotlin.main.store.DefaultStoreFactory
 import com.yet.talk.domain.model.account.Account
+import com.yet.talk.domain.model.account.AppLock
 import com.yet.talk.domain.model.error.DomainError
 import com.yet.talk.domain.model.user.UserId
 import com.yet.talk.domain.repository.AccountRepository
@@ -43,6 +44,10 @@ class AuthStoreTest {
 
         override suspend fun exportSecretKey() = Result.success("nsec1")
         override suspend fun signOut() = Unit
+        override val lock = MutableStateFlow(AppLock())
+        override suspend fun unlock(passcode: String) = Result.success(Unit)
+        override suspend fun setPasscode(passcode: String) = Result.success(Unit)
+        override suspend fun removePasscode() = Result.success(Unit)
     }
 
     private val accounts = FakeAccounts()
