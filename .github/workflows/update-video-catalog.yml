@@ -1,8 +1,7 @@
 name: Update video catalog
 
 # The HackerTube catalog (https://hackertube.org, data ODC-By 1.0) is compiled into the app as Kotlin sources in
-# core:data, so Android, iOS and the web ship the same data, and so is the geo relay list of location channels.
-# This refreshes both weekly and commits any change.
+# core:data, so Android, iOS and the web ship the same data. This refreshes it weekly and commits any change.
 on:
   schedule:
     - cron: '0 6 * * 0'
@@ -24,22 +23,18 @@ jobs:
       - name: Fetch and convert the catalog
         run: python3 scripts/update_video_catalog.py
 
-      # Location channels: the relays bitchat uses, by area (permissionlesstech/georelays, MIT).
-      - name: Fetch the geo relay list
-        run: python3 scripts/update_geo_relays.py
-
       - name: Check for changes
         id: git-check
         run: |
-          git diff --exit-code -- core/data/src/commonMain/kotlin/com/yet/talk/data/video/catalog core/data/src/commonMain/kotlin/com/yet/talk/data/channel/GeoRelayList.kt || echo "changes=true" >> "$GITHUB_OUTPUT"
+          git diff --exit-code -- core/data/src/commonMain/kotlin/com/yet/talk/data/video/catalog || echo "changes=true" >> "$GITHUB_OUTPUT"
 
       - name: Commit and push changes
         if: steps.git-check.outputs.changes == 'true'
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
-          git add core/data/src/commonMain/kotlin/com/yet/talk/data/video/catalog core/data/src/commonMain/kotlin/com/yet/talk/data/channel/GeoRelayList.kt
-          git commit -m "Update the video catalog and geo relays - $(date -u)"
+          git add core/data/src/commonMain/kotlin/com/yet/talk/data/video/catalog
+          git commit -m "Update the video catalog - $(date -u)"
           git push
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
