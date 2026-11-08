@@ -49,7 +49,7 @@ Architecture, conventions and commands are in [AGENTS.md](AGENTS.md).
 
 ## Getting started
 
-You need **JDK 17**, the **Android SDK** (platform 37) for Android, and **Xcode 27.1 or later** for iOS.
+You need **JDK 21** to run Gradle and **JDK 17** to compile, the **Android SDK** (platform 37) for Android, and **Xcode 27.1 or later** for iOS.
 
 ```bash
 git clone https://github.com/yet300/Talk.git
