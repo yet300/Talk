@@ -203,37 +203,6 @@ no Talk label: the label would mark them on relays, and the inner events are nev
   below), deleted on sign-out.
 - **No forward secrecy** (NIP-17 has none): someone who later gets your key can read the wraps relays kept.
 
-## Location channels (bitchat-compatible)
-
-Public rooms per area, the same events bitchat uses, so Talk and bitchat users meet in one room. No Talk label.
-
-| Event | Shape |
-|---|---|
-| message | kind 20000 (ephemeral): `["g", <geohash>]`, then `["n", <nickname>]` if set, then `["t", "teleport"]` when the sender is not in the area; `content` = the text |
-| presence | kind 20001: only `["g", <geohash>]`, empty content |
-
-- **Areas:** geohashes computed on the device (the location never leaves it) at five levels: Region 2, Province 4,
-  City 5, Neighborhood 6, Block 7 characters. A Block room warns "People here can tell you're within about a block".
-- **Identity:** a key per area, never the account key: HMAC-SHA256(device seed, UTF-8 geohash || 32-bit counter,
-  big-endian), the first valid secp256k1 key for counter 0..9. The seed is 32 random bytes in KSafe
-  (`channel_device_seed`), removed on sign-out. Names show as `nick#abcd` (the key's last four hex digits; `anon`
-  without a nickname).
-- **Relays:** the five nearest the area's centre (haversine, ties by host) from `permissionlesstech/georelays` (MIT),
-  bundled as `GeoRelayList` and refreshed weekly by `scripts/update_geo_relays.py`. A relay Talk reaches only for
-  channels gets no NIP-42 AUTH from the account key.
-- **Reading:** kinds 20000 and 20001 with `#g`, since an hour ago, limit 200, then live. Nothing is stored; relays
-  usually do not keep ephemeral events, so a room shows what arrives while it is open.
-- **People:** distinct keys seen (either kind) in the last five minutes, times from the future counted as now. Only
-  Region, Province and City count; finer levels show "? people".
-- **Presence:** while Location channels are open and the location is known, one kind 20001 per area at Region,
-  Province and City, 2–5 s apart, every 40–80 s. Never for a teleport.
-- **Teleport:** any area by its code; messages there carry `["t", "teleport"]`.
-- **Proof of work:** messages are mined (NIP-13 `["nonce", n, "12"]`, 12 bits: bitchat Android's default when its
-  filter is on; iOS mines 8). Incoming messages are accepted without work, as bitchat does.
-- **Teleport map:** OpenStreetMap tiles (the tile server sees the part of the map you look at, not your location).
-- **Privacy limit:** without Tor, relays see the connection's IP address; a relay that also serves the account could
-  link the two by connection. bitchat routes this over Tor.
-
 ## Feeds
 
 As in KarpathyTalk, timelines list posts only: reposts are counted on the post, not shown as timeline items.
@@ -270,7 +239,7 @@ took it, already had it (`duplicate:`), or refused it for good (`blocked:`, `inv
 done; one that refused for now (`rate-limited:`, `error:`, `auth-required:`, no reason) or did not answer stays owed
 the event and gets it again after 30 s, 1 min, 2 min… up to an hour (10 tries), and at once when the device comes
 back online or a relay reconnects. Retry on a Not sent post goes only to the relays still owed it. Chat wraps go
-through it too; ephemeral channel events do not.
+through it too.
 
 ## Counters
 

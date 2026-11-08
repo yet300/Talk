@@ -345,9 +345,8 @@ Prompt: [claude-design-prompt-3.md](claude-design-prompt-3.md); research: [../re
 | Area | Boards | What they add |
 |---|---|---|
 | Glass bars | `Glass-Scrolled`, `Glass-States`, `GlassBarDemo`, `Light-Glass-Scrolled`; the Home, Profile, Post, Videos, video page and Settings boards | every top bar is glass over edge-to-edge content; Home's tabs a floating glass capsule; Profile's banner under a transparent bar that turns to glass with the name after ~160 px; the scroll-edge shadow past 4 px; the solid fallback |
-| Chats | `ChatList`, `Chats-Mobile/Web/Outer/Upright/Inner`, `Chats-Web-Menu`, `Conversation`, `Chat-Mobile/Group-Mobile/Request-Mobile/Outer/Upright`, `Chats-States-1/2` | list with Chats · Requests and the Location channels row; conversation with bubbles, reply quotes, images, reactions, message menu (sheet on Phone, hover menu on Web), Sending… / Not sent, request bar (Accept, Delete, Block); empty states, offline, no inbox relays |
+| Chats | `ChatList`, `Chats-Mobile/Web/Outer/Upright/Inner`, `Chats-Web-Menu`, `Conversation`, `Chat-Mobile/Group-Mobile/Request-Mobile/Outer/Upright`, `Chats-States-1/2` | list with Chats · Requests; conversation with bubbles, reply quotes, images, reactions, message menu (sheet on Phone, hover menu on Web), Sending… / Not sent, request bar (Accept, Delete, Block); empty states, offline, no inbox relays |
 | New chat, info, verify | `NewChat*`, `ChatInfo*`, `ChatInfo-Encryption`, `VerifyContact`, `Verify-Mobile`, `Verify-Verified` | people search (up to 10, a group name from 2), chat info (verify, disappearing messages, mute, block, report, leave), the encryption explainer sheet, safety code and QR |
-| Location channels | `LocationChannels`, `Channels-*`, `ChannelsIntro`, `Channels-Intro`, `ChannelRoom`, `Channel-Room-Mobile`, `Channel-Teleported-Mobile`, `Teleport*` | five levels with counts ("? people" for neighborhood and block), first run and the location step, nickname, room, teleport by area code or map |
 | Security | `SecurityPanel`, `Security-States`, `AppLock`, `Lock-Mobile`, `Lock-Web` | Settings' Security section: app lock, hide in screenshots (Android), erase chats, erase everything; the lock screen |
 | Light | `Light-Chats-*` | light versions |
 
@@ -371,8 +370,7 @@ Decisions in this pass (on the designer's notes):
 20. **The encryption explainer says** "…can see that someone sent you a message and when it arrived, but not
     who sent it or what it says." (the designer's correction: relays see arrival times and the connection that
     publishes).
-21. **Block channels warn:** the Block level adds "People here can tell you're within about a block." (a
-    7-character geohash is about 150 m, and a relay can tie it to an IP address).
+21. Removed with location channels.
 22. **Outgoing bubbles use `#0A6BC2`** (a new colour, `bubble-out`), not `x-blue`: white on `x-blue` is 3.0:1,
     under the 4.5:1 that message text needs; `#0A6BC2` is 5.4:1. Links and buttons keep `x-blue`.
 23. **Leave group only hides it on this device** (a NIP-17 group is its set of keys); the confirmation says "You
@@ -381,9 +379,9 @@ Decisions in this pass (on the designer's notes):
 24. **Web app lock encrypts the key:** the passcode encrypts the stored key with NIP-49 (`ncryptsec`, scrypt +
     XChaCha20-Poly1305), so the key cannot be used until it is entered; a forgotten passcode means signing in
     again with the `nsec` backup. Android and iOS use the device lock (biometrics or passcode) to unlock KSafe.
-25. **Reactions are emoji** sent as the reaction's content (NIP-25 inside the wrap); the safety-code words, area
-    codes and counts on the canvas are samples.
-26. **Copy the designer wrote is accepted:** the channels explainer and nickname line, the Teleport text, "No
+25. **Reactions are emoji** sent as the reaction's content (NIP-25 inside the wrap); the safety-code words and counts
+    on the canvas are samples.
+26. **Copy the designer wrote is accepted:** "No
     requests", the "Can't receive chats yet" banner, "Talk is locked", "If the codes don't match, don't mark as
     verified."
 
@@ -399,7 +397,7 @@ Decisions in this pass (on the designer's notes):
    "Can't receive chats yet"; the fifth navigation item with the unread count; messages encrypted at rest.
    Built (2026-11-07): `Nip44`, `Nip59`, NIP-42 AUTH in `core:nostr`; `ChatRepository` (wraps synced while signed in,
    kind 10050 published when Chats first opens); `feature:tab:chats` and `feature:chat`; on the web the two panes,
-   the badge on the rail and the capsule. Not yet: the Location channels row and chat info (later steps).
+   the badge on the rail and the capsule. Not yet: chat info (a later step).
 3. Chats in full: groups up to 10, replies, reactions, delete for everyone / for me, encrypted images (kind 15,
    AES-GCM on Blossom), disappearing messages (NIP-40), mute and block (NIP-51 kind 10000), report, leave.
    Built (2026-11-07): `ChatRumor` and the chat builders in `core:api`; `AesGcm` (cryptography-kotlin: JDK, WebCrypto,
@@ -414,10 +412,4 @@ Decisions in this pass (on the designer's notes):
    everything with the Sign out key step); the lock screen (`LockComponent`, root child `Lock`). Not built: Hide
    chats in screenshots and the device lock, which come with the Android and iOS apps; the "If her key changes"
    line (on Nostr the key is the account, so there is no key change to warn about).
-5. Location channels: bitchat-compatible kinds 20000 and 20001, a throwaway key per area, nicknames, presence
-   at region, province and city only, teleport, the location step, optional proof of work (NIP-13).
-   Built (2026-11-07): `feature:channels` (`ChannelsComponent`: first run, location step, nickname, the list with
-   counts, teleport; `RoomComponent`), `ChannelRepository` with keys per area and the georelays list; on the web the
-   Location channels row at the top of Chats, the room as a plain timeline. Not built: the teleport map (an area
-   code and a level instead), proof of work (optional, off as in bitchat Android), location on Android and iOS
-   (they open channels by code until their apps add it).
+5. Location channels: removed from every platform (2026-11-08) as not usable. Group chats (NIP-17, up to 10 people) stay.
