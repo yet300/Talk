@@ -1,5 +1,6 @@
 package com.yet.talk.feature.tab.main
 
+import com.arkivanov.essenty.backhandler.BackHandlerOwner
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.panels.ChildPanels
 import com.arkivanov.decompose.router.panels.ChildPanelsMode
@@ -15,7 +16,7 @@ import com.yet.talk.feature.tab.main.component.tabs.TabsComponent
  * profile in the details panel. The UI picks the [ChildPanelsMode] from the window: single pane on phones,
  * the Duo outer screen and the web; two panes on the Duo inner screen sideways (list | article).
  */
-interface MainComponent : WebNavigationOwner {
+interface MainComponent : BackHandlerOwner, WebNavigationOwner {
     val panels: Value<ChildPanels<*, TabsComponent, *, DetailsComponent, Nothing, Nothing>>
 
     /**

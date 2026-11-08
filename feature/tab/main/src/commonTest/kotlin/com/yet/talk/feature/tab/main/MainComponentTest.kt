@@ -7,6 +7,7 @@ import com.arkivanov.decompose.router.webhistory.WebNavigationOwner
 import com.arkivanov.decompose.value.MutableValue
 import com.arkivanov.decompose.value.Value
 import com.arkivanov.essenty.backhandler.BackDispatcher
+import com.arkivanov.essenty.backhandler.BackHandler
 import com.arkivanov.essenty.lifecycle.LifecycleRegistry
 import com.arkivanov.essenty.lifecycle.resume
 import com.yet.talk.domain.model.post.PostId
@@ -26,12 +27,14 @@ class MainComponentTest {
             ChildStack(configuration = "home", instance = TabsComponent.Child.Home(PreviewHomeComponent()) as TabsComponent.Child),
         )
         override val me: Value<TabsComponent.Me> = MutableValue(TabsComponent.Me())
+        override val backHandler: BackHandler = BackDispatcher()
         override fun onTabClicked(tab: TabsComponent.Tab) = Unit
     }
 
     private class FakeDetails(override val link: MainComponent.Link, val output: (DetailsComponent.Output) -> Unit) :
         DetailsComponent, WebNavigationOwner.NoOp {
         override val stack: Value<ChildStack<*, DetailsComponent.Child>> get() = error("unused")
+        override val backHandler: BackHandler = BackDispatcher()
         override fun onBack() = output(DetailsComponent.Output.Closed)
         override fun open(link: MainComponent.Link) = Unit
     }

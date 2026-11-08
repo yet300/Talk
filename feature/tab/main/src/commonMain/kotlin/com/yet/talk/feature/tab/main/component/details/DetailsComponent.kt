@@ -1,5 +1,6 @@
 package com.yet.talk.feature.tab.main.component.details
 
+import com.arkivanov.essenty.backhandler.BackHandlerOwner
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.webhistory.WebNavigationOwner
@@ -14,7 +15,7 @@ import com.yet.talk.feature.tab.main.MainComponent
  * The details panel: a post, and whatever is opened from it (an author, another post), as a stack.
  * Covers the tabs in single-pane layouts and sits next to them in two-pane ones.
  */
-interface DetailsComponent : WebNavigationOwner {
+interface DetailsComponent : BackHandlerOwner, WebNavigationOwner {
     val stack: Value<ChildStack<*, Child>>
 
     /** What the panel was opened with; the list next to it highlights this post. */

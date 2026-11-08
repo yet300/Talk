@@ -1,5 +1,6 @@
 package com.yet.talk.feature.tab.main.component.tabs
 
+import com.arkivanov.essenty.backhandler.BackHandlerOwner
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.stack.ChildStack
 import com.arkivanov.decompose.router.webhistory.WebNavigationOwner
@@ -20,7 +21,7 @@ import com.yet.talk.feature.tab.videos.VideosComponent
  * Each tab keeps its state while another one is shown. On the web the active tab is the URL
  * (`/`, `/search`, `/activity`, `/chats`, `/videos`, `/bookmarks`, `/me`) without adding history entries.
  */
-interface TabsComponent : WebNavigationOwner {
+interface TabsComponent : BackHandlerOwner, WebNavigationOwner {
     val stack: Value<ChildStack<*, Child>>
 
     /** The signed-in user, for the rail's identity row and the phone header avatar, and the Chats badge. */

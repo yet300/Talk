@@ -1,5 +1,6 @@
 package com.yet.talk.feature.channels
 
+import com.arkivanov.essenty.backhandler.BackHandlerOwner
 import com.arkivanov.decompose.ComponentContext
 import com.arkivanov.decompose.router.slot.ChildSlot
 import com.arkivanov.decompose.value.Value
@@ -13,7 +14,7 @@ import com.yet.talk.feature.channels.component.room.RoomComponent
  * five levels around you with their people counts, Teleport by area code, and the open [room]. While this is open
  * and your location is known, you are announced at Region, Province and City (bitchat's presence).
  */
-interface ChannelsComponent {
+interface ChannelsComponent : BackHandlerOwner {
     val model: Value<Model>
 
     val room: Value<ChildSlot<*, RoomComponent>>
