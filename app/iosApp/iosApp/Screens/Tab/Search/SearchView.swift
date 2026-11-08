@@ -49,8 +49,6 @@ struct SearchView: View {
         .background(TalkColor.bg.ignoresSafeArea())
         .safeAreaInset(edge: .top, spacing: 0) { NetworkBar() }
         .talkTitle(strings.tab_search.text)
-        .searchable(text: Binding(get: { model.query }, set: component.onQueryChanged),
-                    placement: .navigationBarDrawer(displayMode: .always),
-                    prompt: strings.search_placeholder.text)
+        .modifier(DraftSearchable(text: model.query, prompt: strings.search_placeholder.text, onChange: component.onQueryChanged))
     }
 }

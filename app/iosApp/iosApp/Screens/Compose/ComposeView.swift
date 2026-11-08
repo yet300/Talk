@@ -120,15 +120,17 @@ private struct Editor: View {
                     .padding(.vertical, TalkSpacing.sm + 8)
                     .accessibilityHidden(true)
             }
-            TextEditor(text: Binding(get: { text }, set: onChange))
-                .talkTextStyle(.codeBlock)
-                .foregroundStyle(TalkColor.textPrimary)
-                .scrollContentBackground(.hidden)
-                .tint(TalkColor.accent)
-                .focused($focused)
-                .padding(.horizontal, TalkSpacing.lg)
-                .padding(.vertical, TalkSpacing.sm)
-                .accessibilityLabel(MR.strings.shared.compose_body.text)
+            DraftText(text: text, onChange: onChange) { draft in
+                TextEditor(text: draft)
+                    .talkTextStyle(.codeBlock)
+                    .foregroundStyle(TalkColor.textPrimary)
+                    .scrollContentBackground(.hidden)
+                    .tint(TalkColor.accent)
+                    .focused($focused)
+                    .padding(.horizontal, TalkSpacing.lg)
+                    .padding(.vertical, TalkSpacing.sm)
+                    .accessibilityLabel(MR.strings.shared.compose_body.text)
+            }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .onAppear { focused = true }

@@ -102,6 +102,9 @@ private struct MainTabs: View {
             }
         }
         .modifier(TabBarBehavior())
+        // The set of tabs changes once the bar is known to stand at the side, and in a different order. A TabView reused
+        // across that keeps pages for the old positions and shows nothing for a moved tab (Chats, on the Duo).
+        .id(layout.showsAllTabs)
     }
 
     /// Phone: Home, Search, Activity, Videos, Chats (decision 19); your profile and Bookmarks open from Home. Wide
