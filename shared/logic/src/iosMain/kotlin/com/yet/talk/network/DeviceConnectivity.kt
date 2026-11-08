@@ -13,7 +13,8 @@ import kotlinx.coroutines.flow.map
  * the app's lifetime.
  */
 internal class DeviceConnectivity : ConnectivitySource {
-    private val connectivity = Connectivity { autoStart = true }
+    // Created on first use: resolving the app graph must not touch the platform (Android needs its context here).
+    private val connectivity by lazy { Connectivity { autoStart = true } }
 
     override val online: Flow<Boolean> = flow {
         emit(connectivity.status())
