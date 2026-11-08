@@ -110,7 +110,9 @@ excerpts are derived from the markdown (`PostSummaries`), as in KarpathyTalk.
 - **Web routing:** Decompose `withWebHistory`; the root and `MainComponent` are `WebNavigationOwner`s (paths:
   `/signin`, `/post/<id>`, `/post/<id>/revisions`, `/user/<id>`, `/settings`, `/compose`, tabs `/search`,
   `/activity`, `/chats`, `/videos`, `/bookmarks`, `/me`, `/video/<id>`, `/settings/profile` for the profile editor). A shared link is the root factory's `deepLink`, opened above Main after sign-in.
-  The dev server falls back to `index.html` (`webpack.config.d/devServer.js`).
+  The dev server falls back to `index.html` (`webpack.config.d/devServer.js`). The site's path is a build input,
+  `-Ptalk.basePath=/Talk/` (default `/`): it fills `<base href>` in `index.html` and `BASE_PATH`; `HistoryRouting.kt` adds it to
+  the paths Decompose pushes, strips it from the deep link, and `appUrl` adds it to plain links.
 - **Network status:** `NetworkRepository` combines `ConnectivitySource` (jordond/connectivity on Android and iOS; the browser's
   `online`/`offline` events on the web, where that library would poll third-party sites); when the device comes back online, relays skip the
   rest of their reconnect backoff, the pool's relay states and the outbox's waiting count; the web shows
@@ -228,6 +230,16 @@ Turbine, Mokkery.
 
 iOS: open `app/iosApp/iosApp.xcodeproj`; the build phase runs `:sharedLogic:embedAndSignAppleFrameworkForXcode`
 and `:sharedLogic:copyFrameworkResourcesToApp`.
+
+## CI (`.github/workflows`)
+
+- `ci.yml` (pull requests, `main`): Android host tests and debug APK; JS tests and the web bundle; iOS simulator tests and a
+  simulator build on the `xcode-27` image (the iOS 27.1 SDK).
+- `deploy-pages.yml` (`main`): the web app at https://yet300.github.io/Talk/. The repository's Pages source must be "GitHub Actions".
+- `release.yml` (tags `v*`): tests, then a signed APK on a GitHub Release. `versionName` is the tag without `v`, `versionCode`
+  the run number. Secrets: `KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD`. To release:
+  `git tag v1.2.3 && git push origin v1.2.3`.
+- `update-video-catalog.yml`: the weekly catalog refresh.
 
 ## Rules for agents
 
