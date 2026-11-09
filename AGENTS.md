@@ -147,7 +147,8 @@ Lets AI agents use Talk. Setup and client configuration: [README](README.md#mcp-
 - **Keys:** only from `TALK_MCP_KEY_FILE` (owner-only, outside any git repository) or `TALK_MCP_SECRET_KEY`. `McpServer`
   refuses any tool call containing an `nsec`. Logs go to stderr, because stdout is the protocol.
 - **State:** rate-limit times and "this key has a profile/follow list" in `~/.config/talk-mcp/<pubkey>.json`, so a restart
-  does not reset them. A damaged file stops publishing.
+  does not reset them. Several servers on one key are normal (one per MCP session), so writes and the rate limit's check-and-record
+  take a lockfile; a lock that cannot be taken, or a damaged file, stops publishing.
 - **Tests:** `FakeRelays` is an in-memory `RelayClient` under the real remote sources (`TestGraph`); nothing opens a socket.
   Tool output is untrusted text from strangers: keep saying so in tool descriptions.
 
