@@ -7,6 +7,7 @@ import com.yet.talk.api.source.relay.RelaySelection
 import com.yet.talk.api.source.search.SearchRemoteSource
 import com.yet.talk.api.source.social.SocialRemoteSource
 import com.yet.talk.nostr.relay.RelayAuthenticator
+import com.yet.talk.nostr.relay.RelayClient
 import dev.zacsweers.metro.AppScope
 import dev.zacsweers.metro.DependencyGraph
 import dev.zacsweers.metro.Provides
@@ -15,6 +16,7 @@ import kotlinx.coroutines.CoroutineScope
 
 /** The parts of `core:api` the server talks to relays through. */
 internal interface TalkSources {
+    val relays: RelayClient
     val posts: PostRemoteSource
     val search: SearchRemoteSource
     val social: SocialRemoteSource

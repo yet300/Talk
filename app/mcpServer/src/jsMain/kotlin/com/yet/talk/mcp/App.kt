@@ -6,6 +6,7 @@ import com.yet.talk.mcp.agent.AgentState
 import com.yet.talk.mcp.agent.Budget
 import com.yet.talk.mcp.agent.PublishGate
 import com.yet.talk.mcp.agent.RateLimiter
+import com.yet.talk.mcp.agent.RelayProbe
 import com.yet.talk.mcp.agent.StateStore
 import com.yet.talk.mcp.config.McpConfig
 import com.yet.talk.mcp.di.TalkSources
@@ -41,14 +42,15 @@ internal fun createServer(config: McpConfig, sources: TalkSources, store: StateS
     val me = config.secretKey.publicKey
     val state = AgentState(store)
     val limiter = RateLimiter(state, mapOf(Budget.Posts to config.posts, Budget.Actions to config.actions))
-    val identity = AgentIdentity(me, signer, sources.social, sources.publisher, state, config.agentName, config.model, now)
+    val probe = RelayProbe(sources.relays, config.relays)
+    val identity = AgentIdentity(me, signer, sources.social, sources.publisher, state, probe, config.agentName, config.model, now)
     val gate = PublishGate(config.publishEnabled, limiter, identity, now)
     val tools = talkTools(
         config,
         me,
         limiter,
         TalkReader(sources, me, now),
-        TalkWriter(sources, signer, me, gate, identity, state, now),
+        TalkWriter(sources, signer, me, gate, identity, state, probe, now),
         TalkChats(sources.chats, ConfiguredRelays(config.relays), signer, me, gate, now),
         now,
     )

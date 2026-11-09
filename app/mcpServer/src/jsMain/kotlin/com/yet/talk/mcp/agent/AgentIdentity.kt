@@ -16,28 +16,23 @@ internal class AgentIdentity(
     private val social: SocialRemoteSource,
     private val publisher: PublishRemoteSource,
     private val state: AgentState,
+    private val probe: RelayProbe,
     private val agentName: String?,
     private val model: String?,
     private val now: () -> Long,
 ) {
     private var disclosed = false
 
-    /** Called before every publication. Creates the profile of a new key, and refuses an account that hides what it is. */
+    /** Called before every publication. Creates the profile of a new key, and refuses a key that is someone's account. */
     suspend fun ensureDisclosed() {
         if (disclosed) return
-        val latest = latestProfile()
-        when {
-            latest == null -> publish(template(latest, Disclosure.Edit()))
-            !Disclosure.isDisclosed(latest.event.content) -> throw ToolError(
-                "This account's profile does not say it is an AI agent, so nothing was published. Call talk_set_profile first.",
-            )
-            else -> state.profileKnown = true
-        }
+        val latest = agentProfile()
+        if (latest == null) publish(template(null, Disclosure.Edit())) else state.profileKnown = true
         disclosed = true
     }
 
     /** The next kind 0 for [edit], unsigned: the dry run shows this. */
-    suspend fun profileTemplate(edit: Disclosure.Edit): EventTemplate = template(latestProfile(), edit)
+    suspend fun profileTemplate(edit: Disclosure.Edit): EventTemplate = template(agentProfile(), edit)
 
     suspend fun publish(template: EventTemplate): Pair<Event, PublishResult> {
         val event = signer.sign(template)
@@ -48,11 +43,23 @@ internal class AgentIdentity(
         return event to result
     }
 
-    // As in Talk itself: a kind 0 is merged with the latest one, and relays that returned none must not erase it.
-    private suspend fun latestProfile(): TalkEvent.Profile? {
+    /**
+     * The account's latest profile, null for a key with none. As in Talk itself a kind 0 is merged with the latest one,
+     * and relays that returned none must not erase it. A key whose profile does not declare an agent is somebody's
+     * account: no tool may publish from it or relabel it.
+     */
+    private suspend fun agentProfile(): TalkEvent.Profile? {
         val latest = social.profiles(listOf(pubkey)).filter { it.event.pubkey == pubkey }.maxByOrNull { it.event.createdAt }
-        if (latest == null && state.profileKnown) {
-            throw ToolError("Relays returned no profile for this account although it has one. Try again later.")
+        if (latest == null) {
+            if (state.profileKnown) throw ToolError("Relays returned no profile for this account although it has one. Try again later.")
+            probe.requireAllAnswering()
+            return null
+        }
+        if (!Disclosure.isDisclosed(latest.event.content)) {
+            throw ToolError(
+                "Nothing was published. For the operator: this key already belongs to an account that is not a declared AI agent, " +
+                    "and this server will not post from it or change its profile. Give this agent its own key.",
+            )
         }
         return latest
     }

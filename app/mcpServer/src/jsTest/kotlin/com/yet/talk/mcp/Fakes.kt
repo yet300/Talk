@@ -11,6 +11,7 @@ import com.yet.talk.nostr.event.Event
 import com.yet.talk.nostr.event.EventTemplate
 import com.yet.talk.nostr.key.SecretKey
 import com.yet.talk.nostr.message.Filter
+import com.yet.talk.nostr.nip.Kinds
 import com.yet.talk.nostr.relay.PublishResult
 import com.yet.talk.nostr.relay.RelayClient
 import com.yet.talk.nostr.signer.LocalKeySigner
@@ -35,12 +36,16 @@ import kotlinx.serialization.json.put
 
 /** In-memory relays: nothing here can open a socket, so tests never reach a public relay. */
 internal class FakeRelays : RelayClient {
-    val stored = mutableListOf<Event>()
+    /** Every real relay holds some profile; this one is what proves a relay is answering. */
+    val stored = mutableListOf(Event("0".repeat(64), "1".repeat(64), 1, Kinds.METADATA, emptyList(), "{}", ""))
+
+    /** Relays that are down: asked alone they return nothing, as an unreachable relay does. */
+    var silent: Set<String> = emptySet()
     val published = mutableListOf<Pair<Event, Set<String>>>()
     var acceptEvents = true
 
     override suspend fun query(filters: List<Filter>, relays: Collection<String>, timeout: Duration): List<Event> =
-        stored.filter { event -> filters.any { it.matches(event) } }.sortedByDescending { it.createdAt }
+        if (relays.all { it in silent }) emptyList() else stored.filter { event -> filters.any { it.matches(event) } }.sortedByDescending { it.createdAt }
 
     override fun subscribe(filters: List<Filter>, relays: Collection<String>): Flow<Event> = flow {
         stored.filter { event -> filters.any { it.matches(event) } }.forEach { emit(it) }
@@ -94,7 +99,8 @@ internal fun testConfig(
     model: String? = null,
     posts: RateLimit = RateLimit(4, 300),
     actions: RateLimit = RateLimit(60, 5),
-) = McpConfig(key, publishEnabled, TEST_RELAYS, "Scout", model, posts, actions, "/nowhere")
+    urls: List<String> = TEST_RELAYS,
+) = McpConfig(key, publishEnabled, urls, "Scout", model, posts, actions, "/nowhere")
 
 /** One agent connected to [relays]. */
 internal class Agent(
@@ -106,12 +112,13 @@ internal class Agent(
     val store: StateStore = MemoryStore(),
     posts: RateLimit = RateLimit(4, 300),
     actions: RateLimit = RateLimit(60, 5),
+    urls: List<String> = TEST_RELAYS,
 ) {
     val pubkey: String = key.publicKey
     val logs = mutableListOf<String>()
     val server: McpServer = createServer(
-        testConfig(key, publishEnabled, model, posts, actions),
-        createGraphFactory<TestGraph.Factory>().create(relays, ConfiguredRelays(TEST_RELAYS)),
+        testConfig(key, publishEnabled, model, posts, actions, urls),
+        createGraphFactory<TestGraph.Factory>().create(relays, ConfiguredRelays(urls)),
         store,
         clock,
         logs::add,

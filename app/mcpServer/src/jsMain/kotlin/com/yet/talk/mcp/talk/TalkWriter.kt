@@ -9,6 +9,7 @@ import com.yet.talk.mcp.agent.AgentState
 import com.yet.talk.mcp.agent.Budget
 import com.yet.talk.mcp.agent.Disclosure
 import com.yet.talk.mcp.agent.PublishGate
+import com.yet.talk.mcp.agent.RelayProbe
 import com.yet.talk.mcp.agent.ToolError
 import com.yet.talk.mcp.di.TalkSources
 import com.yet.talk.nostr.encoding.Nip19
@@ -31,6 +32,7 @@ internal class TalkWriter(
     private val gate: PublishGate,
     private val identity: AgentIdentity,
     private val state: AgentState,
+    private val probe: RelayProbe,
     private val now: () -> Long,
 ) {
 
@@ -64,7 +66,10 @@ internal class TalkWriter(
     suspend fun follow(pubkey: String): JsonObject {
         if (pubkey == me) throw ToolError("An account cannot follow itself")
         val current = sources.social.lists(me).filterIsInstance<TalkEvent.Contacts>().firstOrNull()
-        if (current == null && state.contactsKnown) throw ToolError("Relays returned no follow list for this account although it has one. Try again later.")
+        if (current == null) {
+            if (state.contactsKnown) throw ToolError("Relays returned no follow list for this account although it has one. Try again later.")
+            probe.requireAllAnswering()
+        }
         if (current != null) state.contactsKnown = true
         if (current != null && pubkey in current.pubkeys) return unchanged("You already follow this account")
         val template = contactList(current?.pubkeys.orEmpty() + pubkey, maxOf(now(), (current?.event?.createdAt ?: 0) + 1))

@@ -89,17 +89,64 @@ class PublishingTest {
     }
 
     @Test
-    fun aKeyThatHidesBeingAnAgentCannotPublishUntilItSaysSo() = runTest {
+    fun aKeyThatIsSomeonesAccountCanNeitherPublishNorBeRelabelled() = runTest {
         val agent = Agent()
         agent.relays.seed(agent.key, EventTemplate(Kinds.METADATA, """{"name":"A person"}""", emptyList(), 1_700_000_000))
         val refused = agent.call("talk_publish_post", "markdown" to text("# Hello"))
         assertTrue(refused.isError)
+        assertTrue("its own key" in refused.text, refused.text)
+        agent.advance(1_000)
+        assertTrue(agent.call("talk_set_profile", "about" to text("Reads")).isError)
+        assertTrue(agent.relays.published.isEmpty())
+    }
+
+    @Test
+    fun aDryRunOfRelabellingSomeonesAccountIsRefusedToo() = runTest {
+        val agent = Agent(publishEnabled = false)
+        agent.relays.seed(agent.key, EventTemplate(Kinds.METADATA, """{"name":"A person"}""", emptyList(), 1_700_000_000))
+        assertTrue(agent.call("talk_set_profile", "about" to text("Reads")).isError)
+    }
+
+    @Test
+    fun aDeclaredAgentCanStillEditItsProfile() = runTest {
+        val agent = Agent()
+        agent.call("talk_publish_post", "markdown" to text("# Hello"))
+        agent.advance(5)
+        assertFalse(agent.call("talk_set_profile", "about" to text("Reads")).isError)
+        assertTrue("Reads" in agent.events(Kinds.METADATA).last().content)
+    }
+
+    @Test
+    fun anOutageIsNotTakenForANewKey() = runTest {
+        val agent = Agent()
+        agent.relays.silent = TEST_RELAYS.toSet()
+        val outcome = agent.call("talk_publish_post", "markdown" to text("# Hello"))
+        assertTrue(outcome.isError, outcome.text)
         assertTrue(agent.relays.published.isEmpty())
 
-        assertFalse(agent.call("talk_set_profile", "about" to text("Reads")).isError)
-        agent.advance(5)
+        agent.relays.silent = emptySet()
         assertFalse(agent.call("talk_publish_post", "markdown" to text("# Hello")).isError)
-        assertEquals(1, agent.events(Kinds.TEXT_NOTE).size)
+    }
+
+    @Test
+    fun aNewKeyNeedsEveryRelayToAnswer() = runTest {
+        val urls = listOf("wss://a.test", "wss://b.test")
+        val agent = Agent(urls = urls)
+        agent.relays.silent = setOf("wss://b.test")
+        val outcome = agent.call("talk_publish_post", "markdown" to text("# Hello"))
+        assertTrue(outcome.isError)
+        assertTrue("wss://b.test" in outcome.text)
+        assertFalse("wss://a.test" in outcome.text)
+        assertTrue(agent.relays.published.isEmpty())
+    }
+
+    @Test
+    fun anOutageDoesNotReplaceAFollowListEither() = runTest {
+        val agent = Agent()
+        agent.relays.seed(agent.key, EventTemplate(Kinds.METADATA, """{"name":"x","bot":true,"about":"${Disclosure.ABOUT_LINE}"}""", emptyList(), 1_700_000_000))
+        agent.relays.silent = TEST_RELAYS.toSet()
+        assertTrue(agent.call("talk_follow", "pubkey" to text(other.publicKey)).isError)
+        assertTrue(agent.relays.published.isEmpty())
     }
 
     @Test
