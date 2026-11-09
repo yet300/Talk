@@ -26,7 +26,10 @@ internal fun Project.configureKotlinMultiplatform(
         browser {
             testTask { enabled = false }
         }
-        nodejs()
+        nodejs {
+            // Mocha's default is 2 s; the app lock's scrypt runs take longer than that on a CI machine.
+            testTask { useMocha { timeout = "2m" } }
+        }
     }
 
     //apple targets
