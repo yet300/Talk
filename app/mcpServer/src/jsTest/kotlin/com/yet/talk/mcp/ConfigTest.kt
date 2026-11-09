@@ -14,10 +14,11 @@ import kotlin.test.assertTrue
 
 class ConfigTest {
     private val key = SecretKey.generate()
+    private var homeDir: (() -> String)? = null
 
     private fun config(vararg env: Pair<String, String>, keyFile: String = key.toHex()): McpConfig {
         val values = env.toMap()
-        return parseConfig(values::get, { keyFile }, "/home/agent")
+        return parseConfig(values::get, { keyFile }, { homeDir?.invoke() ?: "/home/agent" })
     }
 
     @Test
@@ -66,6 +67,19 @@ class ConfigTest {
     fun relaysMustBeSecureOrLocal() {
         assertFailsWith<ConfigError> { config(EnvVars.KEY_FILE to "/k", EnvVars.RELAYS to "ws://example.com") }
         assertEquals(listOf("wss://a.test", "ws://localhost:7777"), config(EnvVars.KEY_FILE to "/k", EnvVars.RELAYS to "wss://a.test, ws://localhost:7777").relays)
+    }
+
+    @Test
+    fun aStateDirectoryMeansHomeIsNotNeeded() {
+        homeDir = { throw ConfigError("HOME is not set") }
+        assertEquals("/data/talk", config(EnvVars.KEY_FILE to "/k", EnvVars.STATE_DIR to "/data/talk").stateDir)
+    }
+
+    @Test
+    fun theDefaultStateDirectoryNeedsHome() {
+        assertEquals("/home/agent/.config/talk-mcp", config(EnvVars.KEY_FILE to "/k").stateDir)
+        homeDir = { throw ConfigError("HOME is not set") }
+        assertFailsWith<ConfigError> { config(EnvVars.KEY_FILE to "/k") }
     }
 
     @Test

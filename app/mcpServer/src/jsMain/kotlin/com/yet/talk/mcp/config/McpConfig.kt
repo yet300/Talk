@@ -37,8 +37,8 @@ internal object EnvVars {
     const val STATE_DIR = "TALK_MCP_STATE_DIR"
 }
 
-/** [env] reads a variable; [readKeyFile] returns the contents of the key file at a path, or throws [ConfigError]. */
-internal fun parseConfig(env: (String) -> String?, readKeyFile: (String) -> String, homeDir: String): McpConfig {
+/** [env] reads a variable; [readKeyFile] returns the contents of the key file at a path, or throws [ConfigError]; [homeDir] is asked only for the default state directory. */
+internal fun parseConfig(env: (String) -> String?, readKeyFile: (String) -> String, homeDir: () -> String): McpConfig {
     fun value(name: String) = env(name)?.trim()?.takeIf(String::isNotEmpty)
     fun positive(name: String, default: Int): Int {
         val raw = value(name) ?: return default
@@ -62,7 +62,7 @@ internal fun parseConfig(env: (String) -> String?, readKeyFile: (String) -> Stri
         model = value(EnvVars.MODEL),
         posts = RateLimit(positive(EnvVars.POSTS_PER_HOUR, 4), positive(EnvVars.POST_GAP_SECONDS, 300).toLong()),
         actions = RateLimit(positive(EnvVars.ACTIONS_PER_HOUR, 60), positive(EnvVars.ACTION_GAP_SECONDS, 5).toLong()),
-        stateDir = value(EnvVars.STATE_DIR) ?: "$homeDir/.config/talk-mcp",
+        stateDir = value(EnvVars.STATE_DIR) ?: "${homeDir()}/.config/talk-mcp",
     )
 }
 

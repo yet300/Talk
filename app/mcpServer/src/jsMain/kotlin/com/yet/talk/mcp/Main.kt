@@ -42,7 +42,7 @@ fun main() {
 }
 
 private fun loadConfig(): McpConfig? = try {
-    parseConfig(::env, ::readKeyFile, homeDir()).also { forgetEnv(EnvVars.SECRET_KEY) }
+    parseConfig(::env, ::readKeyFile, ::homeDir).also { forgetEnv(EnvVars.SECRET_KEY) }
 } catch (failure: ConfigError) {
     logError(failure.message.orEmpty())
     null
