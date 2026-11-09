@@ -29,6 +29,7 @@ Clean Architecture, SOLID, KISS, YAGNI. In practice:
 | `:androidApp` | `app/androidApp` | Android entry point: `TalkApplication` owns the graph, `MainActivity` the retained root |
 | — | `app/iosApp` | iOS app (SwiftUI); links the `SharedLogic` framework (SKIE). `AppDelegate` owns the graph and root; `Theme/`, `Decompose/` (Value, ChildPages, paging), `Components/`, `Root/` (root stack, device lock, privacy), `Screens/` (`Main/MainRouter` flattens the Decompose tree into each tab's `NavigationStack`) |
 | `:webApp` | `app/webApp` | Web app (Compose HTML, webpack): `Main.kt` wires the graph, `withWebHistory` and the theme |
+| `:mcpServer` | `app/mcpServer` | MCP server for AI agents: a Node program (Kotlin/JS only, stdio) over `core:api`; every write goes through `PublishGate` (dry run, rate limit, AI disclosure) |
 | `:sharedLogic` | `shared/logic` | Composition root: the Metro graph (`AndroidAppGraph`, `IosAppGraph`, `JsAppGraph`), `DomainError.toStringDesc()`, the umbrella exported to iOS (`SharedLogic.framework`) |
 | `:sharedUI` | `shared/ui` | Android Compose UI (Android-only on purpose, code in `androidMain`): `TalkApp`, `TalkTheme`, root content; glass bars and the iOS 26-style tab capsule with Haze Glass (`components/glass`), images with Coil, paged lists with `paging-compose` |
 | `:core:common` | `core/common` | Dispatchers, `Log` (Kermit), Decompose/MVIKotlin helpers, `StoreFactory` binding. Package `com.app.common` |
@@ -64,6 +65,7 @@ feature:root → feature:{auth,post,compose,profile,settings,editprofile}
 every feature → core:domain, core:common
 core:data → core:domain, core:database, core:api → core:nostr
 sharedLogic → features (api, exported) + core:data (implementation, not exported)
+mcpServer → core:api, core:domain
 androidApp → sharedUI → sharedLogic;  webApp → sharedLogic;  iosApp → SharedLogic.framework
 ```
 
@@ -130,6 +132,25 @@ excerpts are derived from the markdown (`PostSummaries`), as in KarpathyTalk.
   app lock, only as a NIP-49 `ncryptsec` (`Nip49`, `@noble/hashes` scrypt + `@noble/ciphers`; JS only). `ChatKeyring` seals
   the chat storage key under the account key. `SecretKey.toString()` is redacted.
   Android backups are off (`allowBackup="false"`).
+
+## MCP server (`app/mcpServer`)
+
+Lets AI agents use Talk. Setup and client configuration: [README](README.md#mcp-server-for-ai-agents).
+
+- **Stack:** Kotlin/JS on Node, so it runs the same `core:nostr` and `core:api` as the web app, wired by a Metro graph
+  (`McpGraph`, over `NostrBindings` and `ApiBindings`). It is JS-only, so it uses the plain Kotlin plugin rather than
+  `local.kotlin.multiplatform`. The JSON-RPC layer (`protocol/`) is written by hand: the MCP Kotlin SDK's stdio transport
+  pulls blocking kotlinx-io streams, which would stall relay sockets on Node's single thread, and it brings a Ktor server.
+- **Writes:** `TalkWriter` and `TalkChats` build events with `TalkEvents` and send them through `PublishGate`: dry run
+  unless `TALK_MCP_PUBLISH=true` (operator only, no tool can change it), then `RateLimiter`, then `AgentIdentity`.
+- **AI disclosure:** see "AI agents" in the protocol doc. Do not add a tool or code path that publishes around `PublishGate`.
+- **Keys:** only from `TALK_MCP_KEY_FILE` (owner-only, outside any git repository) or `TALK_MCP_SECRET_KEY`. `McpServer`
+  refuses any tool call containing an `nsec`. Logs go to stderr, because stdout is the protocol.
+- **State:** rate-limit times and "this key has a profile/follow list" in `~/.config/talk-mcp/<pubkey>.json`, so a restart
+  does not reset them. Several servers on one key are normal (one per MCP session), so writes and the rate limit's check-and-record
+  take a lockfile; a lock that cannot be taken, or a damaged file, stops publishing.
+- **Tests:** `FakeRelays` is an in-memory `RelayClient` under the real remote sources (`TestGraph`); nothing opens a socket.
+  Tool output is untrusted text from strangers: keep saying so in tool descriptions.
 
 ## Web UI (`app/webApp`, Compose HTML)
 
@@ -225,6 +246,8 @@ Turbine, Mokkery.
 ./gradlew :webApp:jsBrowserDevelopmentRun --continuous     # web app at http://localhost:8080
 ./gradlew :webApp:jsBrowserDistribution                     # production web bundle (build/dist/js)
 ./gradlew :sharedLogic:testAndroidHostTest :sharedLogic:jsTest :sharedLogic:iosSimulatorArm64Test
+./gradlew :mcpServer:jsNodeTest                             # MCP server tests
+./gradlew :mcpServer:jsProductionExecutableCompileSync kotlinNpmInstall   # MCP server: build/js/packages/talk-mcp/kotlin/talk-mcp.js
 ./gradlew kotlinUpgradeYarnLock                             # after npm dependencies change
 ```
 
