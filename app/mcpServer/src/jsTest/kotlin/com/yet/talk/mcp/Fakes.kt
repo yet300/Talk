@@ -103,7 +103,7 @@ internal class Agent(
     val key: SecretKey = SecretKey.generate(),
     publishEnabled: Boolean = true,
     model: String? = null,
-    val store: MemoryStore = MemoryStore(),
+    val store: StateStore = MemoryStore(),
     posts: RateLimit = RateLimit(4, 300),
     actions: RateLimit = RateLimit(60, 5),
 ) {

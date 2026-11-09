@@ -2,7 +2,8 @@ package com.yet.talk.mcp.protocol
 
 import com.yet.talk.mcp.agent.ToolError
 import kotlinx.serialization.json.Json
-import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
@@ -41,13 +42,24 @@ internal class McpServer(
             ?: return if (id == null) null else error(id, INVALID_REQUEST, "Invalid request")
         if (id == null) return null
         val params = request["params"] as? JsonObject ?: JsonObject(emptyMap())
-        return when (method) {
-            "initialize" -> result(id, initialize(params))
-            "ping" -> result(id, JsonObject(emptyMap()))
-            "tools/list" -> result(id, buildJsonObject { put("tools", JsonArray(tools.values.map(::describe))) })
-            "tools/call" -> call(id, params)
-            else -> error(id, METHOD_NOT_FOUND, "Method not found: $method")
+        return answering(id, method) {
+            when (method) {
+                "initialize" -> result(id, initialize(params))
+                "ping" -> result(id, JsonObject(emptyMap()))
+                "tools/list" -> result(id, buildJsonObject { put("tools", JsonArray(tools.values.map(::describe))) })
+                "tools/call" -> call(id, params)
+                else -> error(id, METHOD_NOT_FOUND, "Method not found: $method")
+            }
         }
+    }
+
+    /** A request always gets an answer, whatever fails while it is served. */
+    private suspend fun answering(id: JsonElement, method: String, block: suspend () -> String): String = try {
+        block()
+    } catch (failure: Throwable) {
+        currentCoroutineContext().ensureActive()
+        log("$method failed: ${failure::class.simpleName}")
+        error(id, INTERNAL_ERROR, "Internal error")
     }
 
     private fun initialize(params: JsonObject) = buildJsonObject {
@@ -81,11 +93,10 @@ internal class McpServer(
         }
         val text = try {
             tool.run(arguments).toString()
-        } catch (cancellation: CancellationException) {
-            throw cancellation
         } catch (failure: ToolError) {
             return result(id, toolResult(failure.message.orEmpty(), isError = true))
-        } catch (failure: Exception) {
+        } catch (failure: Throwable) { // Throwable: on JS, errors from Node (such as `fs`) are not Kotlin Exceptions
+            currentCoroutineContext().ensureActive()
             log("tool $name failed: ${failure::class.simpleName}")
             return result(id, toolResult("The tool failed unexpectedly.", isError = true))
         }
@@ -125,5 +136,6 @@ internal class McpServer(
         const val INVALID_REQUEST = -32600
         const val METHOD_NOT_FOUND = -32601
         const val INVALID_PARAMS = -32602
+        const val INTERNAL_ERROR = -32603
     }
 }

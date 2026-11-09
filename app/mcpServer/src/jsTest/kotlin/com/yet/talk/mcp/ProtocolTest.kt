@@ -1,12 +1,21 @@
 package com.yet.talk.mcp
 
+import com.yet.talk.mcp.agent.StateStore
+import com.yet.talk.mcp.protocol.McpServer
+import com.yet.talk.mcp.protocol.McpTool
+import com.yet.talk.mcp.protocol.schema
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withTimeout
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonNull
+import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.int
@@ -64,6 +73,39 @@ class ProtocolTest {
         assertTrue(outcome.isError)
         assertFalse(nsec in outcome.text)
         assertTrue(agent.relays.published.isEmpty())
+    }
+
+    private fun serverWith(run: suspend (JsonObject) -> JsonElement) = McpServer(
+        listOf(McpTool("boom", "Fails", schema(), readOnly = true, run)),
+        "",
+        {},
+    )
+
+    private suspend fun McpServer.callBoom(): JsonObject =
+        Json.parseToJsonElement(handle("""{"jsonrpc":"2.0","id":7,"method":"tools/call","params":{"name":"boom"}}""")!!).jsonObject
+
+    @Test
+    fun aNativeJsErrorInAToolStillGetsAnAnswer() = runTest {
+        val answer = serverWith { js("throw new Error('EACCES: permission denied')") }.callBoom()
+        val result = answer.getValue("result").jsonObject
+        assertEquals("true", result.getValue("isError").jsonPrimitive.content)
+        assertFalse("EACCES" in result.toString(), "Node error text stays out of the answer")
+    }
+
+    @Test
+    fun aTimeoutInsideAToolIsAnErrorNotASilentCancellation() = runTest {
+        val answer = serverWith { withTimeout(1) { delay(1_000); JsonNull } }.callBoom()
+        assertEquals("true", answer.getValue("result").jsonObject.getValue("isError").jsonPrimitive.content)
+    }
+
+    @Test
+    fun aDamagedStateStoreThatThrowsNativelyIsAToolError() = runTest {
+        val store = object : StateStore {
+            override fun load(): String? = js("throw new Error('EIO')")
+            override fun save(text: String) = Unit
+        }
+        val outcome = Agent(store = store).call("talk_publish_post", "markdown" to JsonPrimitive("Hello"))
+        assertTrue(outcome.isError)
     }
 
     @Test
