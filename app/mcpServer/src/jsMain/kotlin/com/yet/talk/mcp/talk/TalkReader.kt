@@ -28,15 +28,15 @@ internal enum class SearchKind { Posts, Profiles }
 internal class TalkReader(private val sources: TalkSources, private val me: String, private val now: () -> Long) {
 
     suspend fun feed(kind: FeedKind, until: Long?, limit: Int): JsonObject {
-        val posts = when (kind) {
-            FeedKind.Latest -> topLevel(sources.posts.timeline(null, until, limit * OVERFETCH), limit)
+        return when (kind) {
+            FeedKind.Latest -> page(topLevel(sources.posts.timeline(null, until, limit * OVERFETCH), limit))
             FeedKind.Following -> {
                 val following = sources.social.lists(me).filterIsInstance<TalkEvent.Contacts>().firstOrNull()?.pubkeys.orEmpty()
-                topLevel(sources.posts.timeline(following, until, limit * OVERFETCH), limit)
+                page(topLevel(sources.posts.timeline(following, until, limit * OVERFETCH), limit))
             }
-            FeedKind.Trending -> trending(limit)
+            // A ranking has no time cursor to continue from.
+            FeedKind.Trending -> page(trending(limit), hasCursor = false)
         }
-        return page(posts)
     }
 
     suspend fun post(id: String): JsonObject {
@@ -106,16 +106,15 @@ internal class TalkReader(private val sources: TalkSources, private val me: Stri
         val time = now()
         val since = time - TrendingRanker.WINDOW.inWholeSeconds
         val candidates = topLevel(sources.posts.since(since, TRENDING_FETCH), TRENDING_FETCH).associateBy { it.event.id }
-        val engagements = sources.posts.related(candidates.keys).mapNotNull { event ->
-            when (event) {
-                is TalkEvent.Reaction -> {
-                    val type = if (event.type == TalkEvent.Reaction.Type.Like) TrendingRanker.Engagement.Type.Like else TrendingRanker.Engagement.Type.Repost
-                    TrendingRanker.Engagement(PostId(event.postId), UserId(event.event.pubkey), type)
-                }
-                is TalkEvent.Post -> event.thread.parent?.let { TrendingRanker.Engagement(PostId(it), UserId(event.event.pubkey), TrendingRanker.Engagement.Type.Reply) }
-                else -> null
-            }
+        val related = sources.posts.related(candidates.keys)
+        val reactions = sources.posts.standingReactions(related).map { reaction ->
+            val type = if (reaction.type == TalkEvent.Reaction.Type.Like) TrendingRanker.Engagement.Type.Like else TrendingRanker.Engagement.Type.Repost
+            TrendingRanker.Engagement(PostId(reaction.postId), UserId(reaction.event.pubkey), type)
         }
+        val replies = related.filterIsInstance<TalkEvent.Post>().mapNotNull { reply ->
+            reply.thread.parent?.let { TrendingRanker.Engagement(PostId(it), UserId(reply.event.pubkey), TrendingRanker.Engagement.Type.Reply) }
+        }
+        val engagements = reactions + replies
         val ranked = TrendingRanker.rank(
             candidates.values.map { TrendingRanker.Candidate(PostId(it.event.id), UserId(it.event.pubkey), Instant.fromEpochSeconds(it.event.createdAt)) },
             engagements,
@@ -124,13 +123,13 @@ internal class TalkReader(private val sources: TalkSources, private val me: Stri
         return ranked.take(limit).mapNotNull { candidates[it.postId.value] }
     }
 
-    private suspend fun page(posts: List<TalkEvent.Post>): JsonObject {
+    private suspend fun page(posts: List<TalkEvent.Post>, hasCursor: Boolean = true): JsonObject {
         val attached = attachments(posts)
         val visible = posts.filter { it.event.id !in attached.deleted }
         val authors = authors(visible)
         return buildJsonObject {
             put("posts", JsonArray(visible.map { postJson(it, attached, authors) }))
-            posts.lastOrNull()?.let { put("next_until", it.event.createdAt - 1) }
+            if (hasCursor) posts.lastOrNull()?.let { put("next_until", it.event.createdAt - 1) }
         }
     }
 
@@ -145,7 +144,7 @@ internal class TalkReader(private val sources: TalkSources, private val me: Stri
         val revisions = related.filterIsInstance<TalkEvent.Revision>().filter { authorOf[it.postId] == it.event.pubkey }.groupBy { it.postId }
             .mapValues { (_, list) -> list.maxWith(compareBy({ it.number }, { it.event.createdAt })) }
         val deleted = related.filterIsInstance<TalkEvent.Deletion>().flatMap { deletion -> deletion.eventIds.filter { authorOf[it] == deletion.event.pubkey } }.toSet()
-        val reactions = related.filterIsInstance<TalkEvent.Reaction>()
+        val reactions = sources.posts.standingReactions(related)
         fun count(type: TalkEvent.Reaction.Type) = reactions.filter { it.type == type }.distinctBy { it.postId to it.event.pubkey }.groupingBy { it.postId }.eachCount()
         val replies = related.filterIsInstance<TalkEvent.Post>().mapNotNull { it.thread.parent }.groupingBy { it }.eachCount()
         return Attachments(revisions, deleted, count(TalkEvent.Reaction.Type.Like), count(TalkEvent.Reaction.Type.Repost), replies)

@@ -284,6 +284,30 @@ class PublishingTest {
     }
 
     @Test
+    fun aLikeCanBeRepeatedAfterItWasUndone() = runTest {
+        val agent = Agent()
+        val post = agent.relays.seedPost()
+        agent.call("talk_like", "post_id" to text(post.id))
+        val first = agent.events(Kinds.REACTION).single()
+        agent.relays.seed(agent.key, TalkEvents.delete(mapOf(first.id to Kinds.REACTION), agent.clock.seconds))
+        agent.advance(10)
+        assertFalse(agent.call("talk_like", "post_id" to text(post.id)).isError)
+        assertEquals(2, agent.events(Kinds.REACTION).size)
+    }
+
+    @Test
+    fun anotherPersonsDeletionDoesNotUndoALike() = runTest {
+        val agent = Agent()
+        val post = agent.relays.seedPost()
+        agent.call("talk_like", "post_id" to text(post.id))
+        val first = agent.events(Kinds.REACTION).single()
+        agent.relays.seed(other, TalkEvents.delete(mapOf(first.id to Kinds.REACTION), agent.clock.seconds))
+        agent.advance(10)
+        agent.call("talk_like", "post_id" to text(post.id))
+        assertEquals(1, agent.events(Kinds.REACTION).size)
+    }
+
+    @Test
     fun aFollowKeepsTheListAndIsNewerThanIt() = runTest {
         val agent = Agent()
         val friend = SecretKey.generate().publicKey

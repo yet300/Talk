@@ -63,10 +63,10 @@ internal fun talkTools(
     },
     McpTool(
         "talk_read_feed",
-        "Top-level posts of a Talk feed, newest first (trending: by score).$UNTRUSTED",
+        "Top-level posts of a Talk feed, newest first. Trending is ordered by score and is a single page: until does not apply to it and it returns no next_until.$UNTRUSTED",
         schema {
             string("feed", "Which feed; latest when omitted.", choices = listOf("latest", "following", "trending"))
-            integer("until", "Only posts at or before this Unix time: the next_until of the previous page.")
+            integer("until", "Latest and following only: posts at or before this Unix time, the next_until of the previous page.")
             integer("limit", "How many posts, 1 to 50; 20 when omitted.")
         },
         readOnly = true,

@@ -55,8 +55,8 @@ internal class TalkWriter(
 
     suspend fun like(postId: String): JsonObject {
         val post = target(postId)
-        val liked = sources.posts.related(listOf(postId)).any {
-            it is TalkEvent.Reaction && it.postId == postId && it.type == TalkEvent.Reaction.Type.Like && it.event.pubkey == me
+        val liked = sources.posts.standingReactions(sources.posts.related(listOf(postId))).any {
+            it.postId == postId && it.type == TalkEvent.Reaction.Type.Like && it.event.pubkey == me
         }
         if (liked) return unchanged("You already liked this post")
         return publish(Budget.Actions, TalkEvents.like(post.event, now()))

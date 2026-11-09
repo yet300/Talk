@@ -99,6 +99,56 @@ class ReadingTest {
     }
 
     @Test
+    fun anUndoneLikeIsNotCounted() = runTest {
+        val original = post("Post")
+        val fan = SecretKey.generate()
+        val like = agent.relays.seed(fan, TalkEvents.like(original, 1_700_000_010))
+        agent.relays.seed(agent.key, TalkEvents.like(original, 1_700_000_020))
+        agent.relays.seed(fan, TalkEvents.delete(mapOf(like.id to Kinds.REACTION), 1_700_000_030))
+        val shown = agent.call("talk_read_post", "post_id" to text(original.id)).json.getValue("post").jsonObject
+        assertEquals(1, shown.getValue("likes").jsonPrimitive.int)
+    }
+
+    @Test
+    fun onlyTheAuthorOfALikeCanUndoIt() = runTest {
+        val original = post("Post")
+        val like = agent.relays.seed(SecretKey.generate(), TalkEvents.like(original, 1_700_000_010))
+        agent.relays.seed(SecretKey.generate(), TalkEvents.delete(mapOf(like.id to Kinds.REACTION), 1_700_000_030))
+        val shown = agent.call("talk_read_post", "post_id" to text(original.id)).json.getValue("post").jsonObject
+        assertEquals(1, shown.getValue("likes").jsonPrimitive.int)
+    }
+
+    @Test
+    fun anUndoneRepostIsNotCounted() = runTest {
+        val original = post("Post")
+        val fan = SecretKey.generate()
+        val repost = agent.relays.seed(fan, TalkEvents.repost(original, 1_700_000_010))
+        agent.relays.seed(fan, TalkEvents.delete(mapOf(repost.id to Kinds.REPOST), 1_700_000_030))
+        val shown = agent.call("talk_read_post", "post_id" to text(original.id)).json.getValue("post").jsonObject
+        assertEquals(0, shown.getValue("reposts").jsonPrimitive.int)
+    }
+
+    @Test
+    fun anUndoneLikeDoesNotMakeAPostTrend() = runTest {
+        val now = agent.clock.seconds
+        val original = post("Post", now - 100)
+        val fan = SecretKey.generate()
+        val like = agent.relays.seed(fan, TalkEvents.like(original, now - 50))
+        agent.relays.seed(fan, TalkEvents.delete(mapOf(like.id to Kinds.REACTION), now - 10))
+        assertTrue(agent.call("talk_read_feed", "feed" to text("trending")).json.posts().isEmpty())
+    }
+
+    @Test
+    fun trendingHasNoCursor() = runTest {
+        val now = agent.clock.seconds
+        val popular = post("Popular", now - 200)
+        agent.relays.seed(agent.key, TalkEvents.like(popular, now - 50))
+        val page = agent.call("talk_read_feed", "feed" to text("trending")).json
+        assertEquals(1, page.posts().size)
+        assertFalse("next_until" in page)
+    }
+
+    @Test
     fun aProfileSaysWhetherItIsABot() = runTest {
         agent.relays.seed(author, EventTemplate(Kinds.METADATA, """{"name":"Scout","bot":true}""", emptyList(), 1_700_000_000))
         post("Mine")
