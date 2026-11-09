@@ -58,8 +58,33 @@ class DisclosureTest {
     }
 
     @Test
-    fun anAlreadyLabelledNameIsLeftAlone() {
-        assertEquals("Paper Bot", build(Disclosure.Edit(displayName = "Paper Bot")).text("display_name"))
+    fun theMarkIsNotAddedTwice() {
+        assertEquals("Paper Reader (AI)", build(Disclosure.Edit(displayName = "Paper Reader (AI)")).text("display_name"))
+    }
+
+    @Test
+    fun wordsInTheNameDoNotCountAsTheMark() {
+        assertEquals("Maria, Travel Agent (AI)", build(Disclosure.Edit(displayName = "Maria, Travel Agent")).text("display_name"))
+        assertEquals("Not a bot (AI)", build(Disclosure.Edit(displayName = "Not a bot")).text("display_name"))
+    }
+
+    @Test
+    fun textAfterTheDisclosureOnTheSameLineIsKept() {
+        assertEquals("${Disclosure.ABOUT_LINE}\nReads papers", build(Disclosure.Edit(about = "${Disclosure.ABOUT_LINE} Reads papers")).text("about"))
+    }
+
+    @Test
+    fun theModelPartIsNotRepeated() {
+        val head = "${Disclosure.ABOUT_LINE} Model: Claude Opus 5.5."
+        assertEquals("$head\nReads papers", build(Disclosure.Edit(about = "$head Reads papers"), model = "Claude Opus 5.5").text("about"))
+        assertEquals("$head\nReads papers", build(Disclosure.Edit(about = "$head\nReads papers"), model = "Claude Opus 5.5").text("about"))
+        assertEquals(head, build(Disclosure.Edit(about = head), model = "Claude Opus 5.5").text("about"))
+    }
+
+    @Test
+    fun aChangedModelReplacesTheOldOne() {
+        val about = "${Disclosure.ABOUT_LINE} Model: Claude Opus 5.5.\nReads papers"
+        assertEquals("${Disclosure.ABOUT_LINE} Model: Claude Fable 5.1.\nReads papers", build(Disclosure.Edit(about = about), model = "Claude Fable 5.1").text("about"))
     }
 
     @Test

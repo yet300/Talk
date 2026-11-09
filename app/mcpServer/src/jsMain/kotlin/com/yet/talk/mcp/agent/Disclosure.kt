@@ -16,7 +16,7 @@ import kotlinx.serialization.json.jsonPrimitive
 internal object Disclosure {
     const val ABOUT_LINE = "AI agent, not a person."
     private const val NAME_MARK = " (AI)"
-    private val NAMED_AS_AI = Regex("""(^|[^\p{L}\p{N}])(AI|bot|agent)($|[^\p{L}\p{N}])""", RegexOption.IGNORE_CASE)
+    private val MODEL_PART = Regex("""^Model: [^\n]*?\.(\s+|$)""")
 
     /** What an agent passes to `talk_set_profile`; a null field keeps the current value. */
     data class Edit(
@@ -64,13 +64,13 @@ internal object Disclosure {
 
     private fun disclosedAbout(about: String?, model: String?): String {
         val head = if (model != null) "$ABOUT_LINE Model: $model." else ABOUT_LINE
-        val rest = if (about?.startsWith(ABOUT_LINE) == true) about.substringAfter('\n', "") else about.orEmpty()
+        val rest = about.orEmpty().trim().removePrefix(ABOUT_LINE).trimStart().replace(MODEL_PART, "").trim()
         return if (rest.isBlank()) head else "$head\n$rest"
     }
 
-    // Post cards show the display name, not the about line, so the label has to be there too.
-    private fun markAsAi(displayName: String): String =
-        if (NAMED_AS_AI.containsMatchIn(displayName)) displayName else displayName.trim() + NAME_MARK
+    // Post cards show the display name, not the about line, so the label has to be there too. Words in the name prove
+    // nothing ("Maria, Travel Agent"), so only the mark itself counts.
+    private fun markAsAi(displayName: String): String = displayName.trim().let { if (it.endsWith(NAME_MARK)) it else it + NAME_MARK }
 }
 
 /**
