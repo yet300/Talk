@@ -32,6 +32,8 @@ final class MainRouter: ObservableObject {
 
     /// Profile and Bookmarks are tabs of their own (wide windows, the Duo's vertical bar) rather than pages above Home.
     var profileIsTab = false { didSet { if oldValue != profileIsTab { rebuild() } } }
+    private var paneGeneration = 0
+
     /// Chats shows the list and the conversation side by side, so its pane is not a page.
     var chatsSideBySide = false { didSet { if oldValue != chatsSideBySide { rebuild() } } }
 
@@ -70,6 +72,15 @@ final class MainRouter: ObservableObject {
             details.onBack()
         case .chatPane(let chats):
             if let pane = chats.pane.value.child?.instance { Self.close(pane) }
+            // Info and Verify go back to another pane, but the stack has already popped this page: push it again.
+            // After this update: the stack ignores a new path while it is applying the pop.
+            if chats.pane.value.child != nil {
+                DispatchQueue.main.async { [weak self] in
+                    guard let self else { return }
+                    self.paneGeneration += 1
+                    self.rebuild()
+                }
+            }
         case .root:
             root.onBack()
         }
@@ -120,7 +131,7 @@ final class MainRouter: ObservableObject {
                 watched.insert("pane")
                 watcher.watch("pane", chats.pane)
                 if chats.pane.value.child?.instance != nil {
-                    routes.append(Route(key: "pane:\(ObjectIdentifier(chats))", kind: .chatPane(chats)))
+                    routes.append(Route(key: "pane:\(ObjectIdentifier(chats)):\(paneGeneration)", kind: .chatPane(chats)))
                 }
             }
         }
