@@ -18,3 +18,8 @@ captures
 **/xcshareddata/WorkspaceSettings.xcsettings
 node_modules/
 
+
+# Release signing: never commit these
+*.jks
+*.keystore
+app/androidApp/release/

@@ -2,6 +2,7 @@ package com.yet.talk.web.ui.components.video
 
 import androidx.compose.runtime.Composable
 import com.yet.talk.domain.model.video.Video
+import com.yet.talk.web.appUrl
 import org.jetbrains.compose.web.dom.A
 import org.jetbrains.compose.web.dom.Div
 import org.jetbrains.compose.web.dom.Img
@@ -10,7 +11,7 @@ import org.jetbrains.compose.web.dom.Text
 /** A catalog video (`VideoCard`): thumbnail, title, `channel · category · level`, why HN recommends it. Opens the video page. */
 @Composable
 fun VideoCard(video: Video, onOpen: (String) -> Unit) {
-    A(href = "/video/${video.id}", attrs = {
+    A(href = appUrl("/video/${video.id}"), attrs = {
         classes("t-video-card")
         onClick { it.preventDefault(); onOpen(video.id) }
     }) {

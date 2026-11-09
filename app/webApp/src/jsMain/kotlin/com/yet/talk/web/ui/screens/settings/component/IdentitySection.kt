@@ -7,6 +7,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import com.yet.talk.feature.settings.SettingsComponent
 import com.yet.talk.resources.*
+import com.yet.talk.web.appUrl
 import com.yet.talk.web.browser.copyToClipboard
 import com.yet.talk.web.ui.components.Avatar
 import com.yet.talk.web.ui.components.ButtonStyle
@@ -39,7 +40,7 @@ fun IdentitySection(model: SettingsComponent.Model, component: SettingsComponent
         }
         TalkButton(stringResource(MR.strings.settings_sign_out), { signingOut = true }, ButtonStyle.Secondary, enabled = !model.isWorking)
     }
-    A(href = "/settings/profile", attrs = {
+    A(href = appUrl("/settings/profile"), attrs = {
         classes("t-row")
         onClick { it.preventDefault(); component.onEditProfile() }
     }) { Span({ classes("t-row-text", "x-name") }) { Text(stringResource(MR.strings.action_edit_profile)) } }

@@ -11,15 +11,18 @@
       only frame is YouTube's privacy-enhanced player, after Play on a video card.
     -->
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; worker-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' https: data: blob:; connect-src 'self' https: wss: ws:; font-src 'self'; frame-src https://www.youtube-nocookie.com; object-src 'none'; base-uri 'self'; form-action 'none'">
-    <!-- Paths like /post/<id> are app routes: resolve the bundle and the SQLite worker from the site root. -->
-    <base href="/">
+    <!-- Paths like /post/<id> are app routes: every relative URL (the bundle, the styles, the SQLite worker) resolves from the site root, filled in by the build. -->
+    <base href="${basePath}">
     <title>Talk</title>
-    <link rel="stylesheet" href="/styles/x-components.css">
-    <link rel="stylesheet" href="/styles/talk.css">
-    <link rel="stylesheet" href="/styles/app.css">
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <link rel="stylesheet" href="styles/x-components.css">
+    <link rel="stylesheet" href="styles/talk.css">
+    <link rel="stylesheet" href="styles/app.css">
 </head>
 <body>
     <div id="root"></div>
-    <script src="/webApp.js"></script>
+    <script src="webApp.js"></script>
 </body>
 </html>

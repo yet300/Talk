@@ -6,6 +6,7 @@ import com.yet.talk.web.ui.components.NavPill
 import androidx.compose.runtime.Composable
 import com.yet.talk.feature.tab.main.component.tabs.TabsComponent
 import com.yet.talk.resources.*
+import com.yet.talk.web.appUrl
 import com.yet.talk.web.browser.trackScroll
 import com.yet.talk.web.ui.components.Avatar
 import com.yet.talk.web.ui.components.AvatarSize
@@ -72,7 +73,7 @@ fun MobileHomeHeader(me: TabsComponent.Me, actions: RailActions) {
 fun ComposeFab(actions: RailActions) {
     val label = stringResource(MR.strings.action_compose)
     Div({ classes("t-fab") }) {
-        A(href = "/compose", attrs = {
+        A(href = appUrl("/compose"), attrs = {
             classes("x-fab")
             attr("aria-label", label)
             onClick { it.preventDefault(); actions.onCompose() }

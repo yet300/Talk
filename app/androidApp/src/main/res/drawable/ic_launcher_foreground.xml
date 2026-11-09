@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The app's mark: a speech bubble with a T cut out of it, inside the adaptive icon's 66 dp safe zone. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:fillColor="#FFFFFF"
+        android:fillType="evenOdd"
+        android:pathData="M42,33H66A10,10 0 0 1 76,43V59A10,10 0 0 1 66,69H54L40,79V69H42A10,10 0 0 1 32,59V43A10,10 0 0 1 42,33ZM42,41.5V48H50.75V61.5H57.25V48H66V41.5Z" />
+</vector>

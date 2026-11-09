@@ -6,6 +6,7 @@ import com.yet.talk.web.ui.components.NavPill
 import androidx.compose.runtime.Composable
 import com.yet.talk.feature.tab.main.component.tabs.TabsComponent
 import com.yet.talk.resources.*
+import com.yet.talk.web.appUrl
 import com.yet.talk.web.ui.components.Avatar
 import com.yet.talk.web.ui.theme.TalkIcon
 import com.yet.talk.web.ui.theme.TalkIcons
@@ -44,7 +45,7 @@ fun Rail(selection: RailSelection, me: TabsComponent.Me, actions: RailActions) {
     val composeLabel = stringResource(MR.strings.action_compose)
     val identityLabel = stringResource(MR.strings.settings_identity)
     Nav({ classes("t-part", "t-rail"); attr("aria-label", navLabel) }) {
-        A(href = "/", attrs = {
+        A(href = appUrl("/"), attrs = {
             classes("t-rail-brand", "t-wordmark")
             attr("aria-label", appName)
             onClick { it.preventDefault(); actions.onTab(TabsComponent.Tab.Home) }
@@ -58,7 +59,7 @@ fun Rail(selection: RailSelection, me: TabsComponent.Me, actions: RailActions) {
             }
             RailItem(TalkIcons.Settings, stringResource(MR.strings.action_settings), selection == RailSelection.Settings, onClick = actions.onSettings)
         }
-        A(href = "/compose", attrs = {
+        A(href = appUrl("/compose"), attrs = {
             classes("x-btn", "x-btn-post", "t-rail-post")
             attr("aria-label", composeLabel)
             onClick { it.preventDefault(); actions.onCompose() }
@@ -66,7 +67,7 @@ fun Rail(selection: RailSelection, me: TabsComponent.Me, actions: RailActions) {
             Span({ classes("t-rail-label") }) { Text(composeLabel) }
             Span({ classes("t-rail-post-icon") }) { TalkIcon(TalkIcons.Compose) }
         }
-        A(href = "/settings", attrs = {
+        A(href = appUrl("/settings"), attrs = {
             classes("t-rail-me")
             attr("aria-label", identityLabel)
             onClick { it.preventDefault(); actions.onSettings() }
