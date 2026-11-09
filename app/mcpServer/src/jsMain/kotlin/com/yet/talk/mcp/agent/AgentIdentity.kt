@@ -27,7 +27,7 @@ internal class AgentIdentity(
     suspend fun ensureDisclosed() {
         if (disclosed) return
         val latest = agentProfile()
-        if (latest == null) publish(template(null, Disclosure.Edit())) else state.profileKnown = true
+        if (latest == null) publish(template(null, Disclosure.Edit())) else state.markProfileKnown()
         disclosed = true
     }
 
@@ -38,7 +38,7 @@ internal class AgentIdentity(
         val event = signer.sign(template)
         val result = publisher.publish(event)
         if (!result.isAccepted) throw ToolError("No relay accepted the profile, so nothing else was published.")
-        state.profileKnown = true
+        state.markProfileKnown()
         disclosed = true
         return event to result
     }

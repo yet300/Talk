@@ -70,11 +70,11 @@ internal class TalkWriter(
             if (state.contactsKnown) throw ToolError("Relays returned no follow list for this account although it has one. Try again later.")
             probe.requireAllAnswering()
         }
-        if (current != null) state.contactsKnown = true
+        if (current != null) state.markContactsKnown()
         if (current != null && pubkey in current.pubkeys) return unchanged("You already follow this account")
         val template = contactList(current?.pubkeys.orEmpty() + pubkey, maxOf(now(), (current?.event?.createdAt ?: 0) + 1))
         return gate.run(Budget.Actions, template.toJson()) {
-            sendSigned(template).also { state.contactsKnown = true }
+            sendSigned(template).also { state.markContactsKnown() }
         }
     }
 

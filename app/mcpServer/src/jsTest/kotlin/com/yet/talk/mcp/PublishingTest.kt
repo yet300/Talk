@@ -192,6 +192,35 @@ class PublishingTest {
     }
 
     @Test
+    fun anotherServerPostingBetweenCheckAndRecordWins() = runTest {
+        val store = MemoryStore()
+        val agent = Agent(store = store)
+        val rival = Agent(relays = agent.relays, clock = agent.clock, key = agent.key, store = store)
+        var rivalPosted = false
+        store.beforeExclusive = {
+            if (!rivalPosted) {
+                rivalPosted = true
+                val now = agent.clock.seconds
+                store.text = """{"profile_known":true,"posts":[$now]}"""
+            }
+        }
+        agent.relays.seed(agent.key, EventTemplate(Kinds.METADATA, """{"name":"x","bot":true,"about":"${Disclosure.ABOUT_LINE}"}""", emptyList(), 1_700_000_000))
+        val outcome = rival.call("talk_publish_post", "markdown" to text("one"))
+        assertTrue(outcome.isError, outcome.text)
+        assertTrue("Rate limit" in outcome.text)
+        assertEquals(0, agent.events(Kinds.TEXT_NOTE).size)
+    }
+
+    @Test
+    fun whenTheStateLockCannotBeTakenNothingIsPublished() = runTest {
+        val store = MemoryStore(locked = true)
+        val agent = Agent(store = store)
+        agent.relays.seed(agent.key, EventTemplate(Kinds.METADATA, """{"name":"x","bot":true,"about":"${Disclosure.ABOUT_LINE}"}""", emptyList(), 1_700_000_000))
+        assertTrue(agent.call("talk_publish_post", "markdown" to text("one")).isError)
+        assertTrue(agent.relays.published.isEmpty())
+    }
+
+    @Test
     fun aRefusedPublicationStillCountsAgainstTheLimit() = runTest {
         val agent = Agent()
         agent.relays.seed(agent.key, EventTemplate(Kinds.METADATA, """{"name":"x","bot":true,"about":"${Disclosure.ABOUT_LINE}"}""", emptyList(), 1_700_000_000))

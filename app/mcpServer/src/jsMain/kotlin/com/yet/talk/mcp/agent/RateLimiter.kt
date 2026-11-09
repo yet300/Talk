@@ -19,7 +19,10 @@ internal class RateLimiter(private val state: AgentState, private val limits: Ma
     fun remainingThisHour(budget: Budget, now: Long): Int =
         (limit(budget).perHour - state.times(budget).count { it > now - HOUR }).coerceAtLeast(0)
 
-    fun take(budget: Budget, now: Long) = state.record(budget, now, forgetBefore = now - HOUR)
+    /** Takes one event from [budget] if it allows one now, atomically across servers. The wait in seconds if it does not; 0 once taken. */
+    suspend fun tryTake(budget: Budget, now: Long): Long = state.exclusive {
+        retryAfter(budget, now).also { wait -> if (wait == 0L) state.record(budget, now, forgetBefore = now - HOUR) }
+    }
 
     private companion object {
         const val HOUR = 3600L

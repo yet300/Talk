@@ -2,6 +2,7 @@ package com.yet.talk.mcp
 
 import com.yet.talk.api.source.relay.RelaySelection
 import com.yet.talk.mcp.agent.StateStore
+import com.yet.talk.mcp.agent.ToolError
 import com.yet.talk.mcp.config.McpConfig
 import com.yet.talk.mcp.config.RateLimit
 import com.yet.talk.mcp.di.TalkSources
@@ -79,11 +80,20 @@ internal interface TestGraph : TalkSources {
     }
 }
 
-internal class MemoryStore(var text: String? = null) : StateStore {
+internal class MemoryStore(var text: String? = null, var locked: Boolean = false) : StateStore {
     override fun load(): String? = text
 
     override fun save(text: String) {
         this.text = text
+    }
+
+    /** Runs before the next [exclusive] block, as another server would between a check and a write. */
+    var beforeExclusive: () -> Unit = {}
+
+    override suspend fun <T> exclusive(block: () -> T): T {
+        if (locked) throw ToolError("locked")
+        beforeExclusive()
+        return block()
     }
 }
 

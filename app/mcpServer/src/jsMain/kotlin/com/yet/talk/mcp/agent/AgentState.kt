@@ -15,6 +15,9 @@ internal interface StateStore {
     fun load(): String?
 
     fun save(text: String)
+
+    /** Runs [block] while no other server on this key can write. Throws, running nothing, when that cannot be arranged. */
+    suspend fun <T> exclusive(block: () -> T): T
 }
 
 /** A tool call failed in a way the agent should be told about. The message reaches the agent as it is. */
@@ -24,28 +27,34 @@ internal enum class Budget(val key: String) { Posts("posts"), Actions("actions")
 
 /**
  * What must survive a restart: MCP clients start a new server per session, so limits kept in memory would reset each
- * time. Read from the store on every use, so that two servers running on one key see each other. A file that cannot
- * be read stops publishing rather than resetting the limits.
+ * time, and several servers on one key are normal. Read from the store on every use, and written only inside
+ * [exclusive]. A file that cannot be read stops publishing rather than resetting the limits.
  */
 internal class AgentState(private val store: StateStore) {
 
     fun times(budget: Budget): List<Long> = read()[budget.key]?.jsonArray?.map { it.jsonPrimitive.long }.orEmpty()
 
-    /** Adds [now] to [budget], dropping times at or before [forgetBefore]. */
+    suspend fun <T> exclusive(block: () -> T): T = store.exclusive(block)
+
+    /** Adds [now] to [budget], dropping times at or before [forgetBefore]. Only inside [exclusive]. */
     fun record(budget: Budget, now: Long, forgetBefore: Long) {
         val kept = times(budget).filter { it > forgetBefore } + now
         write(budget.key to JsonArray(kept.map(::JsonPrimitive)))
     }
 
     /** True once this key is known to have a profile on relays: finding none later means relays are incomplete. */
-    var profileKnown: Boolean
-        get() = flag(PROFILE)
-        set(value) = write(PROFILE to JsonPrimitive(value))
+    val profileKnown: Boolean get() = flag(PROFILE)
+
+    suspend fun markProfileKnown() {
+        if (!profileKnown) exclusive { write(PROFILE to JsonPrimitive(true)) }
+    }
 
     /** The same for the follow list, which a new version replaces whole. */
-    var contactsKnown: Boolean
-        get() = flag(CONTACTS)
-        set(value) = write(CONTACTS to JsonPrimitive(value))
+    val contactsKnown: Boolean get() = flag(CONTACTS)
+
+    suspend fun markContactsKnown() {
+        if (!contactsKnown) exclusive { write(CONTACTS to JsonPrimitive(true)) }
+    }
 
     private fun flag(key: String) = read()[key]?.jsonPrimitive?.booleanOrNull == true
 

@@ -17,7 +17,10 @@ internal external fun realpathSync(path: String): String
 
 internal external fun statSync(path: String): Stats
 
+internal external fun unlinkSync(path: String)
+
 internal external interface Stats {
     val mode: Int
+    val mtimeMs: Double
     fun isFile(): Boolean
 }

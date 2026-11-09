@@ -8,6 +8,7 @@ import com.yet.talk.mcp.config.RateLimit
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlinx.coroutines.test.runTest
 
 class RateLimiterTest {
     private val store = MemoryStore()
@@ -16,35 +17,43 @@ class RateLimiterTest {
         RateLimiter(AgentState(store), mapOf(Budget.Posts to RateLimit(perHour, gap), Budget.Actions to RateLimit(100, 1)))
 
     @Test
-    fun waitsOutTheGapBetweenPosts() {
+    fun waitsOutTheGapBetweenPosts() = runTest {
         val limiter = limiter()
         assertEquals(0, limiter.retryAfter(Budget.Posts, 1_000))
-        limiter.take(Budget.Posts, 1_000)
+        assertEquals(0, limiter.tryTake(Budget.Posts, 1_000))
         assertEquals(60, limiter.retryAfter(Budget.Posts, 1_000))
         assertEquals(10, limiter.retryAfter(Budget.Posts, 1_050))
         assertEquals(0, limiter.retryAfter(Budget.Posts, 1_060))
     }
 
     @Test
-    fun capsPostsPerHourUntilTheOldestLeavesTheWindow() {
+    fun capsPostsPerHourUntilTheOldestLeavesTheWindow() = runTest {
         val limiter = limiter()
-        limiter.take(Budget.Posts, 1_000)
-        limiter.take(Budget.Posts, 1_100)
+        limiter.tryTake(Budget.Posts, 1_000)
+        limiter.tryTake(Budget.Posts, 1_100)
         assertEquals(3_500, limiter.retryAfter(Budget.Posts, 1_100))
         assertEquals(0, limiter.remainingThisHour(Budget.Posts, 1_100))
         assertEquals(0, limiter.retryAfter(Budget.Posts, 4_600))
     }
 
     @Test
-    fun limitsSurviveARestart() {
-        limiter().take(Budget.Posts, 1_000)
+    fun limitsSurviveARestart() = runTest {
+        limiter().tryTake(Budget.Posts, 1_000)
         assertEquals(60, limiter().retryAfter(Budget.Posts, 1_000))
     }
 
     @Test
-    fun budgetsAreSeparate() {
-        limiter().take(Budget.Posts, 1_000)
+    fun budgetsAreSeparate() = runTest {
+        limiter().tryTake(Budget.Posts, 1_000)
         assertEquals(0, limiter().retryAfter(Budget.Actions, 1_000))
+    }
+
+    @Test
+    fun aRefusedTakeRecordsNothing() = runTest {
+        val limiter = limiter()
+        limiter.tryTake(Budget.Posts, 1_000)
+        assertEquals(30, limiter.tryTake(Budget.Posts, 1_030))
+        assertEquals(1, 2 - limiter.remainingThisHour(Budget.Posts, 1_030))
     }
 
     @Test

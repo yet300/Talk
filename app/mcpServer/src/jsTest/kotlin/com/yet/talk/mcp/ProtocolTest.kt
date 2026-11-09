@@ -103,6 +103,7 @@ class ProtocolTest {
         val store = object : StateStore {
             override fun load(): String? = js("throw new Error('EIO')")
             override fun save(text: String) = Unit
+            override suspend fun <T> exclusive(block: () -> T): T = block()
         }
         val outcome = Agent(store = store).call("talk_publish_post", "markdown" to JsonPrimitive("Hello"))
         assertTrue(outcome.isError)

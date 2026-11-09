@@ -28,11 +28,15 @@ internal class PublishGate(
     ): JsonObject = lock.withLock {
         val wait = limiter.retryAfter(budget, now())
         if (!publishEnabled) return@withLock dryRun(preview, wait)
-        if (wait > 0) throw ToolError("Rate limit: nothing was published. Try again in $wait seconds.")
+        if (wait > 0) throw rateLimited(wait)
         if (requireDisclosure) identity.ensureDisclosed()
-        limiter.take(budget, now())
+        // The check above only saves work; this one decides, because another server on this key may have just posted.
+        val taken = limiter.tryTake(budget, now())
+        if (taken > 0) throw rateLimited(taken)
         publish()
     }
+
+    private fun rateLimited(wait: Long) = ToolError("Rate limit: nothing was published. Try again in $wait seconds.")
 
     private fun dryRun(preview: JsonObject, wait: Long) = buildJsonObject {
         put("dry_run", true)
